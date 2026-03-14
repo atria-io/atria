@@ -10,12 +10,13 @@ import {
   listConfiguredOAuthProviders
 } from "./oauth.js";
 import { createDbAuthStore, type AuthStore } from "./store.js";
-import type { AuthSession, OAuthProfile, OAuthProviderId, OAuthState } from "./types.js";
+import type { OAuthProfile, OAuthProviderId, OAuthState } from "./types.js";
 import { validateLoginCredentials, validateRegisterCredentials } from "./validation.js";
 
 const SESSION_COOKIE_NAME = "atria_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 const OAUTH_STATE_MAX_AGE_MS = 10 * 60 * 1000;
+const SESSION_PRUNE_INTERVAL_MS = 60 * 1000;
 
 interface CreateAuthRuntimeOptions {
   projectRoot: string;
@@ -128,27 +129,29 @@ const createSessionCookie = (sessionId: string): string =>
 
 const createSessionResult = async (
   store: AuthStore,
-  sessions: Map<string, AuthSession>,
-  request: IncomingMessage
+  request: IncomingMessage,
+  pruneExpiredSessions: () => Promise<void>
 ): Promise<SessionResult> => {
   const sessionId = readRequestSessionId(request);
   if (!sessionId) {
     return { authenticated: false, user: null };
   }
 
-  const session = sessions.get(sessionId);
+  await pruneExpiredSessions();
+
+  const session = await store.getSessionById(sessionId);
   if (!session) {
     return { authenticated: false, user: null };
   }
 
   if (Date.parse(session.expiresAt) <= nowMs()) {
-    sessions.delete(session.id);
+    await store.deleteSessionById(session.id);
     return { authenticated: false, user: null };
   }
 
   const user = await store.getUserById(session.userId);
   if (!user) {
-    sessions.delete(session.id);
+    await store.deleteSessionById(session.id);
     return { authenticated: false, user: null };
   }
 
@@ -295,14 +298,26 @@ const exchangeBrokerCode = async (brokerOrigin: string, code: string): Promise<O
 
 export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntime => {
   const store = createDbAuthStore(options.projectRoot);
-  const sessions = new Map<string, AuthSession>();
   const oauthStates = new Map<string, OAuthState>();
+  let lastExpiredSessionCleanupAt = 0;
 
-  const issueSession = (userId: string): string => {
+  const pruneExpiredSessionsIfNeeded = async (): Promise<void> => {
+    const now = nowMs();
+    if (now - lastExpiredSessionCleanupAt < SESSION_PRUNE_INTERVAL_MS) {
+      return;
+    }
+
+    lastExpiredSessionCleanupAt = now;
+    await store.deleteExpiredSessions(new Date(now).toISOString());
+  };
+
+  const issueSession = async (userId: string): Promise<string> => {
+    await pruneExpiredSessionsIfNeeded();
+
     const sessionId = makeSessionId();
     const createdAt = new Date().toISOString();
     const expiresAt = new Date(nowMs() + SESSION_MAX_AGE_SECONDS * 1000).toISOString();
-    sessions.set(sessionId, {
+    await store.createSession({
       id: sessionId,
       userId,
       createdAt,
@@ -405,7 +420,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       const profile = await getOAuthProfileFromCode(provider, code, callbackUrl);
       const user = await store.upsertOAuthProfile(profile);
       await store.clearPreferredAuthMethod();
-      const sessionId = issueSession(user.id);
+      const sessionId = await issueSession(user.id);
 
       writeRedirect(response, state.redirectPath || "/", createSessionCookie(sessionId));
     } catch (error) {
@@ -449,7 +464,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       const profile = await exchangeBrokerCode(brokerOrigin, code);
       const user = await store.upsertOAuthProfile(profile);
       await store.clearPreferredAuthMethod();
-      const sessionId = issueSession(user.id);
+      const sessionId = await issueSession(user.id);
 
       response.writeHead(200, {
         "content-type": "application/json; charset=utf-8",
@@ -490,7 +505,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     }
   };
 
-  const respondAuthenticated = (
+  const respondAuthenticated = async (
     response: ServerResponse,
     user: {
       id: string;
@@ -498,8 +513,8 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       name: string | null;
       avatarUrl: string | null;
     }
-  ): void => {
-    const sessionId = issueSession(user.id);
+  ): Promise<void> => {
+    const sessionId = await issueSession(user.id);
     response.writeHead(200, {
       "content-type": "application/json; charset=utf-8",
       "set-cookie": createSessionCookie(sessionId)
@@ -554,7 +569,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       }
 
       await store.clearPreferredAuthMethod();
-      respondAuthenticated(response, {
+      await respondAuthenticated(response, {
         id: registration.user.id,
         email: registration.user.email,
         name: registration.user.name,
@@ -606,7 +621,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
         return;
       }
 
-      respondAuthenticated(response, userWithPassword.user);
+      await respondAuthenticated(response, userWithPassword.user);
     } catch (error) {
       writeJson(response, 500, {
         ok: false,
@@ -621,7 +636,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     getOwnerSetupState: (): Promise<OwnerSetupState> => store.getOwnerSetupState(),
 
     getSession: (request: IncomingMessage): Promise<SessionResult> =>
-      createSessionResult(store, sessions, request),
+      createSessionResult(store, request, pruneExpiredSessionsIfNeeded),
 
     close: async (): Promise<void> => {
       await store.close();
@@ -658,14 +673,14 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       }
 
       if (pathname === "/api/auth/session") {
-        writeJson(response, 200, await createSessionResult(store, sessions, request));
+        writeJson(response, 200, await createSessionResult(store, request, pruneExpiredSessionsIfNeeded));
         return true;
       }
 
       if (pathname === "/api/auth/logout") {
         const sessionId = readRequestSessionId(request);
         if (sessionId) {
-          sessions.delete(sessionId);
+          await store.deleteSessionById(sessionId);
         }
         response.writeHead(204, {
           "set-cookie": clearSessionCookie()

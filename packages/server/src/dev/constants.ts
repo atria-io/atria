@@ -18,6 +18,7 @@ export const MIME_TYPES: Record<string, string> = {
 
 export const DEFAULT_NOT_FOUND_TEXT = "404: The requested page was not found.";
 export const DEFAULT_PUBLIC_UNAVAILABLE_TEXT = "503: Public site output is not published yet.";
+export const DEFAULT_INTERNAL_SERVER_ERROR_TEXT = "500: Internal server error.";
 // Keep this switch isolated so LIVE unpublished<->published behavior is easy to remove later.
 export const ENABLE_LIVE_PUBLISH_TRANSITION = true;
 

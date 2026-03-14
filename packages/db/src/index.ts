@@ -9,6 +9,7 @@ export { AUTH_META_KEYS } from "./auth/keys.js";
 export type {
   DatabaseUser,
   DatabaseUserWithPassword,
+  DatabaseSession,
   DatabaseOwnerRegistrationResult,
   DatabaseOwnerRegistrationFailureReason,
   DatabaseDriver,

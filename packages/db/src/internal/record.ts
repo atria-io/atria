@@ -1,4 +1,4 @@
-import type { DatabaseUser, DatabaseUserWithPassword } from "../database.js";
+import type { DatabaseSession, DatabaseUser, DatabaseUserWithPassword } from "../database.js";
 
 export const asRecord = (value: unknown): Record<string, unknown> | null =>
   typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
@@ -54,5 +54,33 @@ export const rowToUserWithPassword = (rowValue: unknown): DatabaseUserWithPasswo
   return {
     user,
     passwordHash
+  };
+};
+
+export const rowToSession = (rowValue: unknown): DatabaseSession | null => {
+  const row = asRecord(rowValue);
+  if (!row) {
+    return null;
+  }
+
+  const id = row.id;
+  const userId = row.user_id;
+  const createdAt = row.created_at;
+  const expiresAt = row.expires_at;
+
+  if (
+    typeof id !== "string" ||
+    typeof userId !== "string" ||
+    typeof createdAt !== "string" ||
+    typeof expiresAt !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    id,
+    userId,
+    createdAt,
+    expiresAt
   };
 };

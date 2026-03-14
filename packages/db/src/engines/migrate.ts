@@ -73,9 +73,27 @@ const IDENTITY_COLUMNS_BY_DIALECT: Record<EngineDialect, readonly string[]> = {
   ]
 };
 
+const SESSION_COLUMNS_BY_DIALECT: Record<EngineDialect, readonly string[]> = {
+  sqlite: [
+    "id TEXT PRIMARY KEY",
+    "user_id TEXT NOT NULL",
+    "created_at TEXT NOT NULL",
+    "expires_at TEXT NOT NULL",
+    "FOREIGN KEY(user_id) REFERENCES atria_users(id) ON DELETE CASCADE"
+  ],
+  postgres: [
+    "id TEXT PRIMARY KEY",
+    "user_id TEXT NOT NULL REFERENCES atria_users(id) ON DELETE CASCADE",
+    "created_at TEXT NOT NULL",
+    "expires_at TEXT NOT NULL"
+  ]
+};
+
 const INDEX_STATEMENTS = [
   "CREATE UNIQUE INDEX IF NOT EXISTS idx_atria_users_email_unique ON atria_users(lower(email)) WHERE email IS NOT NULL",
-  "CREATE INDEX IF NOT EXISTS idx_atria_identities_user_id ON atria_identities(user_id)"
+  "CREATE INDEX IF NOT EXISTS idx_atria_identities_user_id ON atria_identities(user_id)",
+  "CREATE INDEX IF NOT EXISTS idx_atria_sessions_user_id ON atria_sessions(user_id)",
+  "CREATE INDEX IF NOT EXISTS idx_atria_sessions_expires_at ON atria_sessions(expires_at)"
 ] as const;
 
 const createSchemaStatements = (dialect: EngineDialect): readonly string[] => [
@@ -83,6 +101,7 @@ const createSchemaStatements = (dialect: EngineDialect): readonly string[] => [
   createTableStatement("atria_users", USER_COLUMNS),
   createTableStatement("atria_user_credentials", USER_CREDENTIAL_COLUMNS_BY_DIALECT[dialect]),
   createTableStatement("atria_identities", IDENTITY_COLUMNS_BY_DIALECT[dialect]),
+  createTableStatement("atria_sessions", SESSION_COLUMNS_BY_DIALECT[dialect]),
   ...INDEX_STATEMENTS
 ];
 

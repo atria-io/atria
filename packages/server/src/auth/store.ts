@@ -3,6 +3,7 @@ import {
   type AtriaDatabase,
   type DatabaseOAuthProfile,
   type DatabaseOwnerRegistrationResult,
+  type DatabaseSession,
   type DatabaseUser,
   type DatabaseUserWithPassword
 } from "@atria/db";
@@ -19,6 +20,13 @@ interface AuthUser {
   email: string | null;
   name: string | null;
   avatarUrl: string | null;
+}
+
+interface AuthSession {
+  id: string;
+  userId: string;
+  createdAt: string;
+  expiresAt: string;
 }
 
 export interface AuthStore {
@@ -38,6 +46,10 @@ export interface AuthStore {
     name: string | null;
   }) => Promise<DatabaseOwnerRegistrationResult>;
   upsertOAuthProfile: (profile: OAuthProfile) => Promise<AuthUser>;
+  getSessionById: (sessionId: string) => Promise<AuthSession | null>;
+  createSession: (session: AuthSession) => Promise<void>;
+  deleteSessionById: (sessionId: string) => Promise<void>;
+  deleteExpiredSessions: (expiresAtOrBefore: string) => Promise<void>;
 }
 
 const toDatabaseProfile = (profile: OAuthProfile): DatabaseOAuthProfile => ({
@@ -64,6 +76,15 @@ const mapUserWithPassword = (
 } => ({
   user: mapUser(userWithPassword.user),
   passwordHash: userWithPassword.passwordHash
+});
+
+const mapSession = (
+  session: Pick<DatabaseSession, "id" | "userId" | "createdAt" | "expiresAt">
+): AuthSession => ({
+  id: session.id,
+  userId: session.userId,
+  createdAt: session.createdAt,
+  expiresAt: session.expiresAt
 });
 
 export const createDbAuthStore = (projectRoot: string): AuthStore => {
@@ -101,6 +122,23 @@ export const createDbAuthStore = (projectRoot: string): AuthStore => {
     upsertOAuthProfile: async (profile: OAuthProfile) => {
       const user = await database.upsertOAuthProfile(toDatabaseProfile(profile));
       return mapUser(user);
+    },
+
+    getSessionById: async (sessionId: string) => {
+      const session = await database.getSessionById(sessionId);
+      return session ? mapSession(session) : null;
+    },
+
+    createSession: async (session: AuthSession) => {
+      await database.createSession(mapSession(session));
+    },
+
+    deleteSessionById: async (sessionId: string) => {
+      await database.deleteSessionById(sessionId);
+    },
+
+    deleteExpiredSessions: async (expiresAtOrBefore: string) => {
+      await database.deleteExpiredSessions(expiresAtOrBefore);
     }
   };
 };

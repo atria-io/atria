@@ -18,6 +18,13 @@ export interface DatabaseUserWithPassword {
   passwordHash: string;
 }
 
+export interface DatabaseSession {
+  id: string;
+  userId: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 export type DatabaseOwnerRegistrationFailureReason = "owner_exists" | "email_in_use";
 
 export type DatabaseOwnerRegistrationResult =
@@ -60,4 +67,8 @@ export interface AtriaDatabase {
     name: string | null;
   }) => Promise<DatabaseOwnerRegistrationResult>;
   upsertOAuthProfile: (profile: DatabaseOAuthProfile) => Promise<DatabaseUser>;
+  getSessionById: (sessionId: string) => Promise<DatabaseSession | null>;
+  createSession: (session: DatabaseSession) => Promise<void>;
+  deleteSessionById: (sessionId: string) => Promise<void>;
+  deleteExpiredSessions: (expiresAtOrBefore: string) => Promise<void>;
 }

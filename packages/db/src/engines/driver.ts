@@ -11,12 +11,13 @@ import type {
 } from "../auth/types.js";
 import type {
   AtriaDatabase,
+  DatabaseSession,
   DatabaseOwnerRegistrationResult,
   DatabaseUser,
   DatabaseUserWithPassword,
   ResolvedDatabaseConnection
 } from "../database.js";
-import { asRecord, rowToUser, rowToUserWithPassword } from "../internal/record.js";
+import { asRecord, rowToSession, rowToUser, rowToUserWithPassword } from "../internal/record.js";
 import { nowIso } from "../internal/time.js";
 import { runPostgresSchemaMigrations } from "./migrate.js";
 
@@ -54,6 +55,10 @@ interface OwnerStore<TTransaction> {
   getUserById(userId: string, tx?: TTransaction): Promise<DatabaseUser | null>;
   getUserByEmail(email: string, tx: TTransaction): Promise<DatabaseUser | null>;
   getUserWithPasswordByEmail(email: string): Promise<DatabaseUserWithPassword | null>;
+  getSessionById(sessionId: string): Promise<DatabaseSession | null>;
+  upsertSession(session: DatabaseSession): Promise<void>;
+  deleteSessionById(sessionId: string): Promise<void>;
+  deleteExpiredSessions(expiresAtOrBefore: string): Promise<void>;
   insertUser(user: DatabaseUser, tx: TTransaction): Promise<void>;
   insertCredential(input: InsertCredentialInput, tx: TTransaction): Promise<void>;
   updateUser(user: DatabaseUser, tx: TTransaction): Promise<void>;
@@ -79,6 +84,10 @@ interface OwnerOperations {
   clearPreferredAuthMethod: () => Promise<void>;
   getUserById: (userId: string) => Promise<DatabaseUser | null>;
   getUserWithPasswordByEmail: (email: string) => Promise<DatabaseUserWithPassword | null>;
+  getSessionById: (sessionId: string) => Promise<DatabaseSession | null>;
+  createSession: (session: DatabaseSession) => Promise<void>;
+  deleteSessionById: (sessionId: string) => Promise<void>;
+  deleteExpiredSessions: (expiresAtOrBefore: string) => Promise<void>;
   registerOwnerWithPassword: (input: {
     email: string;
     passwordHash: string;
@@ -179,6 +188,21 @@ const createOwnerOperations = <TTransaction>(
 
     getUserWithPasswordByEmail: async (email: string): Promise<DatabaseUserWithPassword | null> =>
       store.getUserWithPasswordByEmail(email),
+
+    getSessionById: async (sessionId: string): Promise<DatabaseSession | null> =>
+      store.getSessionById(sessionId),
+
+    createSession: async (session: DatabaseSession): Promise<void> => {
+      await store.upsertSession(session);
+    },
+
+    deleteSessionById: async (sessionId: string): Promise<void> => {
+      await store.deleteSessionById(sessionId);
+    },
+
+    deleteExpiredSessions: async (expiresAtOrBefore: string): Promise<void> => {
+      await store.deleteExpiredSessions(expiresAtOrBefore);
+    },
 
     registerOwnerWithPassword: async (input): Promise<DatabaseOwnerRegistrationResult> =>
       store.withTransaction(async (tx) => {
@@ -328,6 +352,22 @@ export class SqliteAtriaDatabase implements AtriaDatabase {
     return this.owner.getUserWithPasswordByEmail(email);
   }
 
+  public async getSessionById(sessionId: string): Promise<DatabaseSession | null> {
+    return this.owner.getSessionById(sessionId);
+  }
+
+  public async createSession(session: DatabaseSession): Promise<void> {
+    await this.owner.createSession(session);
+  }
+
+  public async deleteSessionById(sessionId: string): Promise<void> {
+    await this.owner.deleteSessionById(sessionId);
+  }
+
+  public async deleteExpiredSessions(expiresAtOrBefore: string): Promise<void> {
+    await this.owner.deleteExpiredSessions(expiresAtOrBefore);
+  }
+
   public async registerOwnerWithPassword(input: {
     email: string;
     passwordHash: string;
@@ -384,6 +424,24 @@ export class SqliteAtriaDatabase implements AtriaDatabase {
       getUserWithPasswordByEmail: async (email) => {
         const row = this.database.prepare(sqliteAuthQueries.users.selectWithPasswordByEmail).get(email);
         return rowToUserWithPassword(row);
+      },
+      getSessionById: async (sessionId) => {
+        const row = this.database.prepare(sqliteAuthQueries.sessions.selectById).get(sessionId);
+        return rowToSession(row);
+      },
+      upsertSession: async (session) => {
+        this.database.prepare(sqliteAuthQueries.sessions.upsert).run(
+          session.id,
+          session.userId,
+          session.createdAt,
+          session.expiresAt
+        );
+      },
+      deleteSessionById: async (sessionId) => {
+        this.database.prepare(sqliteAuthQueries.sessions.deleteById).run(sessionId);
+      },
+      deleteExpiredSessions: async (expiresAtOrBefore) => {
+        this.database.prepare(sqliteAuthQueries.sessions.deleteExpired).run(expiresAtOrBefore);
       },
       insertUser: async (user, tx) => {
         tx.prepare(sqliteAuthQueries.users.insert).run(
@@ -519,6 +577,26 @@ export class PostgresAtriaDatabase implements AtriaDatabase {
     return this.owner.getUserWithPasswordByEmail(email);
   }
 
+  public async getSessionById(sessionId: string): Promise<DatabaseSession | null> {
+    await this.ensureReady();
+    return this.owner.getSessionById(sessionId);
+  }
+
+  public async createSession(session: DatabaseSession): Promise<void> {
+    await this.ensureReady();
+    await this.owner.createSession(session);
+  }
+
+  public async deleteSessionById(sessionId: string): Promise<void> {
+    await this.ensureReady();
+    await this.owner.deleteSessionById(sessionId);
+  }
+
+  public async deleteExpiredSessions(expiresAtOrBefore: string): Promise<void> {
+    await this.ensureReady();
+    await this.owner.deleteExpiredSessions(expiresAtOrBefore);
+  }
+
   public async registerOwnerWithPassword(input: {
     email: string;
     passwordHash: string;
@@ -585,6 +663,24 @@ export class PostgresAtriaDatabase implements AtriaDatabase {
       getUserWithPasswordByEmail: async (email) => {
         const result = await this.pool.query(postgresAuthQueries.users.selectWithPasswordByEmail, [email]);
         return rowToUserWithPassword(result.rows[0]);
+      },
+      getSessionById: async (sessionId) => {
+        const result = await this.pool.query(postgresAuthQueries.sessions.selectById, [sessionId]);
+        return rowToSession(result.rows[0]);
+      },
+      upsertSession: async (session) => {
+        await this.pool.query(postgresAuthQueries.sessions.upsert, [
+          session.id,
+          session.userId,
+          session.createdAt,
+          session.expiresAt
+        ]);
+      },
+      deleteSessionById: async (sessionId) => {
+        await this.pool.query(postgresAuthQueries.sessions.deleteById, [sessionId]);
+      },
+      deleteExpiredSessions: async (expiresAtOrBefore) => {
+        await this.pool.query(postgresAuthQueries.sessions.deleteExpired, [expiresAtOrBefore]);
       },
       insertUser: async (user, tx) => {
         await tx.query(postgresAuthQueries.users.insert, [

@@ -21,6 +21,12 @@ export interface AuthQuerySet {
     deleteValue: string;
     upsertValue: string;
   };
+  sessions: {
+    selectById: string;
+    upsert: string;
+    deleteById: string;
+    deleteExpired: string;
+  };
 }
 
 const placeholder = (dialect: QueryDialect, position: number): string =>
@@ -122,6 +128,30 @@ export const createAuthQuerySet = (dialect: QueryDialect): AuthQuerySet => {
         ON CONFLICT(key) DO UPDATE SET
           value = ${excluded}.value,
           updated_at = ${excluded}.updated_at
+      `)
+    },
+    sessions: {
+      selectById: toSql(`
+        SELECT id, user_id, created_at, expires_at
+        FROM atria_sessions
+        WHERE id = ${p(1)}
+        LIMIT 1
+      `),
+      upsert: toSql(`
+        INSERT INTO atria_sessions (id, user_id, created_at, expires_at)
+        VALUES (${p(1)}, ${p(2)}, ${p(3)}, ${p(4)})
+        ON CONFLICT(id) DO UPDATE SET
+          user_id = ${excluded}.user_id,
+          created_at = ${excluded}.created_at,
+          expires_at = ${excluded}.expires_at
+      `),
+      deleteById: toSql(`
+        DELETE FROM atria_sessions
+        WHERE id = ${p(1)}
+      `),
+      deleteExpired: toSql(`
+        DELETE FROM atria_sessions
+        WHERE expires_at <= ${p(1)}
       `)
     }
   };

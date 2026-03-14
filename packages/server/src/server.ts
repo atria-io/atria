@@ -9,7 +9,10 @@ import {
   ENABLE_LIVE_PUBLISH_TRANSITION
 } from "./dev/constants.js";
 import { closeServer } from "./dev/lifecycle.js";
-import { respondWithDefaultNotFound } from "./dev/http/errors.js";
+import {
+  respondWithDefaultNotFound,
+  respondWithInternalServerError
+} from "./dev/http/errors.js";
 import { parseRequestHostname, resolveSiteTarget } from "./dev/http/routing.js";
 import { isPublicOutputPublished } from "./dev/static/index.js";
 import { handleAdminRequest, resolveAdminDistDir } from "./dev/admin/index.js";
@@ -129,8 +132,22 @@ export const startDevServer = async (
         publicDir,
         publicOutputPublished
       });
-    } catch {
-      respondWithDefaultNotFound(response);
+    } catch (error) {
+      console.error(
+        `[atria/server] Unexpected request error (${request.method ?? "GET"} ${request.url ?? "/"})`,
+        error
+      );
+
+      if (response.writableEnded) {
+        return;
+      }
+
+      if (response.headersSent) {
+        response.end();
+        return;
+      }
+
+      respondWithInternalServerError(response);
     }
   });
 
