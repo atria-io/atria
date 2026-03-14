@@ -56,8 +56,8 @@ importers:
   packages/atria:
     dependencies:
       '@atria/cli':
-        specifier: 0.0.14
-        version: 0.0.14
+        specifier: workspace:*
+        version: link:../cli
 
   packages/cli:
     dependencies:
@@ -111,25 +111,9 @@ importers:
 
 packages:
 
-  '@atria/admin@0.1.1':
-    resolution: {integrity: sha512-V9TXyDRXUfYxdOJciiCgMd6xZ1Lnky9rvy1zDDNi+ZD7emHkzW1Nr9hCTxG76rpeOJqSBG0paIIsazNiFvLnQQ==}
-
-  '@atria/cli@0.0.14':
-    resolution: {integrity: sha512-4Fm/dED+3ZjO/XIswRLTlU4uSJ5ce30KZ/tgUKEmEfvOy4zc/80qbEre6obnRRBuVV/l1c3RTq2D4l3upZ3dPw==}
-    hasBin: true
-
   '@atria/create@0.0.3':
     resolution: {integrity: sha512-M4d7nljsx0GUfYEFdL6PKsQ5/kFL93xdMV9Wk0OaGrk9dcGkodEkRj55I7AfNDmHClVXrt901v4UzczpFjaFww==}
     hasBin: true
-
-  '@atria/db@0.0.6':
-    resolution: {integrity: sha512-Il2MQS4I+xHW48/2E/T5DodG2TkFnbLrmt330uOxOjKEzr2wKiTlDqC+XGnWTgrrM4hYd2Pjt3TZS7EMMJl2hQ==}
-
-  '@atria/server@0.0.12':
-    resolution: {integrity: sha512-1iQXPFLpmraiQlKm52hLcrOPWd4kOL2TmMb+RCZdBkeVBJXQbRzjRk7q5yNcEJZoUbmnJOOJMLBzWxYPFLFMyA==}
-
-  '@atria/shared@0.0.10':
-    resolution: {integrity: sha512-eO4YgXVQxIpRrA9GCJnd3KC7KZwzMnEgXeNjxI04l1CvwvpFtLv2a2q1Kq40VfQ0Iew9+ajfNU9gDHfCoBbbsQ==}
 
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
@@ -502,37 +486,7 @@ packages:
 
 snapshots:
 
-  '@atria/admin@0.1.1':
-    dependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-
-  '@atria/cli@0.0.14':
-    dependencies:
-      '@atria/db': 0.0.6
-      '@atria/server': 0.0.12
-      '@atria/shared': 0.0.10
-    transitivePeerDependencies:
-      - pg-native
-
   '@atria/create@0.0.3': {}
-
-  '@atria/db@0.0.6':
-    dependencies:
-      '@atria/shared': 0.0.10
-      pg: 8.20.0
-    transitivePeerDependencies:
-      - pg-native
-
-  '@atria/server@0.0.12':
-    dependencies:
-      '@atria/admin': 0.1.1
-      '@atria/db': 0.0.6
-      '@atria/shared': 0.0.10
-    transitivePeerDependencies:
-      - pg-native
-
-  '@atria/shared@0.0.10': {}
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
