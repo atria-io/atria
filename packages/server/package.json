@@ -1,0 +1,44 @@
+{
+  "name": "@atria/server",
+  "version": "0.0.12",
+  "description": "HTTP server and runtime delivery for atria",
+  "keywords": [
+    "atria",
+    "cms",
+    "server",
+    "http-server",
+    "runtime",
+    "preview"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@atria/admin": "workspace:*",
+    "@atria/db": "workspace:*",
+    "@atria/shared": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atria-io/atria.git",
+    "directory": "packages/server"
+  }
+}

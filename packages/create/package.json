@@ -1,0 +1,40 @@
+{
+  "name": "@atria/create",
+  "version": "0.0.10",
+  "description": "Bootstrap a new atria project",
+  "keywords": [
+    "atria",
+    "cms",
+    "create",
+    "scaffold",
+    "project-generator",
+    "starter"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "tsc -p tsconfig.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atria-io/atria.git",
+    "directory": "packages/create"
+  },
+  "dependencies": {
+    "@atria/db": "workspace:*",
+    "@atria/shared": "workspace:*"
+  }
+}

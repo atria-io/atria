@@ -1,0 +1,39 @@
+{
+  "name": "@atria/core",
+  "version": "0.0.6",
+  "description": "Core compiler and build pipeline primitives for atria",
+  "keywords": [
+    "atria",
+    "cms",
+    "core",
+    "compiler",
+    "build-pipeline",
+    "content-processing"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "tsc -p tsconfig.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atria-io/atria.git",
+    "directory": "packages/core"
+  }
+}

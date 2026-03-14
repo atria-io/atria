@@ -1,0 +1,47 @@
+{
+  "name": "@atria/cli",
+  "version": "0.0.14",
+  "description": "CLI for atria project bootstrap and development",
+  "keywords": [
+    "atria",
+    "cms",
+    "cli",
+    "developer-tools",
+    "scaffold",
+    "dev-server"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "atria": "dist/bin.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@atria/db": "workspace:*",
+    "@atria/server": "workspace:*",
+    "@atria/shared": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atria-io/atria.git",
+    "directory": "packages/cli"
+  }
+}

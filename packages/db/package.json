@@ -1,0 +1,46 @@
+{
+  "name": "@atria/db",
+  "version": "0.0.6",
+  "description": "Data persistence layer for atria",
+  "keywords": [
+    "atria",
+    "cms",
+    "database",
+    "content-store",
+    "indexing",
+    "persistence"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@atria/shared": "workspace:*",
+    "pg": "^8.16.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atria-io/atria.git",
+    "directory": "packages/db"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.6"
+  }
+}

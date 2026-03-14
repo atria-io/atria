@@ -1,0 +1,41 @@
+:root {
+  color-scheme: light dark;
+
+  --color-bg: #ffffff;
+  --color-panel: #f7f7f8;
+  --color-border: #e6e7eb;
+  --color-text: #171717;
+  --color-text-muted: #6b7280;
+  --color-accent: #111111;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-atria-color-scheme="light"]) {
+    --color-bg: #0f1115;
+    --color-panel: #171a21;
+    --color-border: #2a2f3a;
+    --color-text: #f3f4f6;
+    --color-text-muted: #9ca3af;
+    --color-accent: #ffffff;
+  }
+}
+
+:root[data-atria-color-scheme="dark"],
+:root[prefers-color-scheme="dark"] {
+  --color-bg: #0f1115;
+  --color-panel: #171a21;
+  --color-border: #2a2f3a;
+  --color-text: #f3f4f6;
+  --color-text-muted: #9ca3af;
+  --color-accent: #ffffff;
+}
+
+:root[data-atria-color-scheme="light"],
+:root[prefers-color-scheme="light"] {
+  --color-bg: #ffffff;
+  --color-panel: #f7f7f8;
+  --color-border: #e6e7eb;
+  --color-text: #171717;
+  --color-text-muted: #6b7280;
+  --color-accent: #111111;
+}

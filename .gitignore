@@ -1,0 +1,20 @@
+# Logs
+logs
+*.log
+
+# Dependency directories
+node_modules
+
+# macOS finder cache file
+.DS_Store
+
+# Compiled code
+dist
+
+# atria generated runtime
+.atria
+
+# AI agent instruction files
+AGENTS.md
+
+data/
