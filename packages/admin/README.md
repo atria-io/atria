@@ -15,7 +15,8 @@ React admin runtime for atria.
 - `src/app/kernel/shell/StudioShell.tsx`: shared shell/layout.
 - `src/app/modules/auth`: auth module (OAuth + e-mail/password forms).
 - `src/app/modules/dashboard`: authenticated home module.
-- `src/app/styles`: global styles (`tokens.css`, `scheme.css`, `globals.css`).
+- `src/app/static/styles`: global styles (`tokens.css`, `scheme.css`, `globals.css`).
+- `src/app/static/favicon.ico`: default Studio favicon.
 - `src/i18n`: locale loader and dictionaries.
 - `src/state`: API client utilities.
 

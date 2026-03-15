@@ -50,6 +50,10 @@ export function CreateView(props: CreateViewProps): React.JSX.Element {
     setShowEmailForm(false);
   };
 
+  if (isLoading || isFinalizing) {
+    return <section className="auth-screen" aria-hidden="true" />;
+  }
+
   const hasBrokerError = brokerError && !showEmailForm;
 
   return (
@@ -57,9 +61,7 @@ export function CreateView(props: CreateViewProps): React.JSX.Element {
       <div className="auth-card">
         <h1 className="auth-card__title">{t("auth.title.create")}</h1>
 
-        {isLoading || isFinalizing ? (
-          <p className="auth-card__text">{t("auth.message.finalizing")}</p>
-        ) : showEmailForm ? (
+        {showEmailForm ? (
           <>
             <p className="auth-card__text">{t("auth.message.emailCreateLead")}</p>
 

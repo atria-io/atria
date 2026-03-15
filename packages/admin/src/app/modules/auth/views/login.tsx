@@ -50,14 +50,18 @@ export function LoginView(props: LoginViewProps): React.JSX.Element {
     setShowEmailForm(false);
   };
 
+  if (isLoading || isFinalizing) {
+    return <section className="auth-screen" aria-hidden="true" />;
+  }
+
   return (
     <section className="auth-screen">
       <div className="auth-card">
-        <h1 className="auth-card__title">{showEmailForm ? t("auth.title.login") : t("auth.title.chooseProvider")}</h1>
+        <h1 className="auth-card__title">
+          {showEmailForm ? t("auth.title.login") : t("auth.title.chooseProvider")}
+        </h1>
 
-        {isLoading || isFinalizing ? (
-          <p className="auth-card__text">{t("auth.message.finalizing")}</p>
-        ) : showEmailForm ? (
+        {showEmailForm ? (
           <>
             <p className="auth-card__text">{t("auth.message.emailLoginLead")}</p>
 

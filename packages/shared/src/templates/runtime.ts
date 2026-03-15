@@ -13,8 +13,11 @@ Modifications to this file are automatically discarded.
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <meta name="referrer" content="same-origin" />
-    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNicgaGVpZ2h0PScxNic+PHJlY3Qgd2lkdGg9JzEwMCUnIGhlaWdodD0nMTAwJScgZmlsbD0nIzEzMTQxYicvPjwvc3ZnPg==">
     <title>Atria Studio</title>
+    <link rel="icon" href="/static/favicon.ico" />
+    <link rel="stylesheet" href="/static/styles/tokens.css">
+    <link rel="stylesheet" href="/static/styles/scheme.css">
+    <link rel="stylesheet" href="/static/styles/globals.css">
     <style id="atria-scheme"></style>
     <script>
       (function () {

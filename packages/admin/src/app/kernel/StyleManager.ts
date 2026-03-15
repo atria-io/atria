@@ -1,5 +1,3 @@
-const CORE_STYLE_FILES = ["styles/tokens.css", "styles/scheme.css", "styles/globals.css"] as const;
-
 const styleLinks = new Map<string, HTMLLinkElement>();
 const loadedLinks = new WeakSet<HTMLLinkElement>();
 
@@ -32,6 +30,18 @@ const findExistingStyleLinkByHref = (href: string): HTMLLinkElement | null => {
   return null;
 };
 
+const placeStyleLink = (link: HTMLLinkElement): void => {
+  const head = document.head;
+  const schemeStyle = head.querySelector<HTMLStyleElement>("#atria-scheme");
+
+  if (schemeStyle) {
+    head.insertBefore(link, schemeStyle);
+    return;
+  }
+
+  head.appendChild(link);
+};
+
 const ensureStyleLink = (basePath: string, stylePath: string): HTMLLinkElement => {
   const href = styleHref(basePath, stylePath);
   const known = styleLinks.get(stylePath);
@@ -42,6 +52,7 @@ const ensureStyleLink = (basePath: string, stylePath: string): HTMLLinkElement =
       loadedLinks.delete(known);
     }
 
+    placeStyleLink(known);
     known.removeAttribute("data-atria-admin-style");
     known.removeAttribute("data-atria-admin-style-loaded");
     return known;
@@ -49,6 +60,7 @@ const ensureStyleLink = (basePath: string, stylePath: string): HTMLLinkElement =
 
   const existing = findExistingStyleLinkByHref(href);
   if (existing) {
+    placeStyleLink(existing);
     existing.removeAttribute("data-atria-admin-style");
     existing.removeAttribute("data-atria-admin-style-loaded");
     styleLinks.set(stylePath, existing);
@@ -58,20 +70,15 @@ const ensureStyleLink = (basePath: string, stylePath: string): HTMLLinkElement =
   const link = document.createElement("link");
   link.setAttribute("rel", "stylesheet");
   link.setAttribute("href", href);
-  document.head.appendChild(link);
+  placeStyleLink(link);
   styleLinks.set(stylePath, link);
   return link;
 };
 
 const removeUnusedModuleLinks = (moduleStyleFiles: string[]): void => {
   const activeStyles = new Set(moduleStyleFiles);
-  const coreStyles = new Set<string>(CORE_STYLE_FILES);
 
   for (const [stylePath, link] of styleLinks.entries()) {
-    if (coreStyles.has(stylePath)) {
-      continue;
-    }
-
     if (activeStyles.has(stylePath)) {
       continue;
     }
@@ -109,7 +116,7 @@ export const applyRouteStyles = async (
   basePath: string,
   moduleStyleFiles: string[]
 ): Promise<void> => {
-  const requiredStyles = new Set<string>([...CORE_STYLE_FILES, ...moduleStyleFiles]);
+  const requiredStyles = new Set<string>(moduleStyleFiles);
   const ensuredLinks: HTMLLinkElement[] = [];
 
   for (const stylePath of requiredStyles) {
