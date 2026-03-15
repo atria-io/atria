@@ -1,13 +1,11 @@
 # @atria/server
 
-HTTP runtime server for atria development.
-
-This package powers `atria dev` by serving `production/public/` for the public site and `.atria/runtime` for the back-office host.
+HTTP runtime server used by `atria dev`.
 
 ## Install
 
 ```bash
-npm install @atria/server @atria/shared @atria/db
+npm install @atria/server
 ```
 
 ## Usage
@@ -20,35 +18,45 @@ const server = await startDevServer({
   port: 3333
 });
 
-console.log(server.url);
-// later:
-await server.close();
+console.log(server.publicUrl); // http://localhost:3333
+console.log(server.adminUrl);  // http://studio.localhost:3333
 ```
 
-## Behavior
+## Host routing
 
-- Serves `localhost` from `<projectRoot>/production/public`.
-- Serves `studio.localhost` from `<projectRoot>/.atria/runtime`.
-- Responds to `GET /api/health` with runtime diagnostics: `ok`, `status`, `site`, `publicOutputPublished`, `ownerSetupPending`, and `database` (driver/source/usesFallback/reachable/error).
-- Exposes OAuth auth endpoints on `studio.localhost`:
-  - `GET /api/auth/providers`
-  - `GET /api/auth/start/:provider`
-  - `GET /api/auth/callback/:provider`
-  - `GET /api/auth/session`
-  - `GET /api/auth/logout`
-- Publish state is resolved live from `<projectRoot>/production/public/index.html` (no marker file required).
-- Owner setup state is resolved from the database (`pending` while no owner user exists).
-- If `production/public/index.html` is missing, `GET /` returns `503 Service Unavailable`.
-- If `production/public/index.html` is missing, other public routes return `404 Not Found`.
-- If `production/public/index.html` exists, missing public files/routes return `404` (serving `production/public/404.html` when present).
-- Uses SPA-style `index.html` fallback only for `studio.localhost` non-file routes.
-- Blocks path traversal attempts outside the configured public/admin roots.
+- `localhost` -> serves `production/public`.
+- `studio.localhost` -> serves Studio runtime.
 
-## OAuth environment variables
+## Admin asset routing
 
-- `ATRIA_AUTH_BROKER_ORIGIN` (recommended)
-- `ATRIA_AUTH_GITHUB_CLIENT_ID`
-- `ATRIA_AUTH_GITHUB_CLIENT_SECRET`
-- `ATRIA_AUTH_GOOGLE_CLIENT_ID`
-- `ATRIA_AUTH_GOOGLE_CLIENT_SECRET`
-- `ATRIA_AUTH_ORIGIN` (optional, defaults to `http://studio.localhost:<port>`)
+- `GET /static/*` serves assets from `@atria/admin/dist`.
+- Legacy prefixes are kept for compatibility.
+
+## Health and setup routes
+
+- `GET /api/health`
+- `GET /api/setup/status`
+
+Health payload includes:
+
+- `ok`, `status`, `site`
+- `publicOutputPublished`
+- `ownerSetupPending`
+- `database` (`driver`, `source`, `usesFallback`, `reachable`, `error`)
+
+## Auth routes
+
+- `GET /api/auth/providers`
+- `GET /api/auth/session`
+- `POST /api/auth/logout`
+- `POST /api/auth/email/register`
+- `POST /api/auth/email/login`
+- `GET /api/auth/start/:provider`
+- `GET /api/auth/callback/:provider`
+- `GET /api/auth/broker/exchange`
+
+## Auth redirect behavior
+
+- When owner setup is pending, protected Studio routes redirect to `/create`.
+- After owner exists, `/create` redirects to `/` (login flow).
+- Unauthenticated access to protected Studio routes redirects to `/` with `next` query.

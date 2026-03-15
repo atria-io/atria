@@ -1,52 +1,60 @@
 # create-atria
 
-Scaffold a new atria project from the command line.
-
-`create-atria` bootstraps the initial structure for a document-first static CMS project, including `production/studio/` content folders, an empty `production/public/` output directory, `.atria/runtime`, and install-time database setup.
+Project scaffolder for atria.
 
 ## Usage
 
+Create in current folder:
+
 ```bash
-npx create-atria my-project
+npm create atria@latest
 ```
 
-Or via npm create:
+Create in a named folder:
 
 ```bash
 npm create atria@latest -- my-project
 ```
 
+Direct package usage:
+
+```bash
+npx create-atria my-project
+```
+
 ## Options
 
-- `--skip-install` Skip dependency installation.
-- `--force` Overwrite existing files.
-- `--cli-version <version>` Set the `@atria/cli` version/range.
-- `--pnpm` Use pnpm for dependency installation.
-- `--yarn` Use yarn for dependency installation.
-- `--npm` Use npm for dependency installation (default).
-- `-h`, `--help` Show help.
+- `--skip-install`: skip dependency installation.
+- `--force`: overwrite existing files.
+- `--cli-version <version>`: set `@atria/cli` version/range.
+- `--pnpm`: install dependencies with pnpm.
+- `--yarn`: install dependencies with yarn.
+- `--npm`: install dependencies with npm (default).
 
-## Generated structure
+## Generated files
 
-- `package.json` (with `dev` script using `atria dev` and `install` setup hook)
+- `package.json` with scripts:
+  - `install`: `npm run "dev install"`
+  - `dev install`: `atria setup --database-only`
+  - `dev`: `atria dev`
 - `atria.config.json`
 - `.env.example`
 - `production/studio/content/.gitkeep`
 - `production/studio/theme/.gitkeep`
-- `production/public/` (created as empty output directory)
+- `production/public/`
 - `.atria/runtime/index.html`
 - `.atria/runtime/app.js`
 
-Database selection and bootstrap run during `npm install` (via `install` script -> `atria setup --database-only`).
+## Database setup flow
 
-OAuth providers are configured via `.env` (generated from `.env.example`) with:
-- `ATRIA_AUTH_BROKER_ORIGIN` (recommended)
-- `ATRIA_AUTH_GITHUB_CLIENT_ID` / `ATRIA_AUTH_GITHUB_CLIENT_SECRET` (self-host fallback)
-- `ATRIA_AUTH_GOOGLE_CLIENT_ID` / `ATRIA_AUTH_GOOGLE_CLIENT_SECRET` (self-host fallback)
+During dependency install, `atria setup --database-only` runs and asks for:
 
-## Next steps
+- `SQLite (default)`
+- `PostgreSQL`
 
-```bash
-cd my-project
-npm run dev
-```
+Environment template includes:
+
+- `ATRIA_DATABASE_URL` (preferred)
+- `DATABASE_URL` (compatibility)
+- `ATRIA_AUTH_BROKER_ORIGIN`
+- optional self-host OAuth keys

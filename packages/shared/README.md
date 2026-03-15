@@ -1,6 +1,6 @@
 # @atria/shared
 
-Shared types, constants, and path helpers used across atria packages.
+Shared constants, templates, and types used by atria packages.
 
 ## Install
 
@@ -8,32 +8,35 @@ Shared types, constants, and path helpers used across atria packages.
 npm install @atria/shared
 ```
 
-## Usage
+## Main exports
 
 ```ts
 import {
   ATRIA_CONFIG_FILE,
+  ATRIA_INTERNAL_DIR,
   ATRIA_RUNTIME_DIR,
+  ATRIA_DATA_DIR,
+  ATRIA_DATABASE_FILE,
   PRODUCTION_DIR,
   PUBLIC_OUTPUT_DIR,
+  STUDIO_DIR,
   STUDIO_CONTENT_DIR,
   STUDIO_THEME_DIR,
   DEFAULT_DEV_PORT,
   resolveRuntimeDir,
-  type AtriaConfig
+  DEFAULT_AUTH_BROKER_ORIGIN,
+  parseAuthMethod,
+  createEnvExampleFile,
+  runtimeIndexHtml,
+  runtimeAppJs,
+  READY_EVENT_NAME,
+  COLOR_SCHEME_STORAGE_KEY,
+  type AtriaConfig,
+  type AuthMethod
 } from "@atria/shared";
 ```
 
-## Exports
+## Notes
 
-- `ATRIA_CONFIG_FILE` (`atria.config.json`)
-- `ATRIA_INTERNAL_DIR` (`.atria`)
-- `ATRIA_RUNTIME_DIR` (`.atria/runtime`)
-- `PRODUCTION_DIR` (`production`)
-- `PUBLIC_OUTPUT_DIR` (`production/public`)
-- `STUDIO_DIR` (`production/studio`)
-- `STUDIO_CONTENT_DIR` (`production/studio/content`)
-- `STUDIO_THEME_DIR` (`production/studio/theme`)
-- `DEFAULT_DEV_PORT` (`3333`)
-- `resolveRuntimeDir(projectRoot)`
-- `AtriaConfig` type
+- `createEnvExampleFile()` is shared by both `create-atria` and `@atria/cli`.
+- `runtimeIndexHtml` and `runtimeAppJs` are the canonical runtime templates for `.atria/runtime`.

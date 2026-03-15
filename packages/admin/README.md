@@ -1,28 +1,43 @@
 # @atria/admin
 
-Modular React admin runtime for atria.
+React admin runtime for atria.
 
 ## Runtime entry
 
-- `@atria/admin/app.js` - browser bundle mounted by `.atria/runtime/app.js`.
+- `@atria/admin/app.js`: browser bundle mounted by `.atria/runtime/app.js`.
 
-## Source layout
+## Source structure
 
-- `src/app/App.tsx` - app orchestration entry
-- `src/app/kernel/bootstrap/main.tsx` - React mount bootstrap
-- `src/app/kernel/routing/routes.ts` - route resolution
-- `src/app/kernel/styling/style-manager.ts` - dynamic style loading
-- `src/app/kernel/shell/StudioShell.tsx` - shared app shell
-- `src/app/modules` - business modules (`auth`, `dashboard`, ...)
-- `src/app/styles` - global style tokens (`tokens`, `scheme`, `globals`)
-- `src/state` - HTTP client and state utilities
-- `src/i18n` - translation client + locale dictionaries
+- `src/app/App.tsx`: main app orchestration.
+- `src/app/kernel/runtime/main.tsx`: React mount entry.
+- `src/app/kernel/Routes.ts`: route resolution (`/`, `/create`, `/setup`).
+- `src/app/kernel/StyleManager.ts`: runtime CSS loading.
+- `src/app/kernel/shell/StudioShell.tsx`: shared shell/layout.
+- `src/app/modules/auth`: auth module (OAuth + e-mail/password forms).
+- `src/app/modules/dashboard`: authenticated home module.
+- `src/app/styles`: global styles (`tokens.css`, `scheme.css`, `globals.css`).
+- `src/i18n`: locale loader and dictionaries.
+- `src/state`: API client utilities.
 
-## i18n API
+## Build output
 
-The package expects the dev server to expose:
+- `dist/app.js`: bundled SPA runtime.
+- `dist/styles/*`: global style assets.
+- `dist/styles/modules/*.css`: module-level style assets.
+- `dist/locales/*.json`: locale dictionaries.
+
+## Expected server endpoints
 
 - `GET /api/admin/i18n`
 - `GET /api/admin/i18n/:locale`
+- `GET /api/auth/providers`
+- `GET /api/auth/session`
+- `POST /api/auth/email/register`
+- `POST /api/auth/email/login`
+- `POST /api/auth/logout`
 
-Locale dictionaries are JSON files copied to `dist/locales` at build time.
+## Build
+
+```bash
+npm run build
+```

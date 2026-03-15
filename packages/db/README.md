@@ -1,6 +1,6 @@
 # @atria/db
 
-Persistence layer for atria runtime and setup/auth state.
+Database layer for atria runtime/auth state.
 
 ## Install
 
@@ -8,26 +8,33 @@ Persistence layer for atria runtime and setup/auth state.
 npm install @atria/db
 ```
 
-## Usage
+## Responsibilities
+
+- Resolve DB connection (`ATRIA_DATABASE_URL`, `DATABASE_URL`, fallback SQLite).
+- Initialize schema for SQLite/PostgreSQL.
+- Store owner setup metadata and preferred auth method.
+- Store users, e-mail credentials, OAuth identities, and sessions.
+
+## Public API
 
 ```ts
-import { openAtriaDatabase, resolveDatabaseConnection } from "@atria/db";
-
-const connection = resolveDatabaseConnection(process.cwd());
-const db = openAtriaDatabase(process.cwd());
-
-const setup = await db.getOwnerSetupState();
-console.log(connection, setup);
-
-await db.close();
+import {
+  resolveDatabaseConnection,
+  openAtriaDatabase,
+  initializeProjectDatabase
+} from "@atria/db";
 ```
 
-## Environment resolution
+## Connection resolution order
 
-Database connection resolution order:
-
-1. `ATRIA_DATABASE_URL` (preferred)
-2. `DATABASE_URL` (compatibility)
+1. `ATRIA_DATABASE_URL`
+2. `DATABASE_URL`
 3. local fallback: `./.atria/data/atria.db`
 
-Runtime supports SQLite and PostgreSQL.
+## Tables managed by migrations
+
+- `atria_meta`
+- `atria_users`
+- `atria_user_credentials`
+- `atria_identities`
+- `atria_sessions`

@@ -1,8 +1,8 @@
 # atria
 
-Unscoped wrapper for `@atria/cli`.
+Unscoped CLI wrapper for `@atria/cli`.
 
-This package exists so users can install and run the atria CLI without using a scoped package name.
+Use this package when you want `atria` commands without a scoped package name.
 
 ## Install
 
@@ -13,14 +13,16 @@ npm install -D atria
 ## Usage
 
 ```bash
-npx atria init my-project
-npx atria dev my-project
+npx atria --help
+npx atria init
+npx atria setup
+npx atria dev
 ```
 
-## Create a project
+## Create command
 
 ```bash
-npm create atria@latest -- my-project
+npm create atria@latest
 ```
 
 ## Programmatic API
@@ -30,8 +32,3 @@ import { runCli } from "atria";
 
 await runCli(process.argv);
 ```
-
-## Relationship to `@atria/cli`
-
-- `atria` forwards CLI execution to `@atria/cli`.
-- Feature behavior and command surface are the same.
