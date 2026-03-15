@@ -4,7 +4,7 @@ import replace from '@rollup/plugin-replace'
 import typescript from '@rollup/plugin-typescript'
 
 export default {
-  input: 'src/app/main.tsx',
+  input: 'src/app/kernel/runtime/main.tsx',
   output: {
     file: 'dist/app.js',
     format: 'esm',

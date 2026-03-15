@@ -5,11 +5,11 @@ import {
   loadAuthBootstrapState,
   loginWithEmail,
   registerWithEmail
-} from "../features/auth/auth.api.js";
-import { readAuthQueryState } from "../features/auth/auth.query.js";
-import { LoginView } from "../features/auth/views/login.js";
-import { CreateView } from "../features/auth/views/create.js";
-import { DashboardScreen } from "../features/dashboard/DashboardScreen.js";
+} from "./modules/auth/auth.api.js";
+import { readAuthQueryState } from "./modules/auth/auth.query.js";
+import { LoginView } from "./modules/auth/views/login.js";
+import { CreateView } from "./modules/auth/views/create.js";
+import { DashboardScreen } from "./modules/dashboard/DashboardScreen.js";
 import {
   createInitialLocaleBundle,
   createTranslator,
@@ -19,11 +19,11 @@ import {
 } from "../i18n/client.js";
 import { createApiClient } from "../state/api.client.js";
 import type { AuthMode, ProviderId } from "../types/auth.js";
-import { resolveAdminRoute } from "./routes.js";
-import { StudioShell } from "./shell/StudioShell.js";
-import { applyRouteStyles } from "./styleManager.js";
-import type { RegisterValues } from "../features/auth/forms/register.js";
-import type { LoginValues } from "../features/auth/forms/login.js";
+import { resolveAdminRoute } from "./kernel/Routes.js";
+import { StudioShell } from "./kernel/shell/StudioShell.js";
+import { applyRouteStyles } from "./kernel/StyleManager.js";
+import type { RegisterValues } from "./modules/auth/forms/register.js";
+import type { LoginValues } from "./modules/auth/forms/login.js";
 
 const STUDIO_READY_EVENT = "atria:studio:ready";
 const COLOR_SCHEME_STORAGE_KEY = "atria:color-scheme";
@@ -125,7 +125,7 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   const effectiveRouteId = needsAuthentication ? authMode : route.id;
   const effectiveSubtitleKey = needsAuthentication ? "shell.subtitle.auth" : route.subtitleKey;
   const activeStyleFiles = useMemo(
-    () => (needsAuthentication ? ["auth.css"] : route.styleFiles),
+    () => (needsAuthentication ? ["styles/modules/auth.css"] : route.styleFiles),
     [needsAuthentication, route.styleFiles]
   );
 

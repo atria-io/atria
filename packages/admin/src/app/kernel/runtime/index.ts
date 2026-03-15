@@ -2,4 +2,4 @@ export {
   mountAdminApp,
   mountStudioApp,
   type MountAdminOptions
-} from "./app/kernel/runtime/index.js";
+} from "./main.js";

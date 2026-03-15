@@ -1,5 +1,5 @@
 import React from "react";
-import type { TranslateFn } from "../../i18n/client.js";
+import type { TranslateFn } from "../../../i18n/client.js";
 
 type ColorScheme = "light" | "dark";
 
@@ -33,11 +33,7 @@ export function StudioShell(props: StudioShellProps): React.JSX.Element {
   } = props;
 
   return (
-    <div
-      className={showHeader ? "admin-shell" : "admin-shell admin-shell--headerless"}
-      data-route={routeId}
-      data-scheme={colorScheme}
-    >
+    <div className="admin-shell" data-route={routeId} data-scheme={colorScheme}>
       {showHeader ? (
         <header className="admin-shell__header">
           <div className="admin-shell__branding">

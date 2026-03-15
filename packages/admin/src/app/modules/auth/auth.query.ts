@@ -1,4 +1,4 @@
-import type { ProviderId } from "../../types/auth.js";
+import type { ProviderId } from "../../../types/auth.js";
 
 export interface AuthQueryState {
   provider: ProviderId | null;

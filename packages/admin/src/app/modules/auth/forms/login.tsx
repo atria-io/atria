@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { TranslateFn } from "../../../i18n/client.js";
+import type { TranslateFn } from "../../../../i18n/client.js";
 
 export interface LoginValues {
   email: string;

@@ -1,8 +1,8 @@
 export const DEV_PUBLIC_HOST = "localhost";
 export const DEV_STUDIO_HOST = "studio.localhost";
 
-export const ADMIN_ASSET_PREFIX = "/.atria/admin/";
-export const LEGACY_ADMIN_ASSET_PREFIX = "/.atria/studio/";
+export const ADMIN_ASSET_PREFIX = "/static/";
+export const LEGACY_ADMIN_ASSET_PREFIX = "/.atria/admin/";
 export const I18N_API_PREFIX = "/api/admin/i18n";
 
 export const MIME_TYPES: Record<string, string> = {

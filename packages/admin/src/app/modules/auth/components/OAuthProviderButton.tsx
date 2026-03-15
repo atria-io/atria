@@ -1,5 +1,5 @@
 import React from "react";
-import type { TranslateFn } from "../../../i18n/client.js";
+import type { TranslateFn } from "../../../../i18n/client.js";
 
 export type OAuthProvider = "google" | "github";
 

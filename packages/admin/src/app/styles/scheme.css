@@ -2,9 +2,6 @@
   --color-bg: #13141b;
   --color-fg: #f3f4f6;
 
-  --color-text: #f3f4f6;
-  --color-text-muted: #9ca3af;
-
   --color-accent: #e4e5e9;
   --color-border: #2a2d3f;
 
@@ -21,9 +18,8 @@
 
 [data-scheme="light"] {
   --color-bg: #ffffff;
-  --color-panel: #f7f7f8;
-  --color-border: #e6e7eb;
-  --color-text: #171717;
-  --color-text-muted: #6b7280;
-  --color-accent: #111111;
+  --color-fg: #13141b;
+
+  --color-accent: #e4e5e9;
+  --color-border: #2a2d3f;
 }

@@ -1,4 +1,4 @@
-import type { AuthMode } from "../types/auth.js";
+import type { AuthMode } from "../../types/auth.js";
 
 export type AdminRouteId = "create" | "login" | "setup" | "home";
 
@@ -9,8 +9,8 @@ export interface AdminRoute {
   styleFiles: string[];
 }
 
-const AUTH_STYLE_FILES = ["auth.css"];
-const HOME_STYLE_FILES = ["dashboard.css"];
+const AUTH_STYLE_FILES = ["styles/modules/auth.css"];
+const HOME_STYLE_FILES = ["styles/modules/dashboard.css"];
 
 export const resolveAdminRoute = (pathname: string): AdminRoute => {
   const normalizedPath = pathname.replace(/\/+$/, "") || "/";

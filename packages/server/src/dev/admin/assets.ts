@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import { ADMIN_ASSET_PREFIX, LEGACY_ADMIN_ASSET_PREFIX } from "../constants.js";
 
 const require = createRequire(import.meta.url);
+const COMPAT_ADMIN_ASSET_PREFIXES = [LEGACY_ADMIN_ASSET_PREFIX, "/.atria/studio/"] as const;
 
 export const resolveAdminDistDir = (): string => {
   try {
@@ -15,20 +16,17 @@ export const resolveAdminDistDir = (): string => {
 };
 
 export const resolveAdminAssetPath = (requestPath: string): string | null => {
-  const matchedPrefix = requestPath.startsWith(ADMIN_ASSET_PREFIX)
-    ? ADMIN_ASSET_PREFIX
-    : requestPath.startsWith(LEGACY_ADMIN_ASSET_PREFIX)
-      ? LEGACY_ADMIN_ASSET_PREFIX
-      : null;
-
-  if (!matchedPrefix) {
-    return null;
+  if (requestPath.startsWith(ADMIN_ASSET_PREFIX)) {
+    const relativePath = requestPath.slice(ADMIN_ASSET_PREFIX.length);
+    return relativePath.length === 0 ? "/app.js" : `/${relativePath}`;
   }
 
-  const relativePath = requestPath.slice(matchedPrefix.length);
-  if (relativePath.length === 0) {
-    return "/app.js";
+  for (const legacyPrefix of COMPAT_ADMIN_ASSET_PREFIXES) {
+    if (requestPath.startsWith(legacyPrefix)) {
+      const relativePath = requestPath.slice(legacyPrefix.length);
+      return relativePath.length === 0 ? "/app.js" : `/${relativePath}`;
+    }
   }
 
-  return "/" + relativePath;
+  return null;
 };
