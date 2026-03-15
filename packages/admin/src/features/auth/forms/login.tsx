@@ -61,6 +61,8 @@ export function LoginForm({ disabled, errorMessage, onSubmit, t }: LoginFormProp
         />
       </div>
 
+      <span className="auth-form__hint">{t("auth.form.login.forgot")}</span>
+
       {errorMessage ? <p className="auth-form__error">{errorMessage}</p> : null}
 
       <button type="submit" className="auth-card__button auth-card__button--primary" disabled={disabled}>

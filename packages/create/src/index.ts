@@ -21,6 +21,21 @@ interface ParsedArgs {
   flags: Record<string, string | boolean>;
 }
 
+const STUDIO_PACKAGE_NAME = "studio";
+
+const supportsColor = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR;
+
+const paint = (openCode: number, text: string): string =>
+  supportsColor ? `\u001b[${openCode}m${text}\u001b[0m` : text;
+
+const terminal = {
+  cyan: (text: string): string => paint(36, text),
+  green: (text: string): string => paint(32, text)
+};
+
+const done = (text: string): string => `${terminal.green("✔")} ${text}`;
+const success = (text: string): string => `${terminal.green("✅")} ${text}`;
+
 const ensureDirectory = async (directoryPath: string): Promise<void> => {
   await fs.mkdir(directoryPath, { recursive: true });
 };
@@ -87,14 +102,15 @@ const parseArgs = (argv: string[]): ParsedArgs => {
   return { positionals, flags };
 };
 
-const createProjectPackageJson = (projectName: string, cliVersion: string): string =>
+const createProjectPackageJson = (cliVersion: string): string =>
   `${JSON.stringify(
     {
-      name: projectName,
+      name: STUDIO_PACKAGE_NAME,
       private: true,
       version: "0.1.0",
       scripts: {
-        postinstall: "atria setup --database-only",
+        install: 'npm run "dev install"',
+        "dev install": "atria setup --database-only",
         dev: "atria dev"
       },
       devDependencies: {
@@ -171,7 +187,7 @@ const run = async (): Promise<void> => {
     throw new Error('Option "--auth-method" was removed from create. Sign-in is selected in Studio.');
   }
 
-  const targetArgument = parsedArgs.positionals[0] ?? "atria-project";
+  const targetArgument = parsedArgs.positionals[0] ?? ".";
   const projectRoot = path.resolve(process.cwd(), targetArgument);
   const projectName = path.basename(projectRoot);
   const force = parsedArgs.flags.force === true;
@@ -193,7 +209,7 @@ const run = async (): Promise<void> => {
   const writeTargets = [
     {
       path: path.join(projectRoot, "package.json"),
-      content: createProjectPackageJson(projectName, cliVersion)
+      content: createProjectPackageJson(cliVersion)
     },
     {
       path: path.join(projectRoot, ATRIA_CONFIG_FILE),
@@ -236,24 +252,33 @@ const run = async (): Promise<void> => {
     }
   }
 
-  console.log(`[create] Project scaffolded at ${projectRoot}`);
-  console.log(`[create] Files: ${created} created, ${updated} updated, ${skipped} skipped`);
-  console.log("[create] Database setup is deferred to npm install (atria setup).")
+  console.log(done(`Project scaffolded at: (${projectName})`));
+  console.log(done("Bootstrapping files from template"));
+  console.log(done("Resolving latest module versions"));
+  console.log(
+    done(`Creating default project files (${created} created, ${updated} updated, ${skipped} skipped)`)
+  );
 
   if (!skipInstall) {
-    console.log(`[create] Installing dependencies via ${packageManager}...`);
+    console.log("");
     await installProjectDependencies(projectRoot, packageManager);
   } else {
-    console.log("[create] Skipping dependency installation (--skip-install).\n[create] Run npm install to choose database engine.");
+    console.log("");
+    console.log("[create] Skipping dependency installation (--skip-install).");
+    console.log(`[create] Run ${packageManager} install to choose database engine.`);
   }
 
   console.log("");
-  console.log("Next steps:");
-  console.log(`  cd ${targetArgument}`);
+  console.log(success("Success! Your Studio has been created."));
   if (skipInstall) {
-    console.log(`  ${packageManager} install`);
+    console.log(`Run ${terminal.cyan(`${packageManager} install`)} to choose your database engine first.`);
+  } else {
+    console.log(
+      `Get started by running ${terminal.cyan(
+        `${packageManager} run dev`
+      )} to launch your Studio's development server.`
+    );
   }
-  console.log(`  ${packageManager} run dev`);
 };
 
 run().catch((error) => {

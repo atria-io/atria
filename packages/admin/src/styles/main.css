@@ -3,15 +3,13 @@
 }
 
 html,
-body,
-#atria {
+body {
   min-height: 100%;
 }
 
 body {
   margin: 0;
   font-family: var(--admin-font-family);
-  color: var(--color-text);
   background: var(--color-bg);
 }
 
@@ -19,6 +17,8 @@ body {
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr;
+  color: var(--color-text);
+  background: var(--color-bg);
 }
 
 .admin-shell--headerless {
@@ -55,6 +55,12 @@ body {
   color: var(--color-text-muted);
 }
 
+.admin-shell__header-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
 .admin-shell__locale {
   display: grid;
   gap: var(--space-1);
@@ -71,12 +77,33 @@ body {
   min-width: 120px;
 }
 
-:root[data-atria-route="create"] body,
-:root[data-atria-route="create"] .admin-shell {
+.admin-shell__logout {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+  height: 38px;
+  padding: 0 var(--space-3);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+.admin-shell__logout:hover {
+  border-color: var(--color-accent);
+  background: var(--color-panel);
+}
+
+.admin-shell[data-route="create"],
+.admin-shell[data-route="login"] {
   background: var(--color-bg);
 }
 
-:root[data-atria-route="create"] .admin-shell__main {
+.admin-shell[data-route="create"] .admin-shell__main,
+.admin-shell[data-route="login"] .admin-shell__main {
   padding: 0;
 }
 
@@ -86,11 +113,18 @@ body {
     flex-direction: column;
   }
 
+  .admin-shell__header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .admin-shell__locale {
     width: 100%;
   }
 
-  .admin-shell__locale select {
+  .admin-shell__locale select,
+  .admin-shell__logout {
     width: 100%;
   }
 }

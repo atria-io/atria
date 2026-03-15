@@ -242,6 +242,16 @@ const updateProjectEnv = async (
 
   const normalized = outputLines.join("\n").replace(/\n{3,}/g, "\n\n");
   const finalContent = normalized.length > 0 ? `${normalized}\n` : "";
+
+  if (finalContent.length === 0) {
+    await fs.unlink(envPath).catch((error: NodeJS.ErrnoException) => {
+      if (error.code !== "ENOENT") {
+        throw error;
+      }
+    });
+    return;
+  }
+
   await fs.writeFile(envPath, finalContent, "utf-8");
 };
 

@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import type { TranslateFn } from "../../../i18n/client.js";
 import type { ProviderId } from "../../../types/auth.js";
 import { RegisterForm, type RegisterValues } from "../forms/register.js";
+import { OAuthProviderButton, type OAuthProvider } from "../components/OAuthProviderButton.js";
 
 interface CreateViewProps {
   providers: ProviderId[];
@@ -16,13 +17,7 @@ interface CreateViewProps {
   t: TranslateFn;
 }
 
-const oauthProviderOrder: ProviderId[] = ["google", "github"];
-
-const providerLabelKey: Record<ProviderId, string> = {
-  google: "auth.provider.google",
-  github: "auth.provider.github",
-  email: "auth.provider.email"
-};
+const oauthProviderOrder: OAuthProvider[] = ["google", "github"];
 
 export function CreateView(props: CreateViewProps): React.JSX.Element {
   const {
@@ -38,6 +33,25 @@ export function CreateView(props: CreateViewProps): React.JSX.Element {
     t
   } = props;
 
+  const [showEmailForm, setShowEmailForm] = useState(selectedProvider === "email");
+
+  useEffect(() => {
+    if (selectedProvider === "email") {
+      setShowEmailForm(true);
+    }
+  }, [selectedProvider]);
+
+  const startEmailFlow = (): void => {
+    setShowEmailForm(true);
+    onProviderSelect("email");
+  };
+
+  const backToOptions = (): void => {
+    setShowEmailForm(false);
+  };
+
+  const hasBrokerError = brokerError && !showEmailForm;
+
   return (
     <section className="auth-screen">
       <div className="auth-card">
@@ -45,37 +59,9 @@ export function CreateView(props: CreateViewProps): React.JSX.Element {
 
         {isLoading || isFinalizing ? (
           <p className="auth-card__text">{t("auth.message.finalizing")}</p>
-        ) : (
+        ) : showEmailForm ? (
           <>
-            <p className="auth-card__text">{t("auth.message.createLead")}</p>
-            <p className="auth-card__text">
-              {selectedProvider
-                ? t("auth.message.selectedMethod", { provider: t(providerLabelKey[selectedProvider]) })
-                : t("auth.message.chooseMethod")}
-            </p>
-            <p className="auth-card__text">{t("auth.message.createHelp")}</p>
-
-            {brokerError ? <p className="auth-card__error">{t("auth.message.brokerFailed")}</p> : null}
-
-            <div className="auth-card__actions">
-              {oauthProviderOrder.map((provider) => {
-                const disabled = isSubmitting || !providers.includes(provider);
-
-                return (
-                  <button
-                    key={provider}
-                    type="button"
-                    className="auth-card__button"
-                    disabled={disabled}
-                    onClick={() => onProviderSelect(provider)}
-                  >
-                    {t(providerLabelKey[provider])}
-                  </button>
-                );
-              })}
-            </div>
-
-            <p className="auth-card__divider">{t("auth.form.orEmail")}</p>
+            <p className="auth-card__text">{t("auth.message.emailCreateLead")}</p>
 
             <RegisterForm
               disabled={isSubmitting}
@@ -83,6 +69,42 @@ export function CreateView(props: CreateViewProps): React.JSX.Element {
               onSubmit={onRegister}
               t={t}
             />
+
+            <button
+              type="button"
+              className="auth-card__switch"
+              disabled={isSubmitting}
+              onClick={backToOptions}
+            >
+              {t("auth.form.otherOptions")}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="auth-card__actions">
+              {oauthProviderOrder.map((provider) => (
+                <OAuthProviderButton
+                  key={provider}
+                  provider={provider}
+                  disabled={isSubmitting || !providers.includes(provider)}
+                  onSelect={onProviderSelect}
+                  t={t}
+                />
+              ))}
+            </div>
+
+            <p className="auth-card__divider">{t("auth.form.orEmail")}</p>
+
+            <button
+              type="button"
+              className="auth-provider-button auth-provider-button--plain"
+              disabled={isSubmitting || !providers.includes("email")}
+              onClick={startEmailFlow}
+            >
+              <span>{t("auth.provider.email")}</span>
+            </button>
+
+            {hasBrokerError ? <p className="auth-card__error">{t("auth.message.brokerFailed")}</p> : null}
           </>
         )}
       </div>

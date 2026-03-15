@@ -2,10 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { parseAuthMethod } from "@atria/shared";
 import type { AuthRuntime } from "../../auth/runtime.js";
 import { MIME_TYPES } from "../constants.js";
-import {
-  buildAuthLocation,
-  shouldRedirectAdminToAuth
-} from "./routing.js";
+import { buildAuthLocation, shouldRedirectAdminToAuth } from "./routing.js";
 import { respondWithDefaultNotFound } from "../http/errors.js";
 import { resolveRequestFile, sendFileResponse } from "../static/index.js";
 import type { OwnerSetupState } from "../setup/types.js";
@@ -50,6 +47,18 @@ export const handleAdminRequest = async (options: HandleAdminRequestOptions): Pr
 
   const adminSession = await authRuntime.getSession(request);
   const normalizedPath = requestUrl.pathname.replace(/\/+$/, "") || "/";
+
+  if (normalizedPath === "/create" && !ownerSetupState.pending) {
+    const queryProvider = parseAuthMethod(requestUrl.searchParams.get("provider"));
+    const queryNext = requestUrl.searchParams.get("next");
+    const nextPath = queryNext && queryNext.startsWith("/") ? queryNext : undefined;
+
+    response.writeHead(302, {
+      location: buildAuthLocation("login", queryProvider, nextPath)
+    });
+    response.end();
+    return;
+  }
 
   if (normalizedPath === "/setup" && !requestUrl.searchParams.get("broker_code")) {
     const mode = ownerSetupState.pending ? "create" : "login";

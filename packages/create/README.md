@@ -28,7 +28,7 @@ npm create @atria -- my-project
 
 ## Generated structure
 
-- `package.json` (with `dev` script using `atria dev` and `postinstall` setup hook)
+- `package.json` (with `dev` script using `atria dev` and `install` setup hook)
 - `atria.config.json`
 - `.env.example`
 - `production/studio/content/.gitkeep`
@@ -37,7 +37,7 @@ npm create @atria -- my-project
 - `.atria/runtime/index.html`
 - `.atria/runtime/app.js`
 
-Database selection and bootstrap run during `npm install` (`atria setup --database-only`).
+Database selection and bootstrap run during `npm install` (via `install` script -> `atria setup --database-only`).
 
 OAuth providers are configured via `.env` (generated from `.env.example`) with:
 - `ATRIA_AUTH_BROKER_ORIGIN` (recommended)

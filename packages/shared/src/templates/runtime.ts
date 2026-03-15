@@ -13,11 +13,10 @@ Modifications to this file are automatically discarded.
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <meta name="referrer" content="same-origin" />
-    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNicgaGVpZ2h0PScxNic+PHJlY3Qgd2lkdGg9JzEwMCUnIGhlaWdodD0nMTAwJScgZmlsbD0nIzEzMTQxYicvPjwvc3ZnPg==">
     <title>Atria Studio</title>
     <script>
       (function () {
-        var root = document.documentElement;
         var scheme = null;
 
         try {
@@ -39,10 +38,7 @@ Modifications to this file are automatically discarded.
         }
 
         if (!scheme) {
-          var prefersDark =
-            typeof window.matchMedia === "function" &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches;
-          scheme = prefersDark ? "dark" : "light";
+          scheme = "light";
         }
 
         try {
@@ -53,50 +49,17 @@ Modifications to this file are automatically discarded.
           );
         } catch (_error) {}
 
-        root.setAttribute("data-atria-color-scheme", scheme);
-        if (scheme === "dark") {
-          root.setAttribute("prefers-color-scheme", "dark");
-        } else {
-          root.removeAttribute("prefers-color-scheme");
-        }
+        window.__ATRIA_INITIAL_SCHEME = scheme;
       })();
     </script>
     <style>
-      :root {
-        --atria-boot-bg: #ffffff;
-        --atria-boot-spinner-track: #d7dde8;
-        --atria-boot-spinner: #1f2937;
-      }
-
-      :root[data-atria-color-scheme="dark"],
-      :root[prefers-color-scheme="dark"] {
-        --atria-boot-bg: #0f1115;
-        --atria-boot-spinner-track: #2a2f3a;
-        --atria-boot-spinner: #f3f4f6;
-      }
-
-      html,
-      body,
-      #atria {
-        min-height: 100%;
-      }
-
-      body {
-        margin: 0;
-        background: var(--atria-boot-bg);
-      }
-
-      #atria {
-        visibility: hidden;
-      }
-
       #atria-boot {
         position: fixed;
         inset: 0;
         z-index: 2147483647;
         display: grid;
         place-items: center;
-        background: var(--atria-boot-bg);
+        background: var(--boot-bg);
         transition: opacity 0.2s ease;
       }
 
@@ -109,8 +72,8 @@ Modifications to this file are automatically discarded.
         width: 22px;
         height: 22px;
         border-radius: 50%;
-        border: 2px solid var(--atria-boot-spinner-track);
-        border-top-color: var(--atria-boot-spinner);
+        border: 2px solid var(--boot-spinner-track);
+        border-top-color: var(--boot-spinner);
         animation: atria-boot-spin 0.8s linear infinite;
       }
 
@@ -139,10 +102,6 @@ const rootElement = document.getElementById("atria");
 const bootElement = document.getElementById("atria-boot");
 
 const revealApp = () => {
-  if (rootElement) {
-    rootElement.style.visibility = "visible";
-  }
-
   if (bootElement) {
     bootElement.classList.add("is-hidden");
     window.setTimeout(() => {

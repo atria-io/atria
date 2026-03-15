@@ -1,9 +1,10 @@
 {
-  "name": "workspace",
+  "name": "studio",
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "postinstall": "atria setup --database-only",
+    "install": "npm run \"dev install\"",
+    "dev install": "atria setup --database-only",
     "dev": "atria dev"
   },
   "devDependencies": {

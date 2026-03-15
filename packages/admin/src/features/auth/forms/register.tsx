@@ -15,15 +15,27 @@ interface RegisterFormProps {
 }
 
 export function RegisterForm({ disabled, errorMessage, onSubmit, t }: RegisterFormProps): React.JSX.Element {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
 
+    if (password !== confirmPassword) {
+      setLocalError(t("auth.error.passwordMismatch"));
+      return;
+    }
+
+    setLocalError(null);
+
+    const mergedName = [firstName.trim(), lastName.trim()].filter((value) => value.length > 0).join(" ");
+
     void onSubmit({
-      name: name.trim(),
+      name: mergedName,
       email: email.trim(),
       password
     });
@@ -32,17 +44,34 @@ export function RegisterForm({ disabled, errorMessage, onSubmit, t }: RegisterFo
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
       <div className="auth-form__field">
-        <label htmlFor="auth-register-name" className="auth-form__label">
-          {t("auth.form.name.label")}
+        <label htmlFor="auth-register-first-name" className="auth-form__label">
+          {t("auth.form.firstName.label")}
         </label>
         <input
-          id="auth-register-name"
+          id="auth-register-first-name"
           className="auth-form__input"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
+          value={firstName}
+          onChange={(event) => setFirstName(event.target.value)}
           disabled={disabled}
-          autoComplete="name"
-          maxLength={120}
+          autoComplete="given-name"
+          maxLength={80}
+          required
+        />
+      </div>
+
+      <div className="auth-form__field">
+        <label htmlFor="auth-register-last-name" className="auth-form__label">
+          {t("auth.form.lastName.label")}
+        </label>
+        <input
+          id="auth-register-last-name"
+          className="auth-form__input"
+          value={lastName}
+          onChange={(event) => setLastName(event.target.value)}
+          disabled={disabled}
+          autoComplete="family-name"
+          maxLength={80}
+          required
         />
       </div>
 
@@ -79,6 +108,24 @@ export function RegisterForm({ disabled, errorMessage, onSubmit, t }: RegisterFo
         />
       </div>
 
+      <div className="auth-form__field">
+        <label htmlFor="auth-register-confirm-password" className="auth-form__label">
+          {t("auth.form.confirmPassword.label")}
+        </label>
+        <input
+          id="auth-register-confirm-password"
+          className="auth-form__input"
+          type="password"
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.target.value)}
+          disabled={disabled}
+          autoComplete="new-password"
+          minLength={8}
+          required
+        />
+      </div>
+
+      {localError ? <p className="auth-form__error">{localError}</p> : null}
       {errorMessage ? <p className="auth-form__error">{errorMessage}</p> : null}
 
       <button type="submit" className="auth-card__button auth-card__button--primary" disabled={disabled}>

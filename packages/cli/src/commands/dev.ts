@@ -50,7 +50,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const port = parsePort(parsedArgs.flags.port);
   const runtimeDir = path.join(projectRoot, ATRIA_RUNTIME_DIR);
 
-  console.log(`${terminal.green("✅")} Checking configuration files...`);
+  console.log(`${terminal.green("✔")} Checking configuration files...`);
 
   try {
     await fs.access(runtimeDir);
@@ -62,6 +62,8 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   await writeRuntimeBootstrapFiles(projectRoot, true);
 
+  console.log(`${terminal.green("✔")} Starting dev server`);
+
   const server = await startDevServer({
     projectRoot,
     port
@@ -69,10 +71,10 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   const elapsedMs = Date.now() - startTime;
   console.log(
-    `Atria is ready in ${elapsedMs}ms and running at ${terminal.lightBlue(`${server.publicUrl}/`)}`
+    `Atria is ready in ${elapsedMs}ms and running at ${terminal.cyan(`${server.publicUrl}/`)}`
   );
   console.log(
-    `Admin panel is available at ${terminal.lightBlue(`${server.adminUrl}/`)}`
+    `Admin panel is available at ${terminal.cyan(`${server.adminUrl}/`)}`
   );
   console.log("");
   void notifyCliUpdate(projectRoot);

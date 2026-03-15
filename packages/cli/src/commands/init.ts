@@ -12,14 +12,17 @@ import {
 import { parseArgs } from "../utils/args.js";
 import { ensureDirectory, writeFile } from "../utils/fs.js";
 
-const buildProjectPackageJson = (projectName: string): string =>
+const STUDIO_PACKAGE_NAME = "studio";
+
+const buildProjectPackageJson = (): string =>
   `${JSON.stringify(
     {
-      name: projectName,
+      name: STUDIO_PACKAGE_NAME,
       private: true,
       version: "0.1.0",
       scripts: {
-        postinstall: "atria setup --database-only",
+        install: 'npm run "dev install"',
+        "dev install": "atria setup --database-only",
         dev: "atria dev"
       },
       devDependencies: {
@@ -75,7 +78,7 @@ export const runInitCommand = async (args: string[]): Promise<void> => {
   const filesToWrite = [
     {
       path: path.join(targetRoot, "package.json"),
-      content: buildProjectPackageJson(projectName)
+      content: buildProjectPackageJson()
     },
     {
       path: path.join(targetRoot, ATRIA_CONFIG_FILE),
