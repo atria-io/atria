@@ -26,10 +26,63 @@ import type { RegisterValues } from "../features/auth/forms/register.js";
 import type { LoginValues } from "../features/auth/forms/login.js";
 
 const STUDIO_READY_EVENT = "atria:studio:ready";
+const COLOR_SCHEME_STORAGE_KEY = "atria:color-scheme";
+const LEGACY_COLOR_SCHEME_STORAGE_KEY = "darkMode";
+
+type ColorScheme = "light" | "dark";
+
+declare global {
+  interface Window {
+    __ATRIA_INITIAL_SCHEME?: string;
+  }
+}
 
 export interface AdminAppProps {
   basePath: string;
 }
+
+const normalizeBasePath = (basePath: string): string =>
+  !basePath || basePath === "/" ? "/" : basePath.endsWith("/") ? basePath : `${basePath}/`;
+
+const toBasePathUrl = (basePath: string, path: string): string => {
+  const normalizedBasePath = normalizeBasePath(basePath);
+  const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
+  return `${normalizedBasePath}${normalizedPath}`;
+};
+
+const parseColorScheme = (value: string | null | undefined): ColorScheme | null => {
+  if (value === "light" || value === "dark") {
+    return value;
+  }
+
+  return null;
+};
+
+const resolveInitialColorScheme = (): ColorScheme => {
+  const fromWindow = parseColorScheme(window.__ATRIA_INITIAL_SCHEME);
+  if (fromWindow) {
+    return fromWindow;
+  }
+
+  try {
+    const stored = parseColorScheme(localStorage.getItem(COLOR_SCHEME_STORAGE_KEY));
+    if (stored) {
+      return stored;
+    }
+  } catch (_error) {}
+
+  try {
+    const legacy = localStorage.getItem(LEGACY_COLOR_SCHEME_STORAGE_KEY);
+    if (legacy === "enabled") {
+      return "dark";
+    }
+    if (legacy === "disabled") {
+      return "light";
+    }
+  } catch (_error) {}
+
+  return "light";
+};
 
 export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   const route = useMemo(() => resolveAdminRoute(window.location.pathname), []);
@@ -58,6 +111,7 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   const [areStylesReady, setAreStylesReady] = useState(false);
   const [brokerError, setBrokerError] = useState(false);
   const [loadedAt, setLoadedAt] = useState<Date>(new Date());
+  const [colorScheme] = useState<ColorScheme>(resolveInitialColorScheme);
 
   const [localeBundle, setLocaleBundle] = useState(createInitialLocaleBundle);
   const hasAutoStartedProviderRef = useRef(false);
@@ -66,14 +120,32 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   const t = useMemo(() => createTranslator(localeBundle), [localeBundle]);
 
   const needsAuthentication = setupStatus.pending || !session.authenticated;
-  const authMode: AuthMode = route.authMode ?? (setupStatus.pending ? "create" : "login");
+  const authMode: AuthMode = setupStatus.pending ? "create" : "login";
   const selectedProvider = activeProvider ?? setupStatus.preferredAuthMethod;
+  const effectiveRouteId = needsAuthentication ? authMode : route.id;
+  const effectiveSubtitleKey = needsAuthentication ? "shell.subtitle.auth" : route.subtitleKey;
+  const activeStyleFiles = useMemo(
+    () => (needsAuthentication ? ["auth.css"] : route.styleFiles),
+    [needsAuthentication, route.styleFiles]
+  );
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, colorScheme);
+      localStorage.setItem(
+        LEGACY_COLOR_SCHEME_STORAGE_KEY,
+        colorScheme === "dark" ? "enabled" : "disabled"
+      );
+    } catch (_error) {}
+
+    window.__ATRIA_INITIAL_SCHEME = colorScheme;
+  }, [colorScheme]);
 
   useEffect(() => {
     let cancelled = false;
     setAreStylesReady(false);
 
-    void applyRouteStyles(basePath, route.styleFiles)
+    void applyRouteStyles(basePath, activeStyleFiles)
       .then(() => {
         if (!cancelled) {
           setAreStylesReady(true);
@@ -88,15 +160,7 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [basePath, route.id, route.styleFiles]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-atria-route", route.id);
-
-    return () => {
-      document.documentElement.removeAttribute("data-atria-route");
-    };
-  }, [route.id]);
+  }, [basePath, activeStyleFiles]);
 
   useEffect(() => {
     let cancelled = false;
@@ -245,6 +309,18 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     setIsAuthSubmitting(false);
   };
 
+  const handleLogout = (): void => {
+    const logoutUrl = toBasePathUrl(basePath, "/api/auth/logout");
+    const loginUrl = toBasePathUrl(basePath, "/");
+
+    void fetch(logoutUrl, {
+      method: "POST",
+      credentials: "include"
+    }).finally(() => {
+      window.location.replace(loginUrl);
+    });
+  };
+
   const handleLocaleChange = (locale: string): void => {
     persistPreferredLocale(locale);
 
@@ -259,8 +335,8 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
       : t("auth.title.create")
     : t("dashboard.title");
 
-  const subtitle = t(route.subtitleKey);
-  const showHeader = route.id !== "create";
+  const subtitle = t(effectiveSubtitleKey);
+  const showHeader = !needsAuthentication;
 
   const accountLine =
     session.user?.email ?? session.user?.name ?? session.user?.id ?? t("dashboard.user.fallback");
@@ -281,10 +357,13 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     <StudioShell
       title={title}
       subtitle={subtitle}
+      routeId={effectiveRouteId}
+      colorScheme={colorScheme}
       locale={localeBundle.locale}
       locales={localeBundle.availableLocales}
       showHeader={showHeader}
       onLocaleChange={handleLocaleChange}
+      onLogout={showHeader ? handleLogout : undefined}
       t={t}
     >
       {needsAuthentication ? (

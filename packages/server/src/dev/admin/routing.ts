@@ -8,7 +8,7 @@ export const buildAuthLocation = (
   preferredAuthMethod: AuthMethod | null,
   nextPath?: string
 ): string => {
-  const pathName = mode === "create" ? "/create" : "/login";
+  const pathName = mode === "create" ? "/create" : "/";
   const query = new URLSearchParams();
 
   if (preferredAuthMethod) {
@@ -36,7 +36,7 @@ export const shouldRedirectAdminToAuth = (requestPath: string): boolean => {
   }
 
   if (normalizedPath === "/" || normalizedPath === "/index.html") {
-    return true;
+    return false;
   }
 
   if (normalizedPath.startsWith("/api/")) {

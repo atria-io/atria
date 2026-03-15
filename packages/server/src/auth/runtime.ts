@@ -350,7 +350,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       const nextPath = requestUrl.searchParams.get("next");
       const redirectPath = nextPath && nextPath.startsWith("/") ? nextPath : "/";
       const mode = requestUrl.searchParams.get("mode");
-      const returnPath = mode === "login" ? "/login" : mode === "create" ? "/create" : "/setup";
+      const returnPath = mode === "login" ? "/" : mode === "create" ? "/create" : "/setup";
       const returnTo = new URL(returnPath, getOrigin(options.port));
       returnTo.searchParams.set("provider", provider);
       if (redirectPath !== "/") {
