@@ -1,19 +1,19 @@
-# @atria/create
+# create-atria
 
 Scaffold a new atria project from the command line.
 
-`@atria/create` bootstraps the initial structure for a document-first static CMS project, including `production/studio/` content folders, an empty `production/public/` output directory, `.atria/runtime`, and install-time database setup.
+`create-atria` bootstraps the initial structure for a document-first static CMS project, including `production/studio/` content folders, an empty `production/public/` output directory, `.atria/runtime`, and install-time database setup.
 
 ## Usage
 
 ```bash
-npx @atria/create my-project
+npx create-atria my-project
 ```
 
 Or via npm create:
 
 ```bash
-npm create @atria -- my-project
+npm create atria@latest -- my-project
 ```
 
 ## Options

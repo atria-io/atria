@@ -17,6 +17,12 @@ npx atria init my-project
 npx atria dev my-project
 ```
 
+## Create a project
+
+```bash
+npm create atria@latest -- my-project
+```
+
 ## Programmatic API
 
 ```ts

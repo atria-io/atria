@@ -1,6 +1,6 @@
 {
-  "name": "@atria/create",
-  "version": "0.0.13",
+  "name": "create-atria",
+  "version": "0.0.14",
   "description": "Bootstrap a new atria project",
   "keywords": [
     "atria",
@@ -13,7 +13,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "create": "dist/index.js"
+    "create-atria": "dist/index.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

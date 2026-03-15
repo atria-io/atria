@@ -9,7 +9,7 @@
 | CLI | `@atria/cli` | Developer commands: `init` and `dev` |
 | Server | `@atria/server` | Local static runtime server used by `atria dev` |
 | Shared | `@atria/shared` | Shared constants, paths, and config types |
-| Create | `@atria/create` | Project scaffolder (`npm create @atria`) |
+| Create | `create-atria` | Project scaffolder (`npm create atria`) |
 | Unscoped CLI | `atria` | Wrapper package for users who prefer unscoped install |
 | Core | `@atria/core` | Foundation placeholder for compiler/build pipeline |
 | Admin | `@atria/admin` | Foundation placeholder for admin SPA |
@@ -38,7 +38,7 @@ corepack pnpm build
 ## Create a project
 
 ```bash
-npm create @atria -- my-project
+npm create atria@latest -- my-project
 cd my-project
 npm run dev
 ```
@@ -46,7 +46,7 @@ npm run dev
 Alternative:
 
 ```bash
-npx @atria/create my-project --skip-install
+npx create-atria my-project --skip-install
 cd my-project
 npm install
 npm run dev
