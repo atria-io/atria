@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@atria/create':
-        specifier: ^0.0.3
-        version: 0.0.3
     devDependencies:
       '@types/node':
         specifier: ^22.13.10
@@ -110,10 +106,6 @@ importers:
   packages/shared: {}
 
 packages:
-
-  '@atria/create@0.0.3':
-    resolution: {integrity: sha512-M4d7nljsx0GUfYEFdL6PKsQ5/kFL93xdMV9Wk0OaGrk9dcGkodEkRj55I7AfNDmHClVXrt901v4UzczpFjaFww==}
-    hasBin: true
 
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
@@ -485,8 +477,6 @@ packages:
     engines: {node: '>=0.4'}
 
 snapshots:
-
-  '@atria/create@0.0.3': {}
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
