@@ -1,25 +1,23 @@
 [data-scheme="dark"] {
-  --color-bg: #13141b;
-  --color-fg: #f3f4f6;
-
+  --color-background: #131316;
+  --color-foreground: #f3f4f6;
   --color-accent: #e4e5e9;
   --color-border: #2a2d3f;
+  --color-error: #f97373;
+  --color-shadow: #00000033;
 
-  --box-shadow: 0 0 0 0.03125rem var(--card-shadow-outline-color),
-    0 0.1875rem 0.3125rem -0.125rem var(--card-shadow-umbra-color),
-    0 0.375rem 0.625rem 0 var(--card-shadow-penumbra-color),
-    0 0.0625rem 1.125rem 0.0625rem var(--card-shadow-ambient-color);
-
-  --card-shadow-outline-color: rgba(117, 123, 150, 0.4);
-  --card-shadow-umbra-color: rgba(0, 0, 0, 0.2);
-  --card-shadow-penumbra-color: rgba(0, 0, 0, 0.14);
-  --card-shadow-ambient-color: rgba(0, 0, 0, 0.12);
+  --border: 1px solid var(--color-border);
+  --box-shadow: 0 .25rem .75rem var(--color-shadow);
 }
 
 [data-scheme="light"] {
-  --color-bg: #ffffff;
-  --color-fg: #13141b;
-
+  --color-background: #ffffff;
+  --color-foreground: #131316;
   --color-accent: #e4e5e9;
   --color-border: #2a2d3f;
+  --color-error: #f97373;
+  --color-shadow: #0000001a;
+
+  --border: 1px solid var(--color-border);
+  --box-shadow: 0 .25rem .75rem var(--color-shadow);
 }

@@ -24,10 +24,8 @@ Modifications to this file are automatically discarded.
         var scheme = null;
         var schemeStyle = document.getElementById("atria-scheme");
         var schemeCssByMode = {
-          dark:
-            ":root{--boot-bg:#13141b;--boot-spinner-track:#2a2d3f;--boot-spinner:#e4e5e9;--color-text:#f3f4f6;--color-text-muted:#9ca3af;}",
-          light:
-            ":root{--boot-bg:#ffffff;--boot-spinner-track:#d7dde8;--boot-spinner:#1f2937;--color-text:#171717;--color-text-muted:#9ca3af;}"
+          dark:":root{--boot-bg:#131316;--boot-spinner-track:#2a2d3f;--boot-spinner:#8a8a8a;--color-text:#f3f4f6;--color-text-muted:#9ca3af;}",
+          light:":root{--boot-bg:#ffffff;--boot-spinner-track:#d7dde8;--boot-spinner:#1f2937;--color-text:#171717;--color-text-muted:#9ca3af;}"
         };
 
         try {
@@ -78,6 +76,34 @@ Modifications to this file are automatically discarded.
   <body>
     <div id="atria"></div>
     <div id="atria-boot" aria-hidden="true">
+      <style>
+        #atria-boot {
+          inset: 0;
+          display: grid;
+          position: fixed;
+          place-items: center;
+          background: var(--boot-bg);
+          transition: opacity 0.2s ease;
+          z-index: 999999999;
+        }
+        #atria-boot.is-hidden {
+          opacity: 0;
+          pointer-events: none;
+        }
+        .atria-boot__spinner {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          animation: atria-boot-spin 0.8s linear infinite;
+          border: 2px solid var(--boot-spinner-track);
+          border-top-color: var(--boot-spinner);
+        }
+        @keyframes atria-boot-spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      </style>
       <div class="atria-boot__spinner"></div>
     </div>
     <script type="module" src="./app.js"></script>

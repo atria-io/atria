@@ -14,46 +14,19 @@ html {
 
 body {
   margin: 0;
-  height: 100%;
   min-height: 100%;
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
-  font-family: var(--admin-font-family);
+  font-family: var(--font-family);
   background: transparent;
   color: inherit;
+}
+
+main {
+  min-height: 100vh;
 }
 
 :after,
 :before {
   box-sizing: border-box;
-}
-
-#atria-boot {
-  inset: 0;
-  display: grid;
-  position: fixed;
-  place-items: center;
-  background: var(--boot-bg);
-  transition: opacity 0.2s ease;
-  z-index: 999999999;
-}
-
-#atria-boot.is-hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.atria-boot__spinner {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border-top-color: var(--boot-spinner);
-  border: 2px solid var(--boot-spinner-track);
-  animation: atria-boot-spin 0.8s linear infinite;
-}
-
-@keyframes atria-boot-spin {
-  to {
-    transform: rotate(360deg);
-  }
 }

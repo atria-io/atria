@@ -1,16 +1,14 @@
 .auth-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-bg);
-  min-height: 100%;
+  top: 50%;
+  left: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: min(320px, 100%);
 }
 
 .auth-card {
-  width: min(420px, 100%);
   border: var(--border);
-  border-radius: var(--border-radius);
-  /*box-shadow: var(--box-shadow);*/
+  border-radius: var(--radius-sm);
   padding: var(--space-5);
 }
 
@@ -31,7 +29,7 @@
 
 .auth-card__error {
   margin: var(--space-3) 0 0;
-  color: #f97373;
+  color: var(--color-error);
   font-weight: 600;
   font-size: 13px;
 }
