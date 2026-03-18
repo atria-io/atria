@@ -301,7 +301,9 @@ const promptForChoice = async <T extends string>(
     let cursorHidden = false;
 
     const render = (): void => {
-      const promptHint = hasNavigated ? "" : ` ${terminal.dim("(Use arrow keys)")}`;
+      const promptHint = hasNavigated
+        ? ` ${terminal.dim("(↵ select)")}`
+        : ` ${terminal.dim("(↑↓ navigate)")}`;
       const promptHeader = `${terminal.green("?")} ${bold(promptText)}${promptHint}`;
       const lines = [
         promptHeader,
@@ -423,10 +425,9 @@ const configureDatabase = async (
   if (selectedMode === null) {
     if (shouldPrompt && process.stdin.isTTY && process.stdout.isTTY) {
       selectedMode = await promptForChoice("Select database engine", DATABASE_MODE_CHOICES);
+      const selectedModeLabel = selectedMode === "sqlite" ? "SQLite (default)" : "PostgreSQL";
       console.log(
-        `${terminal.green("?")} ${bold("Select database engine")} ${terminal.cyan(
-          selectedMode === "sqlite" ? "SQLite (default)" : "PostgreSQL"
-        )}`
+        `${terminal.green("✔")} ${bold("Database engine selected:")} ${terminal.cyan(selectedModeLabel)}`
       );
     } else {
       selectedMode = configuredMode ?? "sqlite";

@@ -70,12 +70,10 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   });
 
   const elapsedMs = Date.now() - startTime;
-  console.log(
-    `Atria is ready in ${elapsedMs}ms and running at ${terminal.cyan(`${server.publicUrl}/`)}`
-  );
-  console.log(
-    `Admin panel is available at ${terminal.cyan(`${server.adminUrl}/`)}`
-  );
+  console.log("");
+  console.log(`Atria is ready in ${elapsedMs}ms.`);
+  console.log(`Frontend is available at ${terminal.cyan(`${server.publicUrl}/`)}`);
+  console.log(`Studio is available at ${terminal.cyan(`${server.adminUrl}/`)}`);
   console.log("");
   void notifyCliUpdate(projectRoot);
 
