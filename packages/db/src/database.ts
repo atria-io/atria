@@ -4,6 +4,7 @@ import type {
   DatabaseOwnerSetupState
 } from "./auth/types.js";
 
+/** Public user shape returned by the database layer. */
 export interface DatabaseUser {
   id: string;
   email: string | null;
@@ -13,11 +14,13 @@ export interface DatabaseUser {
   updatedAt: string;
 }
 
+/** User shape including password hash, used internally by auth flows. */
 export interface DatabaseUserWithPassword {
   user: DatabaseUser;
   passwordHash: string;
 }
 
+/** Stored session payload. */
 export interface DatabaseSession {
   id: string;
   userId: string;
@@ -40,6 +43,7 @@ export type DatabaseOwnerRegistrationResult =
 export type DatabaseDriver = "sqlite" | "postgresql";
 export type DatabaseSource = "atria_database_url" | "database_url" | "local_fallback";
 
+/** Database connection details after env resolution. */
 export interface ResolvedDatabaseConnection {
   source: DatabaseSource;
   driver: DatabaseDriver;
@@ -48,10 +52,12 @@ export interface ResolvedDatabaseConnection {
   usesFallback: boolean;
 }
 
+/** Options used when opening a project database. */
 export interface OpenAtriaDatabaseOptions {
   env?: NodeJS.ProcessEnv;
 }
 
+/** Database interface used by the rest of the monorepo. */
 export interface AtriaDatabase {
   getConnectionInfo: () => ResolvedDatabaseConnection;
   close: () => Promise<void>;

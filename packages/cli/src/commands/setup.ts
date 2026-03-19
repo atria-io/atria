@@ -2,15 +2,19 @@ import path from "node:path";
 import readline from "node:readline";
 import { spawn } from "node:child_process";
 import { request as httpRequest } from "node:http";
-import { promises as fs } from "node:fs";
 import { openAtriaDatabase } from "@atria/db";
-import { startDevServer, type DevServerHandle } from "@atria/server";
+import { startDevServer } from "@atria/server";
 import {
   DEFAULT_DEV_PORT,
+  cleanEnvValue,
+  isPostgresConnectionString,
+  loadEnvFile,
+  parseArgs,
   parseAuthMethod,
-  type AuthMethod
+  pathExists,
+  type AuthMethod,
+  updateEnvFile
 } from "@atria/shared";
-import { parseArgs } from "../utils/args.js";
 import { terminal } from "../utils/terminal.js";
 
 interface OwnerSetupState {
@@ -18,23 +22,10 @@ interface OwnerSetupState {
   preferredAuthMethod: AuthMethod | null;
 }
 
-interface SetupStatusPayload {
-  pending?: unknown;
-}
-
-interface SetupStateResponse {
-  statusCode: number;
-  payload: SetupStatusPayload | null;
-}
-
 interface StudioRequestResult {
   statusCode: number;
   headers: Record<string, string | string[] | undefined>;
   body: string;
-}
-
-interface WaitingSpinner {
-  stop: () => void;
 }
 
 type DatabaseMode = "sqlite" | "postgres";
@@ -62,6 +53,8 @@ const sleep = async (ms: number): Promise<void> =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+const isInteractive = (): boolean => Boolean(process.stdin.isTTY && process.stdout.isTTY);
+const envPath = (projectRoot: string): string => path.join(projectRoot, ".env");
 
 const printSetupHelp = (): void => {
   console.log(
@@ -78,20 +71,6 @@ const parseDatabaseMode = (value: string): DatabaseMode | null => {
   }
 
   return null;
-};
-
-const isPostgresConnectionString = (connectionString: string): boolean => {
-  const normalized = connectionString.toLowerCase();
-  return normalized.startsWith("postgres://") || normalized.startsWith("postgresql://");
-};
-
-const cleanEnvValue = (value: string | undefined): string | null => {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
 };
 
 const toErrorMessage = (error: unknown): string => {
@@ -140,131 +119,12 @@ const openBrowser = async (url: string): Promise<boolean> => {
   }
 };
 
-const parseDotEnvLine = (line: string): { key: string; value: string } | null => {
-  const trimmed = line.trim();
-  if (trimmed.length === 0 || trimmed.startsWith("#")) {
-    return null;
-  }
-
-  const separatorIndex = trimmed.indexOf("=");
-  if (separatorIndex <= 0) {
-    return null;
-  }
-
-  const key = trimmed.slice(0, separatorIndex).trim();
-  const rawValue = trimmed.slice(separatorIndex + 1).trim();
-  if (!key) {
-    return null;
-  }
-
-  const quoted =
-    (rawValue.startsWith('"') && rawValue.endsWith('"')) ||
-    (rawValue.startsWith("'") && rawValue.endsWith("'"));
-  const value = quoted ? rawValue.slice(1, -1) : rawValue;
-  return { key, value };
-};
-
-const loadProjectEnv = async (projectRoot: string): Promise<void> => {
-  const envPath = path.join(projectRoot, ".env");
-  try {
-    const envFile = await fs.readFile(envPath, "utf-8");
-    const lines = envFile.split(/\r?\n/g);
-    for (const line of lines) {
-      const parsed = parseDotEnvLine(line);
-      if (!parsed) {
-        continue;
-      }
-      if (process.env[parsed.key] === undefined) {
-        process.env[parsed.key] = parsed.value;
-      }
-    }
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-      throw error;
-    }
-  }
-};
-
-const hasPath = async (targetPath: string): Promise<boolean> => {
-  try {
-    await fs.access(targetPath);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const updateProjectEnv = async (
-  projectRoot: string,
-  updates: Record<string, string | null>
-): Promise<void> => {
-  const envPath = path.join(projectRoot, ".env");
-  const managedKeys = Object.keys(updates);
-  const content = await fs.readFile(envPath, "utf-8").catch((error: NodeJS.ErrnoException) => {
-    if (error.code === "ENOENT") {
-      return "";
-    }
-    throw error;
-  });
-
-  const lines = content.length > 0 ? content.split(/\r?\n/g) : [];
-  const seen = new Set<string>();
-  const outputLines: string[] = [];
-
-  for (const line of lines) {
-    const parsed = parseDotEnvLine(line);
-    if (!parsed || !managedKeys.includes(parsed.key)) {
-      outputLines.push(line);
-      continue;
-    }
-
-    if (seen.has(parsed.key)) {
-      continue;
-    }
-
-    seen.add(parsed.key);
-    const nextValue = updates[parsed.key];
-    if (nextValue !== null) {
-      outputLines.push(`${parsed.key}=${nextValue}`);
-    }
-  }
-
-  for (const key of managedKeys) {
-    if (seen.has(key)) {
-      continue;
-    }
-
-    const value = updates[key];
-    if (value !== null) {
-      outputLines.push(`${key}=${value}`);
-    }
-  }
-
-  const normalized = outputLines.join("\n").replace(/\n{3,}/g, "\n\n");
-  const finalContent = normalized.length > 0 ? `${normalized}\n` : "";
-
-  if (finalContent.length === 0) {
-    await fs.unlink(envPath).catch((error: NodeJS.ErrnoException) => {
-      if (error.code !== "ENOENT") {
-        throw error;
-      }
-    });
-    return;
-  }
-
-  await fs.writeFile(envPath, finalContent, "utf-8");
-};
-
 const resolveConfiguredDatabaseUrl = (): string | null =>
   cleanEnvValue(process.env.ATRIA_DATABASE_URL) ?? cleanEnvValue(process.env.DATABASE_URL);
 
 const resolveConfiguredDatabaseMode = (): DatabaseMode | null => {
-  const explicitConnection = resolveConfiguredDatabaseUrl();
-  if (!explicitConnection) {
-    return null;
-  }
-
-  return isPostgresConnectionString(explicitConnection) ? "postgres" : "sqlite";
+  const value = resolveConfiguredDatabaseUrl();
+  return value ? (isPostgresConnectionString(value) ? "postgres" : "sqlite") : null;
 };
 
 const ensureDatabaseReady = async (
@@ -290,7 +150,7 @@ const promptForChoice = async <T extends string>(
   choices: Array<PromptChoice<T>>
 ): Promise<T> =>
   new Promise((resolve, reject) => {
-    if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    if (!isInteractive()) {
       reject(new Error("Interactive setup prompt requires a TTY terminal."));
       return;
     }
@@ -385,7 +245,7 @@ const promptForChoice = async <T extends string>(
 
 const promptForInput = async (promptText: string): Promise<string> =>
   new Promise((resolve, reject) => {
-    if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    if (!isInteractive()) {
       reject(new Error("Interactive setup prompt requires a TTY terminal."));
       return;
     }
@@ -414,16 +274,16 @@ const configureDatabase = async (
     databaseUrlFlag: string | null;
   }
 ): Promise<DatabaseMode> => {
-  await loadProjectEnv(projectRoot);
+  await loadEnvFile(envPath(projectRoot));
 
   let selectedMode = options.databaseModeFlag;
   const configuredMode = resolveConfiguredDatabaseMode();
   const configuredUrl = resolveConfiguredDatabaseUrl();
-  const hasEnvFile = await hasPath(path.join(projectRoot, ".env"));
+  const hasEnvFile = await pathExists(envPath(projectRoot));
   const shouldPrompt = options.force || (configuredMode === null && !hasEnvFile);
 
   if (selectedMode === null) {
-    if (shouldPrompt && process.stdin.isTTY && process.stdout.isTTY) {
+    if (shouldPrompt && isInteractive()) {
       selectedMode = await promptForChoice("Select database engine", DATABASE_MODE_CHOICES);
       const selectedModeLabel = selectedMode === "sqlite" ? "SQLite (default)" : "PostgreSQL";
       console.log(
@@ -435,7 +295,7 @@ const configureDatabase = async (
   }
 
   if (selectedMode === "sqlite") {
-    await updateProjectEnv(projectRoot, {
+    await updateEnvFile(envPath(projectRoot), {
       ATRIA_DATABASE_URL: null,
       DATABASE_URL: null
     });
@@ -453,7 +313,7 @@ const configureDatabase = async (
 
   let postgresUrl = options.databaseUrlFlag ?? (configuredMode === "postgres" ? configuredUrl : null);
   if (!postgresUrl) {
-    if (process.stdin.isTTY && process.stdout.isTTY) {
+    if (isInteractive()) {
       postgresUrl = await promptForInput("PostgreSQL connection URL");
     } else {
       throw new Error("PostgreSQL mode requires --database-url or ATRIA_DATABASE_URL.");
@@ -464,7 +324,7 @@ const configureDatabase = async (
     throw new Error('Invalid PostgreSQL URL. Use "postgres://" or "postgresql://".');
   }
 
-  await updateProjectEnv(projectRoot, {
+  await updateEnvFile(envPath(projectRoot), {
     ATRIA_DATABASE_URL: postgresUrl,
     DATABASE_URL: null
   });
@@ -550,41 +410,29 @@ const resolveProviderAuthorizationUrl = async (provider: AuthMethod): Promise<st
   return `http://studio.localhost:${DEFAULT_DEV_PORT}/api/auth/start/${provider}`;
 };
 
-const requestSetupStatus = async (): Promise<SetupStateResponse> => {
+const isSetupComplete = async (): Promise<boolean> => {
   try {
     const response = await requestStudio("/api/setup/status");
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      return {
-        statusCode: response.statusCode,
-        payload: null
-      };
+      return false;
     }
 
-    return {
-      statusCode: response.statusCode,
-      payload: JSON.parse(response.body) as SetupStatusPayload
-    };
+    return (JSON.parse(response.body) as { pending?: unknown }).pending === false;
   } catch {
-    return {
-      statusCode: 500,
-      payload: null
-    };
+    return false;
   }
 };
 
-const startLocalStudioServer = async (
-  projectRoot: string
-): Promise<{ server: DevServerHandle | null }> => {
+const startLocalStudioServer = async (projectRoot: string) => {
   try {
-    const server = await startDevServer({
+    return await startDevServer({
       projectRoot,
       port: DEFAULT_DEV_PORT
     });
-    return { server };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes("EADDRINUSE")) {
-      return { server: null };
+      return null;
     }
     throw error;
   }
@@ -592,25 +440,19 @@ const startLocalStudioServer = async (
 
 const waitForSetupCompletion = async (abortSignal: { cancelled: boolean }): Promise<boolean> => {
   while (!abortSignal.cancelled) {
-    const setupStatus = await requestSetupStatus();
-    if (setupStatus.statusCode >= 200 && setupStatus.statusCode < 300) {
-      if (setupStatus.payload?.pending === false) {
-        return true;
-      }
+    if (await isSetupComplete()) {
+      return true;
     }
-
     await sleep(1200);
   }
 
   return false;
 };
 
-const startWaitingSpinner = (message: string): WaitingSpinner => {
+const startWaitingSpinner = (message: string): (() => void) => {
   if (!process.stdout.isTTY) {
     console.log(`${terminal.cyan("⋮")} ${message}`);
-    return {
-      stop: (): void => {}
-    };
+    return () => {};
   }
 
   const frames = ["⠇", "⠏", "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧"];
@@ -629,11 +471,9 @@ const startWaitingSpinner = (message: string): WaitingSpinner => {
   render();
   const timer = setInterval(render, 90);
 
-  return {
-    stop: (): void => {
-      clearInterval(timer);
-      process.stdout.write(`\r${" ".repeat(printedLength)}\r`);
-    }
+  return (): void => {
+    clearInterval(timer);
+    process.stdout.write(`\r${" ".repeat(printedLength)}\r`);
   };
 };
 
@@ -644,12 +484,11 @@ const runOAuthSetupFlow = async (
   projectRoot: string,
   authMethod: "google" | "github"
 ): Promise<void> => {
-  await loadProjectEnv(projectRoot);
-  const { server } = await startLocalStudioServer(projectRoot);
+  await loadEnvFile(envPath(projectRoot));
+  const server = await startLocalStudioServer(projectRoot);
 
   try {
-    const providerConfigured = await isProviderConfigured(authMethod);
-    if (!providerConfigured) {
+    if (!(await isProviderConfigured(authMethod))) {
       console.log(
         `${terminal.cyan("⋮")} OAuth provider ${terminal.cyan(authMethodLabel(authMethod))} is not available right now.`
       );
@@ -663,23 +502,20 @@ const runOAuthSetupFlow = async (
       console.log(`${terminal.cyan("⋮")} Open this URL manually: ${authorizationUrl}`);
     }
 
-    const spinnerMessage = "Waiting for browser login to complete... Press Ctrl + C to cancel";
-    let waitingSpinner: WaitingSpinner | null = startWaitingSpinner(spinnerMessage);
-
-    const abortSignal = { cancelled: false };
+    const stopSpinner = startWaitingSpinner(
+      "Waiting for browser login to complete... Press Ctrl + C to cancel"
+    );
+    let cancelled = false;
     const handleSigInt = (): void => {
-      abortSignal.cancelled = true;
+      cancelled = true;
     };
 
     process.once("SIGINT", handleSigInt);
     try {
-      await waitForSetupCompletion(abortSignal);
+      await waitForSetupCompletion({ get cancelled() { return cancelled; } });
     } finally {
       process.off("SIGINT", handleSigInt);
-      if (waitingSpinner) {
-        waitingSpinner.stop();
-        waitingSpinner = null;
-      }
+      stopSpinner();
     }
   } finally {
     if (server) {
@@ -712,6 +548,12 @@ const writePreferredAuthMethod = async (
   }
 };
 
+/**
+ * Configures database and owner authentication for an atria project.
+ *
+ * @param {string[]} args
+ * @returns {Promise<void>}
+ */
 export const runSetupCommand = async (args: string[]): Promise<void> => {
   const parsedArgs = parseArgs(args);
   if (parsedArgs.flags.help) {
@@ -785,7 +627,7 @@ export const runSetupCommand = async (args: string[]): Promise<void> => {
 
   let selectedAuthMethod = authMethodFromFlag;
   let selectedViaPrompt = false;
-  if (selectedAuthMethod === null && process.stdin.isTTY && process.stdout.isTTY) {
+  if (selectedAuthMethod === null && isInteractive()) {
     selectedAuthMethod = await promptForAuthMethod();
     selectedViaPrompt = true;
   }

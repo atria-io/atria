@@ -12,17 +12,15 @@ import {
   STUDIO_CONTENT_DIR,
   STUDIO_THEME_DIR,
   createEnvExampleFile,
+  ensureDirectory,
+  parseArgs,
+  type ParsedArgs,
   runtimeAppJs,
-  runtimeIndexHtml
+  runtimeIndexHtml,
+  writeFile
 } from "@atria/shared";
 
-type WriteStatus = "created" | "updated" | "skipped";
 type PackageManager = "npm" | "pnpm" | "yarn";
-
-interface ParsedArgs {
-  positionals: string[];
-  flags: Record<string, string | boolean>;
-}
 
 interface PromptInputOptions {
   defaultValue: string;
@@ -37,14 +35,12 @@ interface ReplacePromptOptions {
 interface ProjectSelection {
   targetArgument: string;
   configProjectName: string;
-  projectNameLabel: string;
   mode: "new" | "existing";
 }
 
 interface ExistingProjectEntry {
   configProjectName: string;
   projectRoot: string;
-  directoryName: string;
 }
 
 const STUDIO_PACKAGE_NAME = "studio";
@@ -89,72 +85,6 @@ const replacePreviousPromptLine = (line: string, options: ReplacePromptOptions =
     process.stdout.write("\u001b[2K");
   }
   process.stdout.write(`${line}\n`);
-};
-
-const ensureDirectory = async (directoryPath: string): Promise<void> => {
-  await fs.mkdir(directoryPath, { recursive: true });
-};
-
-const writeFile = async (
-  filePath: string,
-  content: string,
-  force = false
-): Promise<WriteStatus> => {
-  let exists = false;
-
-  try {
-    await fs.access(filePath);
-    exists = true;
-  } catch {
-    exists = false;
-  }
-
-  if (exists && !force) {
-    return "skipped";
-  }
-
-  await ensureDirectory(path.dirname(filePath));
-  await fs.writeFile(filePath, content, "utf-8");
-  return exists ? "updated" : "created";
-};
-
-const parseArgs = (argv: string[]): ParsedArgs => {
-  const positionals: string[] = [];
-  const flags: Record<string, string | boolean> = {};
-
-  for (let index = 0; index < argv.length; index += 1) {
-    const token = argv[index];
-
-    if (!token.startsWith("-")) {
-      positionals.push(token);
-      continue;
-    }
-
-    if (token === "-h" || token === "--help") {
-      flags.help = true;
-      continue;
-    }
-
-    if (token.startsWith("--")) {
-      const [key, inlineValue] = token.slice(2).split("=", 2);
-      if (inlineValue !== undefined) {
-        flags[key] = inlineValue;
-        continue;
-      }
-
-      const nextToken = argv[index + 1];
-      if (nextToken && !nextToken.startsWith("-")) {
-        flags[key] = nextToken;
-        index += 1;
-        continue;
-      }
-
-      flags[key] = true;
-      continue;
-    }
-  }
-
-  return { positionals, flags };
 };
 
 const createProjectPackageJson = (cliVersion: string): string =>
@@ -218,7 +148,6 @@ const installProjectDependencies = async (
     });
   });
 
-
 const readJsonFile = async <T>(filePath: string): Promise<T | null> => {
   try {
     const raw = await fs.readFile(filePath, "utf-8");
@@ -243,8 +172,7 @@ const detectExistingProjectAt = async (projectRoot: string): Promise<ExistingPro
 
   return {
     configProjectName,
-    projectRoot,
-    directoryName: path.basename(projectRoot)
+    projectRoot
   };
 };
 
@@ -543,12 +471,9 @@ const resolveProjectSelection = async (parsedArgs: ParsedArgs): Promise<ProjectS
   const explicitTarget = parsedArgs.positionals[0];
 
   if (explicitTarget) {
-    const explicitRoot = path.resolve(process.cwd(), explicitTarget);
-    const explicitProjectName = path.basename(explicitRoot);
     return {
       targetArgument: explicitTarget,
-      configProjectName: explicitProjectName,
-      projectNameLabel: explicitProjectName,
+      configProjectName: path.basename(path.resolve(process.cwd(), explicitTarget)),
       mode: "new"
     };
   }
@@ -562,7 +487,6 @@ const resolveProjectSelection = async (parsedArgs: ParsedArgs): Promise<ProjectS
       return {
         targetArgument: modeSelection.project.projectRoot,
         configProjectName: modeSelection.project.configProjectName,
-        projectNameLabel: modeSelection.project.configProjectName,
         mode: "existing"
       };
     }
@@ -618,7 +542,6 @@ const resolveProjectSelection = async (parsedArgs: ParsedArgs): Promise<ProjectS
     return {
       targetArgument: outputPath,
       configProjectName,
-      projectNameLabel,
       mode: "new"
     };
   }
@@ -637,6 +560,12 @@ const printHelp = (): void => {
   console.log("  -h, --help            Show help");
 };
 
+/**
+ * Process boundary for `create-atria`.
+ * Enforces that auth choice remains a Studio concern by rejecting `--auth-method` at scaffold time.
+ *
+ * @throws {Error} When invalid flags are used, scaffold writes fail, or dependency install fails.
+ */
 const run = async (): Promise<void> => {
   const parsedArgs = parseArgs(process.argv.slice(2));
   if (parsedArgs.flags.help) {
@@ -649,11 +578,9 @@ const run = async (): Promise<void> => {
   }
 
   const selection = await resolveProjectSelection(parsedArgs);
-  const targetArgument = selection.targetArgument;
-  const projectRoot = path.resolve(process.cwd(), targetArgument);
+  const projectRoot = path.resolve(process.cwd(), selection.targetArgument);
   const projectName = path.basename(projectRoot);
   const configProjectName = selection.configProjectName;
-  const projectNameLabel = selection.projectNameLabel;
   const force = parsedArgs.flags.force === true;
   const skipInstall = parsedArgs.flags["skip-install"] === true;
   const cliVersion =
@@ -665,7 +592,7 @@ const run = async (): Promise<void> => {
   if (selection.mode === "existing") {
     const scaffoldedAt = formatScaffoldedAt(process.cwd(), projectRoot);
     console.log("");
-    console.log(doneField("Using existing project", selection.configProjectName));
+    console.log(doneField("Using existing project", configProjectName));
     console.log(done("No files were changed"));
     console.log("");
     console.log(`Run ${terminal.cyan(`${packageManager} run dev`)} in the scaffolded ${terminal.cyan(scaffoldedAt)}.`);
@@ -712,19 +639,8 @@ const run = async (): Promise<void> => {
     }
   ];
 
-  let created = 0;
-  let updated = 0;
-  let skipped = 0;
-
   for (const target of writeTargets) {
-    const writeStatus = await writeFile(target.path, target.content, force);
-    if (writeStatus === "created") {
-      created += 1;
-    } else if (writeStatus === "updated") {
-      updated += 1;
-    } else {
-      skipped += 1;
-    }
+    await writeFile(target.path, target.content, force);
   }
 
   const usedInteractiveSetupPrompts =
@@ -738,10 +654,7 @@ const run = async (): Promise<void> => {
 
   console.log("");
   console.log(done("Bootstrapping files from template"));
-  console.log(done("Fetching latest module versions"));
-  console.log(
-    done(`Creating default project files (${created} created, ${updated} updated, ${skipped} skipped)`)
-  );
+  console.log(done("Creating default project files"));
 
   if (!skipInstall) {
     console.log("");

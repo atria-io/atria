@@ -1,5 +1,7 @@
 import type { ApiClient } from "../state/api.client.js";
-import { DEFAULT_MESSAGES_BY_LOCALE, FALLBACK_LOCALE, type AdminMessages } from "./messages.js";
+
+export type AdminMessages = Record<string, string>;
+export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
 export interface LocaleBundle {
   locale: string;
@@ -7,123 +9,84 @@ export interface LocaleBundle {
   messages: AdminMessages;
 }
 
-interface LocaleListPayload {
-  ok: boolean;
-  locales: string[];
-}
-
-export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
-
 const LOCALE_STORAGE_KEY = "atria.admin.locale";
+const DEFAULT_LOCALE = "en-US";
 
-const isMessageDictionary = (payload: unknown): payload is AdminMessages => {
-  if (typeof payload !== "object" || payload === null) {
-    return false;
+const isMessageDictionary = (value: unknown): value is AdminMessages =>
+  typeof value === "object" &&
+  value !== null &&
+  Object.values(value).every((entry) => typeof entry === "string");
+
+const resolveLocale = (requestedLocale: string, availableLocales: string[]): string => {
+  const locale = requestedLocale.trim();
+  if (availableLocales.includes(locale)) {
+    return locale;
   }
 
-  return Object.values(payload).every((value) => typeof value === "string");
+  if (availableLocales.includes(DEFAULT_LOCALE)) {
+    return DEFAULT_LOCALE;
+  }
+
+  throw new Error(`Locale "${locale}" is not available.`);
 };
 
-const normalizeLocaleToken = (value: string): string => value.trim();
-
-const resolvePreferredLocale = (requestedLocale: string, availableLocales: string[]): string => {
-  const normalizedRequested = normalizeLocaleToken(requestedLocale);
-
-  if (availableLocales.includes(normalizedRequested)) {
-    return normalizedRequested;
-  }
-
-  const requestedLanguage = normalizedRequested.split("-")[0]?.toLowerCase();
-  if (requestedLanguage) {
-    const languageMatch = availableLocales.find(
-      (locale) => locale.split("-")[0]?.toLowerCase() === requestedLanguage
-    );
-
-    if (languageMatch) {
-      return languageMatch;
-    }
-  }
-
-  if (availableLocales.includes("pt-PT")) {
-    return "pt-PT";
-  }
-
-  if (availableLocales.includes(FALLBACK_LOCALE)) {
-    return FALLBACK_LOCALE;
-  }
-
-  return availableLocales[0] ?? FALLBACK_LOCALE;
-};
-
-const formatWithParams = (template: string, params?: Record<string, string | number>): string => {
-  if (!params) {
-    return template;
-  }
-
-  return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, token) => {
-    const nextValue = params[token];
-    return nextValue === undefined ? match : String(nextValue);
-  });
-};
-
-const fallbackMessagesForLocale = (locale: string): AdminMessages => {
-  return DEFAULT_MESSAGES_BY_LOCALE[locale] ?? DEFAULT_MESSAGES_BY_LOCALE[FALLBACK_LOCALE];
-};
-
-export const createInitialLocaleBundle = (): LocaleBundle => ({
-  locale: FALLBACK_LOCALE,
-  availableLocales: Object.keys(DEFAULT_MESSAGES_BY_LOCALE),
-  messages: fallbackMessagesForLocale(FALLBACK_LOCALE)
-});
+const formatMessage = (template: string, params?: Record<string, string | number>): string =>
+  !params
+    ? template
+    : template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, token) =>
+        params[token] === undefined ? match : String(params[token])
+      );
 
 export const createTranslator = (bundle: LocaleBundle): TranslateFn => {
-  const fallback = DEFAULT_MESSAGES_BY_LOCALE[FALLBACK_LOCALE];
-
   return (key: string, params?: Record<string, string | number>): string => {
-    const template = bundle.messages[key] ?? fallback[key] ?? key;
-    return formatWithParams(template, params);
+    const template = bundle.messages[key];
+    if (!template) {
+      throw new Error(`Missing message "${key}" for locale "${bundle.locale}".`);
+    }
+
+    return formatMessage(template, params);
   };
 };
 
 export const readPreferredLocale = (): string => {
   try {
-    const fromStorage = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-    if (fromStorage && fromStorage.length > 0) {
-      return fromStorage;
+    const locale = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+    if (locale) {
+      return locale;
     }
-  } catch {
-    // Ignore storage unavailability.
-  }
+  } catch {}
 
-  return window.navigator.language || FALLBACK_LOCALE;
+  return window.navigator.language || DEFAULT_LOCALE;
 };
 
 export const persistPreferredLocale = (locale: string): void => {
   try {
     window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-  } catch {
-    // Ignore storage write errors.
-  }
+  } catch {}
 };
 
+/**
+ * Loads the locale list and the selected locale dictionary from the admin API.
+ *
+ * @param {ApiClient} apiClient
+ * @param {string} requestedLocale
+ * @returns {Promise<LocaleBundle>}
+ */
 export const loadLocaleBundle = async (
   apiClient: ApiClient,
   requestedLocale: string
 ): Promise<LocaleBundle> => {
-  const localeListPayload = await apiClient.getJson<LocaleListPayload>("/api/admin/i18n");
-  const availableLocales =
-    localeListPayload?.ok === true && Array.isArray(localeListPayload.locales)
-      ? localeListPayload.locales.filter((locale) => typeof locale === "string")
-      : Object.keys(DEFAULT_MESSAGES_BY_LOCALE);
+  const localeList = await apiClient.getJson<{ ok: boolean; locales: string[] }>("/api/admin/i18n");
+  const availableLocales = localeList?.ok === true ? localeList.locales.filter(Boolean) : [];
+  if (availableLocales.length === 0) {
+    throw new Error("Admin locales are unavailable.");
+  }
 
-  const locale = resolvePreferredLocale(requestedLocale, availableLocales);
-  const remoteMessages = await apiClient.getJson<unknown>(`/api/admin/i18n/${encodeURIComponent(locale)}`);
+  const locale = resolveLocale(requestedLocale, availableLocales);
+  const messages = await apiClient.getJson<unknown>(`/api/admin/i18n/${encodeURIComponent(locale)}`);
+  if (!isMessageDictionary(messages)) {
+    throw new Error(`Locale "${locale}" is invalid.`);
+  }
 
-  return {
-    locale,
-    availableLocales,
-    messages: isMessageDictionary(remoteMessages)
-      ? { ...fallbackMessagesForLocale(locale), ...remoteMessages }
-      : fallbackMessagesForLocale(locale)
-  };
+  return { locale, availableLocales, messages };
 };

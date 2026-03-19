@@ -1,11 +1,9 @@
 import {
   openAtriaDatabase,
-  type AtriaDatabase,
   type DatabaseOAuthProfile,
   type DatabaseOwnerRegistrationResult,
   type DatabaseSession,
   type DatabaseUser,
-  type DatabaseUserWithPassword
 } from "@atria/db";
 import type { AuthMethod } from "@atria/shared";
 import type { OAuthProfile } from "./types.js";
@@ -68,16 +66,6 @@ const mapUser = (user: Pick<DatabaseUser, "id" | "email" | "name" | "avatarUrl">
   avatarUrl: user.avatarUrl
 });
 
-const mapUserWithPassword = (
-  userWithPassword: DatabaseUserWithPassword
-): {
-  user: AuthUser;
-  passwordHash: string;
-} => ({
-  user: mapUser(userWithPassword.user),
-  passwordHash: userWithPassword.passwordHash
-});
-
 const mapSession = (
   session: Pick<DatabaseSession, "id" | "userId" | "createdAt" | "expiresAt">
 ): AuthSession => ({
@@ -88,7 +76,7 @@ const mapSession = (
 });
 
 export const createDbAuthStore = (projectRoot: string): AuthStore => {
-  const database: AtriaDatabase = openAtriaDatabase(projectRoot);
+  const database = openAtriaDatabase(projectRoot);
 
   return {
     close: async (): Promise<void> => {
@@ -113,8 +101,8 @@ export const createDbAuthStore = (projectRoot: string): AuthStore => {
     },
 
     getUserWithPasswordByEmail: async (email: string) => {
-      const userWithPassword = await database.getUserWithPasswordByEmail(email);
-      return userWithPassword ? mapUserWithPassword(userWithPassword) : null;
+      const user = await database.getUserWithPasswordByEmail(email);
+      return user ? { user: mapUser(user.user), passwordHash: user.passwordHash } : null;
     },
 
     registerOwnerWithPassword: async (input) => database.registerOwnerWithPassword(input),

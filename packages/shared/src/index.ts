@@ -13,10 +13,25 @@ export const STUDIO_CONTENT_DIR = path.join(STUDIO_DIR, "content");
 export const STUDIO_THEME_DIR = path.join(STUDIO_DIR, "theme");
 export const DEFAULT_DEV_PORT = 3333;
 
+/**
+ * Resolves the runtime directory for a project root.
+ *
+ * @param {string} projectRoot
+ * @returns {string}
+ */
 export const resolveRuntimeDir = (projectRoot: string): string =>
   path.join(projectRoot, ATRIA_RUNTIME_DIR);
 
 export { DEFAULT_AUTH_BROKER_ORIGIN, parseAuthMethod, type AuthMethod } from "./auth.js";
+export { parseArgs, type ParsedArgs } from "./cli.js";
+export {
+  cleanEnvValue,
+  isPostgresConnectionString,
+  loadEnvFile,
+  parseDotEnvLine,
+  updateEnvFile
+} from "./env.js";
+export { ensureDirectory, pathExists, writeFile, type WriteStatus } from "./fs.js";
 export { createEnvExampleFile } from "./templates/env.js";
 export {
   COLOR_SCHEME_STORAGE_KEY,

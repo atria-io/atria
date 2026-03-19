@@ -1,24 +1,15 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { ATRIA_DATABASE_FILE } from "@atria/shared";
+import {
+  ATRIA_DATABASE_FILE,
+  cleanEnvValue,
+  isPostgresConnectionString
+} from "@atria/shared";
 import type {
   DatabaseSource,
   ResolvedDatabaseConnection
 } from "../database.js";
 
-const cleanEnvValue = (value: string | undefined): string | null => {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-};
-
-const isPostgresConnectionString = (connectionString: string): boolean => {
-  const normalized = connectionString.toLowerCase();
-  return normalized.startsWith("postgres://") || normalized.startsWith("postgresql://");
-};
 
 const resolveSqliteFilePath = (projectRoot: string, connectionString: string): string => {
   if (connectionString === ":memory:") {
@@ -78,6 +69,13 @@ const resolveConnectionFromEnv = (
   };
 };
 
+/**
+ * Resolves the effective database connection for a project.
+ *
+ * @param {string} projectRoot
+ * @param {NodeJS.ProcessEnv} [env=process.env]
+ * @returns {ResolvedDatabaseConnection}
+ */
 export const resolveDatabaseConnection = (
   projectRoot: string,
   env: NodeJS.ProcessEnv = process.env

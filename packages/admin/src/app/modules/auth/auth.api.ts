@@ -1,4 +1,5 @@
 import type { ApiClient } from "../../../state/api.client.js";
+import { resolveBasePathUrl } from "../../../state/api.client.js";
 import type {
   AuthMode,
   AuthUser,
@@ -34,16 +35,6 @@ export interface EmailAuthResult {
   reason: string | null;
 }
 
-const defaultSetupStatus: SetupStatus = {
-  pending: true,
-  preferredAuthMethod: null
-};
-
-const defaultSession: SessionPayload = {
-  authenticated: false,
-  user: null
-};
-
 const sanitizeProviders = (providersPayload: ProvidersPayload | null): ProviderId[] => {
   if (!Array.isArray(providersPayload?.providers)) {
     return [];
@@ -63,9 +54,9 @@ export const loadAuthBootstrapState = async (apiClient: ApiClient): Promise<Auth
   ]);
 
   return {
-    setupStatus: setupStatus ?? defaultSetupStatus,
+    setupStatus: setupStatus ?? { pending: true, preferredAuthMethod: null },
     providers: sanitizeProviders(providersPayload),
-    session: sessionPayload ?? defaultSession
+    session: sessionPayload ?? { authenticated: false, user: null }
   };
 };
 
@@ -78,20 +69,6 @@ export const exchangeBrokerCode = async (
   );
 
   return exchangePayload?.ok === true;
-};
-
-const normalizeBasePath = (basePath: string): string => {
-  if (!basePath || basePath === "/") {
-    return "/";
-  }
-
-  return basePath.endsWith("/") ? basePath : `${basePath}/`;
-};
-
-const resolveApiPath = (basePath: string, path: string): string => {
-  const normalizedBasePath = normalizeBasePath(basePath);
-  const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
-  return `${normalizedBasePath}${normalizedPath}`;
 };
 
 const parseEmailAuthResult = (payload: unknown): EmailAuthResult => {
@@ -113,11 +90,7 @@ const parseEmailAuthResult = (payload: unknown): EmailAuthResult => {
     reason?: unknown;
   };
 
-  const userCandidate = result.user;
-  const user =
-    typeof userCandidate === "object" && userCandidate !== null
-      ? (userCandidate as AuthUser)
-      : null;
+  const user = typeof result.user === "object" && result.user !== null ? (result.user as AuthUser) : null;
 
   return {
     ok: result.ok === true,
@@ -134,7 +107,7 @@ const postEmailAuth = async (
   body: Record<string, string>
 ): Promise<EmailAuthResult> => {
   try {
-    const response = await fetch(resolveApiPath(basePath, routePath), {
+    const response = await fetch(resolveBasePathUrl(basePath, routePath), {
       method: "POST",
       credentials: "include",
       headers: {
@@ -185,6 +158,5 @@ export const buildOAuthStartUrl = (
     query.set("next", nextPath);
   }
 
-  const normalizedBasePath = normalizeBasePath(basePath);
-  return `${normalizedBasePath}api/auth/start/${provider}?${query.toString()}`;
+  return `${resolveBasePathUrl(basePath, `api/auth/start/${provider}`)}?${query.toString()}`;
 };

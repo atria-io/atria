@@ -6,7 +6,8 @@ import {
   respondWithPublicNotFound,
   respondWithPublicUnavailable
 } from "./responses.js";
-import { resolveRequestFile, sendFileResponse } from "../static/index.js";
+import { resolveRequestFile } from "../static/resolver.js";
+import { sendFileResponse } from "../static/sender.js";
 
 interface HandlePublicRequestOptions {
   requestUrl: URL;
@@ -15,15 +16,19 @@ interface HandlePublicRequestOptions {
   publicOutputPublished: boolean;
 }
 
+/**
+ * Handles public-site requests served during local development.
+ *
+ * @param {HandlePublicRequestOptions} options
+ * @returns {Promise<void>}
+ */
 export const handlePublicRequest = async (options: HandlePublicRequestOptions): Promise<void> => {
   const { requestUrl, response, publicDir, publicOutputPublished } = options;
 
   if (!publicOutputPublished) {
-    if (isRootPublicPath(requestUrl.pathname)) {
-      respondWithPublicUnavailable(response);
-    } else {
-      respondWithDefaultNotFound(response);
-    }
+    (isRootPublicPath(requestUrl.pathname) ? respondWithPublicUnavailable : respondWithDefaultNotFound)(
+      response
+    );
     return;
   }
 

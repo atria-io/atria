@@ -1,17 +1,9 @@
+import { resolveBasePathUrl } from "../../state/api.client.js";
+
 const styleLinks = new Map<string, HTMLLinkElement>();
 const loadedLinks = new WeakSet<HTMLLinkElement>();
-
-const normalizeBasePath = (basePath: string): string => {
-  if (!basePath || basePath === "/") {
-    return "/";
-  }
-
-  return basePath.endsWith("/") ? basePath : `${basePath}/`;
-};
-
-const styleHref = (basePath: string, stylePath: string): string => {
-  return `${normalizeBasePath(basePath)}static/${stylePath}`;
-};
+const styleHref = (basePath: string, stylePath: string): string =>
+  resolveBasePathUrl(basePath, `static/${stylePath}`);
 
 const findExistingStyleLinkByHref = (href: string): HTMLLinkElement | null => {
   const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'));
@@ -112,6 +104,13 @@ const waitForStyleLink = (link: HTMLLinkElement): Promise<void> => {
   });
 };
 
+/**
+ * Ensures the route-specific stylesheet set is mounted before the app becomes ready.
+ *
+ * @param {string} basePath
+ * @param {string[]} moduleStyleFiles
+ * @returns {Promise<void>}
+ */
 export const applyRouteStyles = async (
   basePath: string,
   moduleStyleFiles: string[]

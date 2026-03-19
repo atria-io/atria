@@ -39,6 +39,12 @@ const toHealthErrorMessage = (error: unknown): string => {
   return String(error).trim();
 };
 
+/**
+ * Reads the database health state used by the local `/api/health` endpoint.
+ *
+ * @param {string} projectRoot
+ * @returns {Promise<DatabaseHealthState>}
+ */
 export const readDatabaseHealthState = async (projectRoot: string): Promise<DatabaseHealthState> => {
   const connection = resolveDatabaseConnection(projectRoot);
   const baseState = {

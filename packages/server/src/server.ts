@@ -14,20 +14,21 @@ import {
   respondWithInternalServerError
 } from "./dev/http/errors.js";
 import { parseRequestHostname, resolveSiteTarget } from "./dev/http/routing.js";
-import { isPublicOutputPublished } from "./dev/static/index.js";
-import { handleAdminRequest, resolveAdminDistDir } from "./dev/admin/index.js";
-import { handlePublicRequest } from "./dev/public/index.js";
+import { isPublicOutputPublished } from "./dev/static/publish.js";
+import { resolveAdminDistDir } from "./dev/admin/assets.js";
+import { handleAdminRequest } from "./dev/admin/request.js";
+import { handlePublicRequest } from "./dev/public/request.js";
 import {
   handleSetupStatusRequest,
-  isSetupStatusRequest,
-  type OwnerSetupState
-} from "./dev/setup/index.js";
+  isSetupStatusRequest
+} from "./dev/setup/request.js";
+import type { OwnerSetupState } from "./dev/setup/types.js";
 import {
   handleHealthRequest,
   isHealthRequest,
-  readDatabaseHealthState,
-  type DatabaseHealthState
-} from "./dev/health/index.js";
+} from "./dev/health/request.js";
+import { readDatabaseHealthState } from "./dev/health/state.js";
+import type { DatabaseHealthState } from "./dev/health/state.js";
 
 export interface StartDevServerOptions {
   projectRoot: string;
@@ -35,6 +36,9 @@ export interface StartDevServerOptions {
   host?: string;
 }
 
+/**
+ * Handle returned by the local development server.
+ */
 export interface DevServerHandle {
   url: string;
   publicUrl: string;
@@ -45,36 +49,47 @@ export interface DevServerHandle {
   close: () => Promise<void>;
 }
 
+/**
+ * Starts the single local HTTP server used by `atria dev`.
+ *
+ * @param {StartDevServerOptions} options
+ * @returns {Promise<DevServerHandle>}
+ */
 export const startDevServer = async (
   options: StartDevServerOptions
 ): Promise<DevServerHandle> => {
+  const { projectRoot, port } = options;
   const host = options.host ?? DEV_PUBLIC_HOST;
-  const runtimeDir = path.join(options.projectRoot, ATRIA_RUNTIME_DIR);
-  const publicDir = path.join(options.projectRoot, PUBLIC_OUTPUT_DIR);
+  const runtimeDir = path.join(projectRoot, ATRIA_RUNTIME_DIR);
+  const publicDir = path.join(projectRoot, PUBLIC_OUTPUT_DIR);
   const adminDistDir = resolveAdminDistDir();
   const authRuntime = createAuthRuntime({
-    projectRoot: options.projectRoot,
-    port: options.port
+    projectRoot,
+    port
   });
 
   await fs.access(runtimeDir);
   await fs.access(path.join(adminDistDir, "app.js"));
 
-  let publicOutputPublished = await isPublicOutputPublished(publicDir);
-  let ownerSetupState: OwnerSetupState = await authRuntime.getOwnerSetupState();
-  let databaseHealthState: DatabaseHealthState = await readDatabaseHealthState(options.projectRoot);
+  let publicOutputPublished = false;
+  let ownerSetupState: OwnerSetupState;
+  let databaseHealthState: DatabaseHealthState;
 
-  const refreshPublicPublishState = async (): Promise<void> => {
-    publicOutputPublished = await isPublicOutputPublished(publicDir);
+  const refresh = async (key: "public" | "owner" | "database"): Promise<void> => {
+    if (key === "public") {
+      publicOutputPublished = await isPublicOutputPublished(publicDir);
+      return;
+    }
+
+    if (key === "owner") {
+      ownerSetupState = await authRuntime.getOwnerSetupState();
+      return;
+    }
+
+    databaseHealthState = await readDatabaseHealthState(projectRoot);
   };
 
-  const refreshOwnerSetupState = async (): Promise<void> => {
-    ownerSetupState = await authRuntime.getOwnerSetupState();
-  };
-
-  const refreshDatabaseHealthState = async (): Promise<void> => {
-    databaseHealthState = await readDatabaseHealthState(options.projectRoot);
-  };
+  await Promise.all([refresh("public"), refresh("owner"), refresh("database")]);
 
   const server = createServer(async (request, response) => {
     try {
@@ -86,18 +101,20 @@ export const startDevServer = async (
       }
 
       const requestHost = hostname ?? DEV_PUBLIC_HOST;
-      const requestUrl = new URL(request.url ?? "/", `http://${requestHost}:${options.port}`);
+      const requestUrl = new URL(request.url ?? "/", `http://${requestHost}:${port}`);
+      const healthRequest = isHealthRequest(requestUrl);
+      const setupStatusRequest = isSetupStatusRequest(requestUrl);
 
-      if (ENABLE_LIVE_PUBLISH_TRANSITION && (siteTarget === "public" || isHealthRequest(requestUrl))) {
-        await refreshPublicPublishState();
+      if (ENABLE_LIVE_PUBLISH_TRANSITION && (siteTarget === "public" || healthRequest)) {
+        await refresh("public");
       }
 
-      if (siteTarget === "admin" || isSetupStatusRequest(requestUrl)) {
-        await refreshOwnerSetupState();
+      if (siteTarget === "admin" || setupStatusRequest) {
+        await refresh("owner");
       }
 
-      if (isHealthRequest(requestUrl)) {
-        await refreshDatabaseHealthState();
+      if (healthRequest) {
+        await refresh("database");
 
         handleHealthRequest({
           response,
@@ -153,16 +170,16 @@ export const startDevServer = async (
 
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);
-    server.listen(options.port, host, () => {
+    server.listen(port, host, () => {
       server.off("error", reject);
       resolve();
     });
   });
 
   return {
-    url: `http://${DEV_PUBLIC_HOST}:${options.port}`,
-    publicUrl: `http://${DEV_PUBLIC_HOST}:${options.port}`,
-    adminUrl: `http://${DEV_STUDIO_HOST}:${options.port}`,
+    url: `http://${DEV_PUBLIC_HOST}:${port}`,
+    publicUrl: `http://${DEV_PUBLIC_HOST}:${port}`,
+    adminUrl: `http://${DEV_STUDIO_HOST}:${port}`,
     servingPublicDir: publicDir,
     servingAdminDir: runtimeDir,
     get publicOutputPublished() {

@@ -1,12 +1,24 @@
 import path from "node:path";
-import { ATRIA_RUNTIME_DIR, runtimeAppJs, runtimeIndexHtml } from "@atria/shared";
-import { type WriteStatus, writeFile } from "../utils/fs.js";
+import {
+  ATRIA_RUNTIME_DIR,
+  runtimeAppJs,
+  runtimeIndexHtml,
+  type WriteStatus,
+  writeFile
+} from "@atria/shared";
 
 interface RuntimeBootstrapWriteResult {
   indexStatus: WriteStatus;
   appStatus: WriteStatus;
 }
 
+/**
+ * Rewrites runtime bootstrap files used by `atria dev`.
+ *
+ * @param {string} projectRoot
+ * @param {boolean} [force=false]
+ * @returns {Promise<RuntimeBootstrapWriteResult>}
+ */
 export const writeRuntimeBootstrapFiles = async (
   projectRoot: string,
   force = false

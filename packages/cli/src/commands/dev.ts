@@ -1,8 +1,7 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import { startDevServer } from "@atria/server";
-import { ATRIA_RUNTIME_DIR, DEFAULT_DEV_PORT } from "@atria/shared";
-import { parseArgs } from "../utils/args.js";
+import { ATRIA_RUNTIME_DIR, DEFAULT_DEV_PORT, parseArgs } from "@atria/shared";
 import { writeRuntimeBootstrapFiles } from "../runtime/bootstrap.js";
 import { terminal } from "../utils/terminal.js";
 import { checkForCliUpdate, getCliUpdateInstallCommand } from "../utils/update-check.js";
@@ -37,9 +36,15 @@ const notifyCliUpdate = async (projectRoot: string): Promise<void> => {
   console.log(`[atria] ${terminal.dim("Run")} ${terminal.cyan(installCommand)}`);
 };
 
+/**
+ * Starts the local dev server for an atria project.
+ *
+ * @param {string[]} args
+ * @returns {Promise<void>}
+ */
 export const runDevCommand = async (args: string[]): Promise<void> => {
   const startTime = Date.now();
-  const parsedArgs = parseArgs(args);
+  const parsedArgs = parseArgs(args, { "-p": "port" });
   if (parsedArgs.flags.help) {
     printDevHelp();
     return;

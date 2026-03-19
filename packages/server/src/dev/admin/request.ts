@@ -4,7 +4,8 @@ import type { AuthRuntime } from "../../auth/runtime.js";
 import { MIME_TYPES } from "../constants.js";
 import { buildAuthLocation, shouldRedirectAdminToAuth } from "./routing.js";
 import { respondWithDefaultNotFound } from "../http/errors.js";
-import { resolveRequestFile, sendFileResponse } from "../static/index.js";
+import { resolveRequestFile } from "../static/resolver.js";
+import { sendFileResponse } from "../static/sender.js";
 import type { OwnerSetupState } from "../setup/types.js";
 import { resolveAdminAssetPath } from "./assets.js";
 import { handleI18nRequest } from "./i18n.js";
@@ -24,6 +25,22 @@ const respondForbidden = (response: ServerResponse): void => {
   response.end("Forbidden");
 };
 
+const redirect = (response: ServerResponse, location: string): void => {
+  response.writeHead(302, { location });
+  response.end();
+};
+
+const getSafeNextPath = (requestUrl: URL): string | undefined => {
+  const nextPath = requestUrl.searchParams.get("next");
+  return nextPath?.startsWith("/") ? nextPath : undefined;
+};
+
+/**
+ * Handles studio requests, auth redirects, and runtime asset delivery.
+ *
+ * @param {HandleAdminRequestOptions} options
+ * @returns {Promise<void>}
+ */
 export const handleAdminRequest = async (options: HandleAdminRequestOptions): Promise<void> => {
   const {
     request,
@@ -50,44 +67,25 @@ export const handleAdminRequest = async (options: HandleAdminRequestOptions): Pr
 
   if (normalizedPath === "/create" && !ownerSetupState.pending) {
     const queryProvider = parseAuthMethod(requestUrl.searchParams.get("provider"));
-    const queryNext = requestUrl.searchParams.get("next");
-    const nextPath = queryNext && queryNext.startsWith("/") ? queryNext : undefined;
-
-    response.writeHead(302, {
-      location: buildAuthLocation("login", queryProvider, nextPath)
-    });
-    response.end();
+    redirect(response, buildAuthLocation("login", queryProvider, getSafeNextPath(requestUrl)));
     return;
   }
 
   if (normalizedPath === "/setup" && !requestUrl.searchParams.get("broker_code")) {
     const mode = ownerSetupState.pending ? "create" : "login";
     const queryProvider = parseAuthMethod(requestUrl.searchParams.get("provider"));
-    const queryNext = requestUrl.searchParams.get("next");
-    const nextPath = queryNext && queryNext.startsWith("/") ? queryNext : undefined;
-
-    response.writeHead(302, {
-      location: buildAuthLocation(mode, queryProvider, nextPath)
-    });
-    response.end();
+    redirect(response, buildAuthLocation(mode, queryProvider, getSafeNextPath(requestUrl)));
     return;
   }
 
   if (shouldRedirectAdminToAuth(requestUrl.pathname)) {
     if (ownerSetupState.pending) {
-      response.writeHead(302, {
-        location: buildAuthLocation("create", ownerSetupState.preferredAuthMethod)
-      });
-      response.end();
+      redirect(response, buildAuthLocation("create", ownerSetupState.preferredAuthMethod));
       return;
     }
 
     if (!adminSession.authenticated) {
-      const nextPath = requestUrl.pathname + requestUrl.search;
-      response.writeHead(302, {
-        location: buildAuthLocation("login", null, nextPath)
-      });
-      response.end();
+      redirect(response, buildAuthLocation("login", null, requestUrl.pathname + requestUrl.search));
       return;
     }
   }
@@ -114,7 +112,11 @@ export const handleAdminRequest = async (options: HandleAdminRequestOptions): Pr
     return;
   }
 
-  const targetFile = await resolveRequestFile(runtimeDir, decodeURIComponent(requestUrl.pathname), "spa-fallback");
+  const targetFile = await resolveRequestFile(
+    runtimeDir,
+    decodeURIComponent(requestUrl.pathname),
+    "spa-fallback"
+  );
 
   if (targetFile.type === "forbidden") {
     respondForbidden(response);

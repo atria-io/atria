@@ -11,6 +11,13 @@ import type {
   ResolvedDatabaseConnection
 } from "../database.js";
 
+/**
+ * Opens the configured database for a project.
+ *
+ * @param {string} projectRoot
+ * @param {OpenAtriaDatabaseOptions} [options={}]
+ * @returns {AtriaDatabase}
+ */
 export const openAtriaDatabase = (
   projectRoot: string,
   options: OpenAtriaDatabaseOptions = {}
@@ -36,6 +43,13 @@ export const openAtriaDatabase = (
   return new PostgresAtriaDatabase(pool, connection);
 };
 
+/**
+ * Opens the project database and runs schema setup when needed.
+ *
+ * @param {string} projectRoot
+ * @param {OpenAtriaDatabaseOptions} [options={}]
+ * @returns {Promise<AtriaDatabase>}
+ */
 export const initializeProjectDatabase = async (
   projectRoot: string,
   options: OpenAtriaDatabaseOptions = {}

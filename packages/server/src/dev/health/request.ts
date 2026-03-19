@@ -5,6 +5,10 @@ import type { OwnerSetupState } from "../setup/types.js";
 import type { DatabaseHealthState } from "./state.js";
 
 const HEALTH_PATH = "/api/health";
+const respondJson = (response: ServerResponse, body: unknown): void => {
+  response.writeHead(200, { "content-type": MIME_TYPES[".json"] });
+  response.end(JSON.stringify(body));
+};
 
 interface HandleHealthRequestOptions {
   response: ServerResponse;
@@ -19,21 +23,18 @@ export const isHealthRequest = (requestUrl: URL): boolean => requestUrl.pathname
 export const handleHealthRequest = (options: HandleHealthRequestOptions): void => {
   const { response, siteTarget, publicOutputPublished, ownerSetupState, databaseHealthState } = options;
 
-  response.writeHead(200, { "content-type": MIME_TYPES[".json"] });
-  response.end(
-    JSON.stringify({
-      ok: databaseHealthState.reachable,
-      status: databaseHealthState.reachable ? "operational" : "degraded",
-      site: siteTarget,
-      publicOutputPublished,
-      ownerSetupPending: ownerSetupState.pending,
-      database: {
-        driver: databaseHealthState.driver,
-        source: databaseHealthState.source,
-        usesFallback: databaseHealthState.usesFallback,
-        reachable: databaseHealthState.reachable,
-        error: databaseHealthState.error
-      }
-    })
-  );
+  respondJson(response, {
+    ok: databaseHealthState.reachable,
+    status: databaseHealthState.reachable ? "operational" : "degraded",
+    site: siteTarget,
+    publicOutputPublished,
+    ownerSetupPending: ownerSetupState.pending,
+    database: {
+      driver: databaseHealthState.driver,
+      source: databaseHealthState.source,
+      usesFallback: databaseHealthState.usesFallback,
+      reachable: databaseHealthState.reachable,
+      error: databaseHealthState.error
+    }
+  });
 };

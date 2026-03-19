@@ -4,6 +4,13 @@ import type { ServerResponse } from "node:http";
 import { pipeline } from "node:stream/promises";
 import { MIME_TYPES } from "../constants.js";
 
+/**
+ * Streams a file to the response with a best-effort content type.
+ *
+ * @param {ServerResponse} response
+ * @param {string} filePath
+ * @returns {Promise<void>}
+ */
 export const sendFileResponse = async (response: ServerResponse, filePath: string): Promise<void> => {
   const fileStats = await fs.stat(filePath);
   const extension = path.extname(filePath);

@@ -17,6 +17,14 @@ const resolveRootIndexFile = async (rootDir: string): Promise<ResolveRequestResu
   return { type: "not-found" };
 };
 
+/**
+ * Resolves a request path to a safe file path inside a root directory.
+ *
+ * @param {string} rootDir
+ * @param {string} requestPath
+ * @param {ResolveRequestMode} mode
+ * @returns {Promise<ResolveRequestResult>}
+ */
 export const resolveRequestFile = async (
   rootDir: string,
   requestPath: string,

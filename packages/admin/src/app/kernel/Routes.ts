@@ -1,51 +1,40 @@
-import type { AuthMode } from "../../types/auth.js";
-
 export type AdminRouteId = "create" | "login" | "setup" | "home";
 
 export interface AdminRoute {
   id: AdminRouteId;
-  authMode: AuthMode | null;
   subtitleKey: string;
   styleFiles: string[];
 }
 
 const AUTH_STYLE_FILES = ["styles/modules/auth.css"];
 const HOME_STYLE_FILES = ["styles/modules/dashboard.css"];
+const AUTH_ROUTE = { subtitleKey: "shell.subtitle.auth", styleFiles: AUTH_STYLE_FILES };
+const HOME_ROUTE: AdminRoute = {
+  id: "home",
+  subtitleKey: "shell.subtitle.home",
+  styleFiles: HOME_STYLE_FILES
+};
 
+/**
+ * Resolves the current admin route from the browser pathname.
+ *
+ * @param {string} pathname
+ * @returns {AdminRoute}
+ */
 export const resolveAdminRoute = (pathname: string): AdminRoute => {
   const normalizedPath = pathname.replace(/\/+$/, "") || "/";
 
   if (normalizedPath === "/create") {
-    return {
-      id: "create",
-      authMode: "create",
-      subtitleKey: "shell.subtitle.auth",
-      styleFiles: AUTH_STYLE_FILES
-    };
+    return { id: "create", ...AUTH_ROUTE };
   }
 
   if (normalizedPath === "/login") {
-    return {
-      id: "login",
-      authMode: "login",
-      subtitleKey: "shell.subtitle.auth",
-      styleFiles: AUTH_STYLE_FILES
-    };
+    return { id: "login", ...AUTH_ROUTE };
   }
 
   if (normalizedPath === "/setup") {
-    return {
-      id: "setup",
-      authMode: null,
-      subtitleKey: "shell.subtitle.auth",
-      styleFiles: AUTH_STYLE_FILES
-    };
+    return { id: "setup", ...AUTH_ROUTE };
   }
 
-  return {
-    id: "home",
-    authMode: null,
-    subtitleKey: "shell.subtitle.home",
-    styleFiles: HOME_STYLE_FILES
-  };
+  return HOME_ROUTE;
 };

@@ -3,19 +3,15 @@ export interface ApiClient {
   postJson<T>(path: string, body?: unknown): Promise<T | null>;
 }
 
-const normalizeBasePath = (basePath: string): string => {
-  if (!basePath || basePath === "/") {
-    return "/";
-  }
-
-  return basePath.endsWith("/") ? basePath : `${basePath}/`;
-};
-
-const resolvePath = (basePath: string, path: string): string => {
-  const normalizedBasePath = normalizeBasePath(basePath);
-  const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
-  return `${normalizedBasePath}${normalizedPath}`;
-};
+/**
+ * Resolves a path against the admin app base path.
+ *
+ * @param {string} basePath
+ * @param {string} path
+ * @returns {string}
+ */
+export const resolveBasePathUrl = (basePath: string, path: string): string =>
+  `${!basePath || basePath === "/" ? "/" : basePath.endsWith("/") ? basePath : `${basePath}/`}${path.startsWith("/") ? path.slice(1) : path}`;
 
 const requestJson = async <T,>(url: string, init?: RequestInit): Promise<T | null> => {
   try {
@@ -34,11 +30,18 @@ const requestJson = async <T,>(url: string, init?: RequestInit): Promise<T | nul
   }
 };
 
+/**
+ * Creates the tiny JSON client used by the admin app.
+ *
+ * @param {string} basePath
+ * @returns {ApiClient}
+ */
 export const createApiClient = (basePath: string): ApiClient => ({
-  getJson: <T,>(path: string): Promise<T | null> => requestJson<T>(resolvePath(basePath, path)),
+  getJson: <T,>(path: string): Promise<T | null> =>
+    requestJson<T>(resolveBasePathUrl(basePath, path)),
 
   postJson: <T,>(path: string, body?: unknown): Promise<T | null> =>
-    requestJson<T>(resolvePath(basePath, path), {
+    requestJson<T>(resolveBasePathUrl(basePath, path), {
       method: "POST",
       headers: {
         "content-type": "application/json; charset=utf-8"
