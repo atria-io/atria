@@ -78,15 +78,18 @@ const parseProviderFromPath = (pathname: string, prefix: string): OAuthProviderI
 };
 
 const parseConsentMode = (value: string | null): "auto" | "required" => {
-  if (value === null || value === "auto") {
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase();
+  if (!normalized || normalized === "auto") {
     return "auto";
   }
 
-  if (value === "required") {
+  if (normalized === "required") {
     return "required";
   }
 
-  throw new Error("Invalid consent mode.");
+  throw new Error("Invalid consent.");
 };
 
 const writeJson = (response: ServerResponse, statusCode: number, payload: unknown): void => {
@@ -420,7 +423,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     } catch (error) {
       writeJson(response, 400, {
         ok: false,
-        error: error instanceof Error ? error.message : "Invalid consent mode."
+        error: error instanceof Error ? error.message : "Invalid consent."
       });
       return;
     }

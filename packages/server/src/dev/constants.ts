@@ -1,5 +1,4 @@
 export const DEV_PUBLIC_HOST = "localhost";
-export const DEV_STUDIO_HOST = "studio.localhost";
 
 export const ADMIN_ASSET_PREFIX = "/static/";
 export const LEGACY_ADMIN_ASSET_PREFIX = "/.atria/admin/";
@@ -21,6 +20,3 @@ export const DEFAULT_PUBLIC_UNAVAILABLE_TEXT = "503: Public site output is not p
 export const DEFAULT_INTERNAL_SERVER_ERROR_TEXT = "500: Internal server error.";
 // Keep this switch isolated so LIVE unpublished<->published behavior is easy to remove later.
 export const ENABLE_LIVE_PUBLISH_TRANSITION = true;
-
-export const PUBLIC_HOST_ALIASES = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
-export const STUDIO_HOST_ALIASES = new Set(["studio.localhost"]);

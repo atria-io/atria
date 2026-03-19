@@ -13,7 +13,7 @@ npm install -D @atria/cli
 ```bash
 atria init [project-directory] [--force]
 atria setup [project-directory] [--database sqlite|postgres] [--database-url <postgres-url>] [--database-only] [--auth-method google|github|email] [--force]
-atria dev [project-directory] [--port 3333]
+atria dev [project-directory] [--admin-port 3333] [--public-port 4444]
 ```
 
 ## Behavior summary
@@ -21,9 +21,9 @@ atria dev [project-directory] [--port 3333]
 - `init`: scaffolds project files (`production/studio`, `production/public`, `.atria/runtime`, `.env.example`).
 - `setup`: configures database and owner auth preference.
 - `setup --database-only`: prompts only database engine selection (used by install hooks).
-- `dev`: runs one HTTP server on port `3333`:
-  - `localhost` -> public output (`production/public`)
-  - `studio.localhost` -> admin runtime (`.atria/runtime` + `@atria/admin` assets)
+- `dev`: runs two HTTP servers:
+  - `localhost:3333` -> admin runtime (`.atria/runtime` + `@atria/admin` assets)
+  - `localhost:4444` -> public output (`production/public`)
 
 ## Programmatic API
 

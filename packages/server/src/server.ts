@@ -1,19 +1,19 @@
 import { createServer } from "node:http";
+import type { IncomingMessage, Server, ServerResponse } from "node:http";
+import { randomBytes } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { ATRIA_RUNTIME_DIR, PUBLIC_OUTPUT_DIR } from "@atria/shared";
+import {
+  ATRIA_CONFIG_FILE,
+  ATRIA_RUNTIME_DIR,
+  DEFAULT_ADMIN_PORT,
+  DEFAULT_PUBLIC_PORT,
+  PUBLIC_OUTPUT_DIR
+} from "@atria/shared";
 import { createAuthRuntime } from "./auth/runtime.js";
-import {
-  DEV_PUBLIC_HOST,
-  DEV_STUDIO_HOST,
-  ENABLE_LIVE_PUBLISH_TRANSITION
-} from "./dev/constants.js";
+import { DEV_PUBLIC_HOST, ENABLE_LIVE_PUBLISH_TRANSITION } from "./dev/constants.js";
 import { closeServer } from "./dev/lifecycle.js";
-import {
-  respondWithDefaultNotFound,
-  respondWithInternalServerError
-} from "./dev/http/errors.js";
-import { parseRequestHostname, resolveSiteTarget } from "./dev/http/routing.js";
+import { respondWithInternalServerError } from "./dev/http/errors.js";
 import { isPublicOutputPublished } from "./dev/static/publish.js";
 import { resolveAdminDistDir } from "./dev/admin/assets.js";
 import { handleAdminRequest } from "./dev/admin/request.js";
@@ -29,12 +29,52 @@ import {
 } from "./dev/health/request.js";
 import { readDatabaseHealthState } from "./dev/health/state.js";
 import type { DatabaseHealthState } from "./dev/health/state.js";
+import type { SiteTarget } from "./dev/types.js";
 
 export interface StartDevServerOptions {
   projectRoot: string;
-  port: number;
+  adminPort?: number;
+  publicPort?: number;
+  port?: number;
   host?: string;
 }
+
+const createProjectIdentifier = (): string => {
+  const raw = randomBytes(6).toString("base64url").replace(/[^a-z0-9]/gi, "").toLowerCase();
+  return (raw + "00000000").slice(0, 8);
+};
+
+const readOrCreateProjectId = async (projectRoot: string): Promise<string> => {
+  const configPath = path.join(projectRoot, ATRIA_CONFIG_FILE);
+  const rawConfig = await fs.readFile(configPath, "utf-8");
+
+  let parsedConfig: Record<string, unknown>;
+  try {
+    const value = JSON.parse(rawConfig);
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+      throw new Error("Config must be a JSON object.");
+    }
+    parsedConfig = value as Record<string, unknown>;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid ${ATRIA_CONFIG_FILE}: ${message}`);
+  }
+
+  const projectId =
+    typeof parsedConfig.projectId === "string" ? parsedConfig.projectId.trim() : "";
+  if (projectId) {
+    return projectId;
+  }
+
+  const generatedProjectId = createProjectIdentifier();
+  await fs.writeFile(
+    configPath,
+    `${JSON.stringify({ ...parsedConfig, projectId: generatedProjectId }, null, 2)}\n`,
+    "utf-8"
+  );
+
+  return generatedProjectId;
+};
 
 /**
  * Handle returned by the local development server.
@@ -50,7 +90,7 @@ export interface DevServerHandle {
 }
 
 /**
- * Starts the single local HTTP server used by `atria dev`.
+ * Starts local admin/public HTTP servers used by `atria dev`.
  *
  * @param {StartDevServerOptions} options
  * @returns {Promise<DevServerHandle>}
@@ -58,14 +98,22 @@ export interface DevServerHandle {
 export const startDevServer = async (
   options: StartDevServerOptions
 ): Promise<DevServerHandle> => {
-  const { projectRoot, port } = options;
+  const { projectRoot } = options;
   const host = options.host ?? DEV_PUBLIC_HOST;
+  const adminPort = options.adminPort ?? options.port ?? DEFAULT_ADMIN_PORT;
+  const publicPort = options.publicPort ?? DEFAULT_PUBLIC_PORT;
+  if (adminPort === publicPort) {
+    throw new Error("Admin and public ports must be different.");
+  }
+
+  const projectId = await readOrCreateProjectId(projectRoot);
   const runtimeDir = path.join(projectRoot, ATRIA_RUNTIME_DIR);
   const publicDir = path.join(projectRoot, PUBLIC_OUTPUT_DIR);
   const adminDistDir = resolveAdminDistDir();
   const authRuntime = createAuthRuntime({
     projectRoot,
-    port
+    adminPort,
+    projectId
   });
 
   await fs.access(runtimeDir);
@@ -91,17 +139,14 @@ export const startDevServer = async (
 
   await Promise.all([refresh("public"), refresh("owner"), refresh("database")]);
 
-  const server = createServer(async (request, response) => {
+  const handleSiteRequest = async (
+    siteTarget: SiteTarget,
+    requestPort: number,
+    request: IncomingMessage,
+    response: ServerResponse
+  ): Promise<void> => {
     try {
-      const hostname = parseRequestHostname(request.headers.host);
-      const siteTarget = resolveSiteTarget(hostname);
-      if (!siteTarget) {
-        respondWithDefaultNotFound(response);
-        return;
-      }
-
-      const requestHost = hostname ?? DEV_PUBLIC_HOST;
-      const requestUrl = new URL(request.url ?? "/", `http://${requestHost}:${port}`);
+      const requestUrl = new URL(request.url ?? "/", `http://${DEV_PUBLIC_HOST}:${requestPort}`);
       const healthRequest = isHealthRequest(requestUrl);
       const setupStatusRequest = isSetupStatusRequest(requestUrl);
 
@@ -166,27 +211,44 @@ export const startDevServer = async (
 
       respondWithInternalServerError(response);
     }
+  };
+
+  const adminServer = createServer((request, response) => {
+    void handleSiteRequest("admin", adminPort, request, response);
   });
 
-  await new Promise<void>((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(port, host, () => {
-      server.off("error", reject);
-      resolve();
-    });
+  const publicServer = createServer((request, response) => {
+    void handleSiteRequest("public", publicPort, request, response);
   });
+
+  const listen = async (server: Server, port: number): Promise<void> =>
+    new Promise<void>((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(port, host, () => {
+        server.off("error", reject);
+        resolve();
+      });
+    });
+
+  try {
+    await Promise.all([listen(adminServer, adminPort), listen(publicServer, publicPort)]);
+  } catch (error) {
+    await Promise.allSettled([closeServer(adminServer), closeServer(publicServer)]);
+    await authRuntime.close();
+    throw error;
+  }
 
   return {
-    url: `http://${DEV_PUBLIC_HOST}:${port}`,
-    publicUrl: `http://${DEV_PUBLIC_HOST}:${port}`,
-    adminUrl: `http://${DEV_STUDIO_HOST}:${port}`,
+    url: `http://${DEV_PUBLIC_HOST}:${publicPort}`,
+    publicUrl: `http://${DEV_PUBLIC_HOST}:${publicPort}`,
+    adminUrl: `http://${DEV_PUBLIC_HOST}:${adminPort}`,
     servingPublicDir: publicDir,
     servingAdminDir: runtimeDir,
     get publicOutputPublished() {
       return publicOutputPublished;
     },
     close: async () => {
-      await closeServer(server);
+      await Promise.all([closeServer(adminServer), closeServer(publicServer)]);
       await authRuntime.close();
     }
   };

@@ -5,7 +5,7 @@ import { request as httpRequest } from "node:http";
 import { openAtriaDatabase } from "@atria/db";
 import { startDevServer } from "@atria/server";
 import {
-  DEFAULT_DEV_PORT,
+  DEFAULT_ADMIN_PORT,
   cleanEnvValue,
   isPostgresConnectionString,
   loadEnvFile,
@@ -351,11 +351,10 @@ const requestStudio = async (requestPath: string): Promise<StudioRequestResult> 
       {
         protocol: "http:",
         hostname: "localhost",
-        port: DEFAULT_DEV_PORT,
+        port: DEFAULT_ADMIN_PORT,
         method: "GET",
         path: requestPath,
         headers: {
-          host: `studio.localhost:${DEFAULT_DEV_PORT}`,
           accept: "application/json"
         }
       },
@@ -407,7 +406,7 @@ const resolveProviderAuthorizationUrl = async (provider: AuthMethod): Promise<st
     );
   }
 
-  return `http://studio.localhost:${DEFAULT_DEV_PORT}/api/auth/start/${provider}`;
+  return `http://localhost:${DEFAULT_ADMIN_PORT}/api/auth/start/${provider}`;
 };
 
 const isSetupComplete = async (): Promise<boolean> => {
@@ -427,7 +426,8 @@ const startLocalStudioServer = async (projectRoot: string) => {
   try {
     return await startDevServer({
       projectRoot,
-      port: DEFAULT_DEV_PORT
+      adminPort: DEFAULT_ADMIN_PORT,
+      publicPort: 0
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

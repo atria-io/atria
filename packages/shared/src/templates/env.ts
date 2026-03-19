@@ -16,7 +16,7 @@ const ENV_EXAMPLE_LINES = [
   "# ATRIA_AUTH_GITHUB_CLIENT_ID=",
   "# ATRIA_AUTH_GITHUB_CLIENT_SECRET=",
   "",
-  "# Optional Studio origin override (default: http://studio.localhost:3333)",
+  "# Optional Studio origin override (default: http://localhost:3333)",
   "# ATRIA_AUTH_ORIGIN=",
   ""
 ] as const;

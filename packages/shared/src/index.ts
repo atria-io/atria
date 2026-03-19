@@ -11,7 +11,9 @@ export const PUBLIC_OUTPUT_DIR = path.join(PRODUCTION_DIR, "public");
 export const STUDIO_DIR = path.join(PRODUCTION_DIR, "studio");
 export const STUDIO_CONTENT_DIR = path.join(STUDIO_DIR, "content");
 export const STUDIO_THEME_DIR = path.join(STUDIO_DIR, "theme");
-export const DEFAULT_DEV_PORT = 3333;
+export const DEFAULT_ADMIN_PORT = 3333;
+export const DEFAULT_PUBLIC_PORT = 4444;
+export const DEFAULT_DEV_PORT = DEFAULT_ADMIN_PORT;
 
 /**
  * Resolves the runtime directory for a project root.

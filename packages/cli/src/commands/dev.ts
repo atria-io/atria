@@ -1,23 +1,34 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import { startDevServer } from "@atria/server";
-import { ATRIA_RUNTIME_DIR, DEFAULT_DEV_PORT, parseArgs } from "@atria/shared";
+import {
+  ATRIA_RUNTIME_DIR,
+  DEFAULT_DEV_PORT,
+  DEFAULT_PUBLIC_PORT,
+  parseArgs
+} from "@atria/shared";
 import { writeRuntimeBootstrapFiles } from "../runtime/bootstrap.js";
 import { terminal } from "../utils/terminal.js";
 import { checkForCliUpdate, getCliUpdateInstallCommand } from "../utils/update-check.js";
 
 const printDevHelp = (): void => {
-  console.log("Usage: atria dev [project-directory] [--port 3333]");
+  console.log(
+    "Usage: atria dev [project-directory] [--admin-port 3333] [--public-port 4444]"
+  );
 };
 
-const parsePort = (value: string | boolean | undefined): number => {
+const parsePort = (
+  value: string | boolean | undefined,
+  fallback: number,
+  flagName: string
+): number => {
   if (value === undefined || value === true) {
-    return DEFAULT_DEV_PORT;
+    return fallback;
   }
 
   const parsed = Number.parseInt(String(value), 10);
   if (Number.isNaN(parsed) || parsed <= 0) {
-    throw new Error(`Invalid --port value: ${value}`);
+    throw new Error(`Invalid --${flagName} value: ${value}`);
   }
 
   return parsed;
@@ -44,7 +55,7 @@ const notifyCliUpdate = async (projectRoot: string): Promise<void> => {
  */
 export const runDevCommand = async (args: string[]): Promise<void> => {
   const startTime = Date.now();
-  const parsedArgs = parseArgs(args, { "-p": "port" });
+  const parsedArgs = parseArgs(args, { "-p": "admin-port" });
   if (parsedArgs.flags.help) {
     printDevHelp();
     return;
@@ -52,7 +63,12 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   const targetArgument = parsedArgs.positionals[0] ?? ".";
   const projectRoot = path.resolve(process.cwd(), targetArgument);
-  const port = parsePort(parsedArgs.flags.port);
+  const adminPort = parsePort(
+    parsedArgs.flags["admin-port"] ?? parsedArgs.flags.port,
+    DEFAULT_DEV_PORT,
+    "admin-port"
+  );
+  const publicPort = parsePort(parsedArgs.flags["public-port"], DEFAULT_PUBLIC_PORT, "public-port");
   const runtimeDir = path.join(projectRoot, ATRIA_RUNTIME_DIR);
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
@@ -71,7 +87,8 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   const server = await startDevServer({
     projectRoot,
-    port
+    adminPort,
+    publicPort
   });
 
   const elapsedMs = Date.now() - startTime;

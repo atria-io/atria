@@ -15,17 +15,18 @@ import { startDevServer } from "@atria/server";
 
 const server = await startDevServer({
   projectRoot: process.cwd(),
-  port: 3333
+  adminPort: 3333,
+  publicPort: 4444
 });
 
-console.log(server.publicUrl); // http://localhost:3333
-console.log(server.adminUrl);  // http://studio.localhost:3333
+console.log(server.publicUrl); // http://localhost:4444
+console.log(server.adminUrl);  // http://localhost:3333
 ```
 
-## Host routing
+## Port routing
 
-- `localhost` -> serves `production/public`.
-- `studio.localhost` -> serves Studio runtime.
+- `localhost:3333` -> serves Studio runtime.
+- `localhost:4444` -> serves `production/public`.
 
 ## Admin asset routing
 
