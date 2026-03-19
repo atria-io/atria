@@ -20,7 +20,8 @@ const SESSION_PRUNE_INTERVAL_MS = 60 * 1000;
 
 interface CreateAuthRuntimeOptions {
   projectRoot: string;
-  port: number;
+  adminPort: number;
+  projectId: string;
 }
 
 interface OwnerSetupState {
@@ -53,6 +54,7 @@ interface SessionResult {
 }
 
 interface BrokerExchangePayload {
+  projectId: string;
   provider: OAuthProviderId;
   user: {
     providerUserId: string;
@@ -75,6 +77,18 @@ const parseProviderFromPath = (pathname: string, prefix: string): OAuthProviderI
   return isOAuthProviderId(provider) ? provider : null;
 };
 
+const parseConsentMode = (value: string | null): "auto" | "required" => {
+  if (value === null || value === "auto") {
+    return "auto";
+  }
+
+  if (value === "required") {
+    return "required";
+  }
+
+  throw new Error("Invalid consent mode.");
+};
+
 const writeJson = (response: ServerResponse, statusCode: number, payload: unknown): void => {
   response.writeHead(statusCode, { "content-type": "application/json; charset=utf-8" });
   response.end(JSON.stringify(payload));
@@ -89,11 +103,11 @@ const makeSessionId = (): string => randomBytes(32).toString("hex");
 
 const nowMs = (): number => Date.now();
 
-const getOrigin = (port: number): string =>
-  process.env.ATRIA_AUTH_ORIGIN?.trim() || `http://studio.localhost:${port}`;
+const getOrigin = (adminPort: number): string =>
+  process.env.ATRIA_AUTH_ORIGIN?.trim() || `http://localhost:${adminPort}`;
 
-const getProviderCallbackUrl = (provider: OAuthProviderId, port: number): string =>
-  `${getOrigin(port)}/api/auth/callback/${provider}`;
+const getProviderCallbackUrl = (provider: OAuthProviderId, adminPort: number): string =>
+  `${getOrigin(adminPort)}/api/auth/callback/${provider}`;
 
 const getBrokerOrigin = (): string | null => {
   const configured = process.env.ATRIA_AUTH_BROKER_ORIGIN?.trim();
@@ -234,17 +248,27 @@ const parseBrokerExchangePayload = (payload: unknown): BrokerExchangePayload | n
 
   const typedPayload = payload as {
     ok?: unknown;
+    project_id?: unknown;
     provider?: unknown;
     user?: {
       providerUserId?: unknown;
+      provider_user_id?: unknown;
       email?: unknown;
       name?: unknown;
       avatarUrl?: unknown;
+      avatar_url?: unknown;
       emailVerified?: unknown;
+      email_verified?: unknown;
     };
   };
 
   if (typedPayload.ok !== true) {
+    return null;
+  }
+
+  const projectId =
+    typeof typedPayload.project_id === "string" ? typedPayload.project_id.trim() : "";
+  if (!projectId) {
     return null;
   }
 
@@ -253,25 +277,50 @@ const parseBrokerExchangePayload = (payload: unknown): BrokerExchangePayload | n
   }
 
   const user = typedPayload.user;
-  if (!user || typeof user.providerUserId !== "string" || user.providerUserId.length === 0) {
+  if (!user) {
     return null;
   }
 
+  const providerUserId =
+    typeof user.providerUserId === "string"
+      ? user.providerUserId
+      : typeof user.provider_user_id === "string"
+        ? user.provider_user_id
+        : null;
+  if (!providerUserId || providerUserId.length === 0) {
+    return null;
+  }
+
+  const avatarUrl =
+    typeof user.avatarUrl === "string"
+      ? user.avatarUrl
+      : typeof user.avatar_url === "string"
+        ? user.avatar_url
+        : null;
+
+  const emailVerified = user.emailVerified === true || user.email_verified === true;
+
   return {
+    projectId,
     provider: typedPayload.provider,
     user: {
-      providerUserId: user.providerUserId,
+      providerUserId,
       email: typeof user.email === "string" ? user.email : null,
       name: typeof user.name === "string" ? user.name : null,
-      avatarUrl: typeof user.avatarUrl === "string" ? user.avatarUrl : null,
-      emailVerified: user.emailVerified === true
+      avatarUrl,
+      emailVerified
     }
   };
 };
 
-const exchangeBrokerCode = async (brokerOrigin: string, code: string): Promise<OAuthProfile> => {
+const exchangeBrokerCode = async (
+  brokerOrigin: string,
+  code: string,
+  projectId: string
+): Promise<OAuthProfile> => {
   const exchangeUrl = new URL("/oauth/exchange", brokerOrigin);
   exchangeUrl.searchParams.set("code", code);
+  exchangeUrl.searchParams.set("project_id", projectId);
 
   const response = await fetch(exchangeUrl.toString(), {
     method: "GET",
@@ -282,8 +331,14 @@ const exchangeBrokerCode = async (brokerOrigin: string, code: string): Promise<O
 
   const payload = (await response.json().catch(() => null)) as unknown;
   const parsed = parseBrokerExchangePayload(payload);
-  if (!response.ok || !parsed) {
-    throw new Error("Broker code exchange failed.");
+  if (!response.ok || !parsed || parsed.projectId !== projectId) {
+    const errorMessage =
+      typeof payload === "object" && payload !== null && "error" in payload
+        ? (payload as { error?: unknown }).error
+        : null;
+    throw new Error(
+      `Broker code exchange failed${typeof errorMessage === "string" ? `: ${errorMessage}` : "."}`
+    );
   }
 
   return {
@@ -297,6 +352,10 @@ const exchangeBrokerCode = async (brokerOrigin: string, code: string): Promise<O
 };
 
 export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntime => {
+  if (!options.projectId.trim()) {
+    throw new Error("Project ID is required for OAuth broker flows.");
+  }
+
   const store = createDbAuthStore(options.projectRoot);
   const oauthStates = new Map<string, OAuthState>();
   let lastExpiredSessionCleanupAt = 0;
@@ -345,22 +404,40 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     response: ServerResponse,
     requestUrl: URL
   ): Promise<void> => {
+    const nextPath = requestUrl.searchParams.get("next");
+    const redirectPath = nextPath && nextPath.startsWith("/") ? nextPath : "/";
+    const mode = requestUrl.searchParams.get("mode");
+    const returnPath = mode === "login" ? "/" : mode === "create" ? "/create" : "/setup";
+    const returnTo = new URL(returnPath, getOrigin(options.adminPort));
+    returnTo.searchParams.set("provider", provider);
+    if (redirectPath !== "/") {
+      returnTo.searchParams.set("next", redirectPath);
+    }
+
+    let consentMode: "auto" | "required";
+    try {
+      consentMode = parseConsentMode(requestUrl.searchParams.get("consent"));
+    } catch (error) {
+      writeJson(response, 400, {
+        ok: false,
+        error: error instanceof Error ? error.message : "Invalid consent mode."
+      });
+      return;
+    }
+
     const brokerOrigin = getBrokerOrigin();
     if (brokerOrigin) {
-      const nextPath = requestUrl.searchParams.get("next");
-      const redirectPath = nextPath && nextPath.startsWith("/") ? nextPath : "/";
-      const mode = requestUrl.searchParams.get("mode");
-      const returnPath = mode === "login" ? "/" : mode === "create" ? "/create" : "/setup";
-      const returnTo = new URL(returnPath, getOrigin(options.port));
-      returnTo.searchParams.set("provider", provider);
-      if (redirectPath !== "/") {
-        returnTo.searchParams.set("next", redirectPath);
+      const brokerProviders = await listBrokerProviders(brokerOrigin);
+      if (brokerProviders.includes(provider)) {
+        const brokerStartUrl = new URL(`/v1/auth/login/${provider}`, brokerOrigin);
+        brokerStartUrl.searchParams.set("origin", returnTo.toString());
+        if (consentMode === "required") {
+          brokerStartUrl.searchParams.set("consent", "required");
+        }
+        brokerStartUrl.searchParams.set("projectId", options.projectId);
+        writeRedirect(response, brokerStartUrl.toString());
+        return;
       }
-
-      const brokerStartUrl = new URL(`/oauth/start/${provider}`, brokerOrigin);
-      brokerStartUrl.searchParams.set("return_to", returnTo.toString());
-      writeRedirect(response, brokerStartUrl.toString());
-      return;
     }
 
     const configuredProviders = listConfiguredOAuthProviders();
@@ -375,8 +452,6 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     const stateId = createOAuthStateId();
     const createdAt = new Date().toISOString();
     const expiresAt = new Date(nowMs() + OAUTH_STATE_MAX_AGE_MS).toISOString();
-    const nextPath = requestUrl.searchParams.get("next");
-    const redirectPath = nextPath && nextPath.startsWith("/") ? nextPath : "/";
 
     oauthStates.set(stateId, {
       id: stateId,
@@ -386,7 +461,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       redirectPath
     });
 
-    const callbackUrl = getProviderCallbackUrl(provider, options.port);
+    const callbackUrl = getProviderCallbackUrl(provider, options.adminPort);
     const authorizationUrl = buildOAuthAuthorizationUrl(provider, callbackUrl, stateId);
     writeRedirect(response, authorizationUrl);
   };
@@ -416,7 +491,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     }
 
     try {
-      const callbackUrl = getProviderCallbackUrl(provider, options.port);
+      const callbackUrl = getProviderCallbackUrl(provider, options.adminPort);
       const profile = await getOAuthProfileFromCode(provider, code, callbackUrl);
       const user = await store.upsertOAuthProfile(profile);
       await store.clearPreferredAuthMethod();
@@ -461,7 +536,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     }
 
     try {
-      const profile = await exchangeBrokerCode(brokerOrigin, code);
+      const profile = await exchangeBrokerCode(brokerOrigin, code, options.projectId);
       const user = await store.upsertOAuthProfile(profile);
       await store.clearPreferredAuthMethod();
       const sessionId = await issueSession(user.id);
