@@ -24,7 +24,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && node src/build/copy-runtime-template.mjs",
+    "build": "tsc -p tsconfig.json && node build/runtime/runtime-template.mjs",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },

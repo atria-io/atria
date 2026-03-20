@@ -11,63 +11,89 @@ Modifications to this file are automatically discarded.
     <meta name="referrer" content="same-origin" />
     <title>Atria Studio</title>
     <link rel="icon" href="/static/favicon.ico" />
+    <link rel="icon" href="static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="static/favicon.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
     <link rel="stylesheet" href="/static/styles/tokens.css">
     <link rel="stylesheet" href="/static/styles/scheme.css">
     <link rel="stylesheet" href="/static/styles/globals.css">
-    <link rel="icon" href="static/favicon.svg" type="image/svg+xml">
-    <link rel="icon" href="static/favicon.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
     <style id="atria-scheme"></style>
     <script>
       (function () {
-        var scheme = null;
+        var rawScheme = __ATRIA_SCHEME_MAP__;
+
+        if (!rawScheme || !rawScheme.dark || !rawScheme.light) {
+          throw new Error("Invalid runtime scheme map.");
+        }
+
+        var atriaGlobal = window.__atria__ || Object.create(null);
+        var scheme = Object.freeze({
+          dark: Object.freeze(rawScheme.dark),
+          light: Object.freeze(rawScheme.light)
+        });
+
+        if (
+          !scheme.dark.color_background ||
+          !scheme.dark.color_foreground ||
+          !scheme.light.color_background ||
+          !scheme.light.color_foreground
+        ) {
+          throw new Error("Missing required scheme tokens.");
+        }
+
+        atriaGlobal.scheme = scheme;
+        window.__atria__ = atriaGlobal;
+
+        var colorScheme = null;
         var schemeStyle = document.getElementById("atria-scheme");
-        var schemeCssByMode = {
-          dark:":root{--boot-bg:#131316;--boot-spinner-track:#2a2d3f;--boot-spinner:#8a8a8a;--color-text:#f3f4f6;--color-text-muted:#9ca3af;}",
-          light:":root{--boot-bg:#ffffff;--boot-spinner-track:#d7dde8;--boot-spinner:#1f2937;--color-text:#171717;--color-text-muted:#9ca3af;}"
+        var bootstrapByScheme = {
+          dark:
+            ":root {" +
+            "--boot-bg:" + scheme.dark.color_background + ";" +
+            "--boot-spinner-track:" + "#2a2d3f" + ";" +
+            "--boot-spinner:" + "#8a8a8a" + ";" +
+
+            "--color-text:" + scheme.dark.color_foreground + ";" +
+            "--color-text-muted:" + "#9ca3af" + ";" +
+            "}",
+          light:
+            ":root {" +
+            "--boot-bg:" + scheme.light.color_background + ";" +
+            "--boot-spinner-track:" + "#d7dde8" + ";" +
+            "--boot-spinner:" + "#1f2937" + ";" +
+
+            "--color-text:" + scheme.light.color_foreground + ";" +
+            "--color-text-muted:" + "#9ca3af" + ";" +
+            "}"
         };
 
         try {
-          var stored = localStorage.getItem("__COLOR_SCHEME_STORAGE_KEY__");
-          if (stored === "light" || stored === "dark") {
-            scheme = stored;
+          var storedScheme = localStorage.getItem("__COLOR_SCHEME_STORAGE_KEY__");
+          if (storedScheme === "light" || storedScheme === "dark") {
+            colorScheme = storedScheme;
           }
-        } catch (_error) {}
+        } catch (_storageError) {}
 
-        if (!scheme) {
+        if (!colorScheme) {
           try {
-            var legacy = localStorage.getItem("__LEGACY_COLOR_SCHEME_STORAGE_KEY__");
-            if (legacy === "enabled") {
-              scheme = "dark";
-            } else if (legacy === "disabled") {
-              scheme = "light";
-            }
-          } catch (_error) {}
-        }
-
-        if (!scheme) {
-          try {
-            scheme =
-              window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+            colorScheme =
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches
                 ? "dark"
                 : "light";
-          } catch (_error) {
-            scheme = "light";
+          } catch (_mediaQueryError) {
+            colorScheme = "light";
           }
         }
 
         try {
-          localStorage.setItem("__COLOR_SCHEME_STORAGE_KEY__", scheme);
-          localStorage.setItem(
-            "__LEGACY_COLOR_SCHEME_STORAGE_KEY__",
-            scheme === "dark" ? "enabled" : "disabled"
-          );
-        } catch (_error) {}
+          localStorage.setItem("__COLOR_SCHEME_STORAGE_KEY__", colorScheme);
+        } catch (_persistError) {}
 
         if (schemeStyle) {
-          schemeStyle.textContent = schemeCssByMode[scheme] || schemeCssByMode.light;
+          schemeStyle.textContent = bootstrapByScheme[colorScheme];
         }
 
-        window.__ATRIA_INITIAL_SCHEME = scheme;
+        window.__ATRIA_INITIAL_SCHEME = colorScheme;
       })();
     </script>
   </head>

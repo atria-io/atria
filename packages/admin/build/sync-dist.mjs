@@ -1,13 +1,12 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
+import { transform } from "lightningcss";
 
 const packageRoot = process.cwd();
+const staticStylesSourceRoot = path.join(packageRoot, "src", "app", "static", "styles");
+const staticStylesDistRoot = path.join(packageRoot, "dist", "styles");
 
 const directoryMappings = [
-  {
-    sourceDir: path.join(packageRoot, "src", "app", "static", "styles"),
-    targetDir: path.join(packageRoot, "dist", "styles")
-  },
   {
     sourceDir: path.join(packageRoot, "src", "i18n", "locales"),
     targetDir: path.join(packageRoot, "dist", "locales")
@@ -48,6 +47,62 @@ const syncDirectory = async (sourceDir, targetDir) => {
 
   await fs.mkdir(path.dirname(targetDir), { recursive: true });
   await fs.cp(sourceDir, targetDir, { recursive: true });
+};
+
+const minifyCss = (source, filename) => {
+  const { code } = transform({
+    filename,
+    code: Buffer.from(source),
+    minify: true
+  });
+
+  return Buffer.from(code).toString("utf-8");
+};
+
+const writeMinifiedCss = async (sourceFile, targetFile) => {
+  const source = await fs.readFile(sourceFile, "utf-8");
+  const minified = minifyCss(source, sourceFile);
+  await fs.mkdir(path.dirname(targetFile), { recursive: true });
+  await fs.writeFile(targetFile, minified, "utf-8");
+};
+
+const syncStaticStyles = async () => {
+  const exists = await pathExists(staticStylesSourceRoot);
+
+  await fs.rm(staticStylesDistRoot, { recursive: true, force: true });
+
+  if (!exists) {
+    return;
+  }
+
+  const walk = async (sourceDir, targetDir) => {
+    await fs.mkdir(targetDir, { recursive: true });
+    const entries = await fs.readdir(sourceDir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const sourcePath = path.join(sourceDir, entry.name);
+      const targetPath = path.join(targetDir, entry.name);
+
+      if (entry.isDirectory()) {
+        await walk(sourcePath, targetPath);
+        continue;
+      }
+
+      if (!entry.isFile()) {
+        continue;
+      }
+
+      if (entry.name.endsWith(".css")) {
+        await writeMinifiedCss(sourcePath, targetPath);
+        continue;
+      }
+
+      await fs.mkdir(path.dirname(targetPath), { recursive: true });
+      await fs.copyFile(sourcePath, targetPath);
+    }
+  };
+
+  await walk(staticStylesSourceRoot, staticStylesDistRoot);
 };
 
 const syncFile = async (sourceFile, targetFile) => {
@@ -117,11 +172,12 @@ const syncModuleStyles = async () => {
           : normalizePathForUrl(path.join(moduleRelativeDir, entry.name));
 
       const targetFile = path.join(modulesStylesDistRoot, targetRelativePath);
-      await fs.mkdir(path.dirname(targetFile), { recursive: true });
-      await fs.copyFile(sourceFile, targetFile);
+      await writeMinifiedCss(sourceFile, targetFile);
     }
   }
 };
+
+await syncStaticStyles();
 
 for (const mapping of directoryMappings) {
   await syncDirectory(mapping.sourceDir, mapping.targetDir);
