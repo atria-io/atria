@@ -95,7 +95,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   console.log("");
   console.log(`Atria is ready in ${elapsedMs}ms.`);
   console.log(`Frontend is available at ${terminal.cyan(`${server.publicUrl}/`)}`);
-  console.log(`Atria is available at ${terminal.cyan(`${server.adminUrl}/`)}`);
+  console.log(`Atria Studio is available at ${terminal.cyan(`${server.adminUrl}/`)}`);
   console.log("");
   void notifyCliUpdate(projectRoot);
 
