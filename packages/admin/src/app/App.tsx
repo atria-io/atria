@@ -26,7 +26,6 @@ import type { LoginValues } from "./modules/auth/forms/login.js";
 
 const STUDIO_READY_EVENT = "atria:studio:ready";
 const COLOR_SCHEME_STORAGE_KEY = "atria:color-scheme";
-const LEGACY_COLOR_SCHEME_STORAGE_KEY = "darkMode";
 const AUTH_STYLE_FILES = ["styles/modules/auth.css"];
 
 type ColorScheme = "light" | "dark";
@@ -59,16 +58,6 @@ const resolveInitialColorScheme = (): ColorScheme => {
     const stored = parseColorScheme(localStorage.getItem(COLOR_SCHEME_STORAGE_KEY));
     if (stored) {
       return stored;
-    }
-  } catch (_error) {}
-
-  try {
-    const legacy = localStorage.getItem(LEGACY_COLOR_SCHEME_STORAGE_KEY);
-    if (legacy === "enabled") {
-      return "dark";
-    }
-    if (legacy === "disabled") {
-      return "light";
     }
   } catch (_error) {}
 
@@ -115,10 +104,6 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   useEffect(() => {
     try {
       localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, colorScheme);
-      localStorage.setItem(
-        LEGACY_COLOR_SCHEME_STORAGE_KEY,
-        colorScheme === "dark" ? "enabled" : "disabled"
-      );
     } catch (_error) {}
 
     window.__ATRIA_INITIAL_SCHEME = colorScheme;

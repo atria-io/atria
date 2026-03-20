@@ -1,9 +1,12 @@
 [data-scheme="dark"] {
   --color-background: #131316;
   --color-foreground: #f3f4f6;
+
   --color-accent: #e4e5e9;
   --color-border: #2a2d3f;
+
   --color-error: #f97373;
+
   --color-shadow: #00000033;
 
   --border: 1px solid var(--color-border);
@@ -13,9 +16,12 @@
 [data-scheme="light"] {
   --color-background: #ffffff;
   --color-foreground: #131316;
+
   --color-accent: #e4e5e9;
+
   --color-border: #2a2d3f;
   --color-error: #f97373;
+
   --color-shadow: #0000001a;
 
   --border: 1px solid var(--color-border);

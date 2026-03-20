@@ -2,13 +2,11 @@ import { readFileSync } from "node:fs";
 
 export const READY_EVENT_NAME = "atria:studio:ready";
 export const COLOR_SCHEME_STORAGE_KEY = "atria:color-scheme";
-export const LEGACY_COLOR_SCHEME_STORAGE_KEY = "darkMode";
 
 const runtimeIndexTemplate = readFileSync(new URL("./index.htm", import.meta.url), "utf-8");
 
 export const runtimeIndexHtml = runtimeIndexTemplate
-  .replaceAll("__COLOR_SCHEME_STORAGE_KEY__", COLOR_SCHEME_STORAGE_KEY)
-  .replaceAll("__LEGACY_COLOR_SCHEME_STORAGE_KEY__", LEGACY_COLOR_SCHEME_STORAGE_KEY);
+  .replaceAll("__COLOR_SCHEME_STORAGE_KEY__", COLOR_SCHEME_STORAGE_KEY);
 
 export const runtimeAppJs = `// This file is auto-generated from "atria dev".
 // Modifications to this file are automatically discarded.
