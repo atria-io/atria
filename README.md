@@ -2,10 +2,10 @@
   <h1>Atria</h1>
   <p><strong>Document-first CMS built by designers, for designers.</strong></p>
 
-  <a href="https://www.npmjs.com/package/atria"><img alt="NPM version" src="https://img.shields.io/npm/v/atria.svg?style=for-the-badge&labelColor=000000"></a>
-  <a href="https://www.npmjs.com/package/atria"><img alt="NPM downloads" src="https://img.shields.io/npm/dm/atria.svg?style=for-the-badge&labelColor=000000"></a>
-  <a href="https://github.com/atria-io/atria/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/npm/l/atria.svg?style=for-the-badge&labelColor=000000"></a>
-  <img alt="Project status" src="https://img.shields.io/badge/status-experimental-orange.svg?style=for-the-badge&labelColor=000000">
+  <a href="https://www.npmjs.com/package/atria"><img alt="NPM version" src="https://img.shields.io/npm/v/atria.svg?style=flat&labelColor=000000"></a>
+  <a href="https://www.npmjs.com/package/atria"><img alt="NPM downloads" src="https://img.shields.io/npm/dm/atria.svg?style=flat&labelColor=000000"></a>
+  <a href="https://github.com/atria-io/atria/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/npm/l/atria.svg?style=flat&labelColor=000000"></a>
+  <img alt="Project status" src="https://img.shields.io/badge/status-experimental-orange.svg?style=flat&labelColor=000000">
 </div>
 
 ## What is this repository?
