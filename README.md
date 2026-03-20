@@ -8,39 +8,11 @@
   <img alt="Project status" src="https://img.shields.io/badge/status-experimental-ff5a3c.svg?style=flat&labelColor=222">
 </div>
 
-## Build structured editorial workflows
-
-> Atria is a document-first CMS in active development, based on a custom grammar for structured content and editorial workflows.
->
-> Built by designers, for designers.
-
-## Quickstart
-
-```bash
-npm create atria@latest
-
-# With other package managers:
-yarn create atria@latest
-pnpm create atria@latest
-```
-
-Create in a named folder:
-
-```bash
-npm create atria@latest -- my-project
-cd my-project
-npm run dev
-```
-
-Direct package usage:
-
-```bash
-npx create-atria my-project
-```
-
 ## What is this repository?
 
 This is the TypeScript monorepo for the Atria ecosystem.
+
+Atria is a document-first CMS in active development, based on a custom grammar for structured content and editorial workflows.
 
 ## Packages
 
@@ -67,6 +39,28 @@ Atria is experimental and evolves quickly.
 ```bash
 corepack pnpm install
 corepack pnpm -r --filter "./packages/*" build
+```
+
+## Create a new project
+
+```bash
+npm create atria@latest
+
+# With other package managers:
+yarn create atria@latest
+pnpm create atria@latest
+```
+
+```bash
+npm create atria@latest -- my-project
+cd my-project
+npm run dev
+```
+
+Equivalent direct command:
+
+```bash
+npx create-atria my-project
 ```
 
 ## Repository
