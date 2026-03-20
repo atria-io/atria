@@ -48,6 +48,7 @@ interface InsertCredentialInput {
 
 interface OwnerStore<TTransaction> {
   hasUsers(tx?: TTransaction): Promise<boolean>;
+  getFirstUser(tx?: TTransaction): Promise<DatabaseUser | null>;
   getMetaValue(key: string): Promise<string | null>;
   upsertMetaValue(key: string, value: AuthMethod, updatedAt: string): Promise<void>;
   deleteMetaValue(key: string): Promise<void>;
@@ -79,6 +80,7 @@ interface OwnerDependencies {
 
 interface OwnerOperations {
   hasUsers: () => Promise<boolean>;
+  getFirstUser: () => Promise<DatabaseUser | null>;
   getOwnerSetupState: () => Promise<DatabaseOwnerSetupState>;
   setPreferredAuthMethod: (authMethod: AuthMethod | null) => Promise<void>;
   clearPreferredAuthMethod: () => Promise<void>;
@@ -95,6 +97,12 @@ interface OwnerOperations {
   }) => Promise<DatabaseOwnerRegistrationResult>;
   upsertOAuthProfile: (profile: DatabaseOAuthProfile) => Promise<DatabaseUser>;
 }
+
+const createOwnerAuthError = (code: string, message: string): Error & { code: string } => {
+  const error = new Error(message) as Error & { code: string };
+  error.code = code;
+  return error;
+};
 
 const createOwnerOperations = <TTransaction>(
   store: OwnerStore<TTransaction>,
@@ -150,6 +158,8 @@ const createOwnerOperations = <TTransaction>(
 
   return {
     hasUsers: async () => store.hasUsers(),
+
+    getFirstUser: async (): Promise<DatabaseUser | null> => store.getFirstUser(),
 
     getOwnerSetupState: async (): Promise<DatabaseOwnerSetupState> => {
       if (await store.hasUsers()) {
@@ -251,6 +261,13 @@ const createOwnerOperations = <TTransaction>(
 
     upsertOAuthProfile: async (profile: DatabaseOAuthProfile): Promise<DatabaseUser> =>
       store.withTransaction(async (tx) => {
+        const usersExist = await store.hasUsers(tx);
+        const ownerUser = usersExist ? await store.getFirstUser(tx) : null;
+        const ownerUserId = ownerUser?.id ?? null;
+        if (usersExist && ownerUserId === null) {
+          throw createOwnerAuthError("OWNER_USER_NOT_FOUND", "Owner user record is missing.");
+        }
+
         const existingIdentity = await store.getIdentityByProvider(
           profile.provider,
           profile.providerUserId,
@@ -259,10 +276,21 @@ const createOwnerOperations = <TTransaction>(
 
         if (existingIdentity && typeof existingIdentity.userId === "string") {
           const existingUser = await store.getUserById(existingIdentity.userId, tx);
+          if (!existingUser) {
+            throw createOwnerAuthError(
+              "OAUTH_IDENTITY_ORPHANED",
+              "OAuth identity is linked to a missing user."
+            );
+          }
 
-          const resolvedUser = existingUser
-            ? await updateUserWithProfile(existingUser, profile, tx)
-            : await insertUserFromProfile(profile, tx);
+          if (ownerUserId !== null && existingUser.id !== ownerUserId) {
+            throw createOwnerAuthError(
+              "OAUTH_OWNER_MISMATCH",
+              "OAuth account is not authorized for this project owner."
+            );
+          }
+
+          const resolvedUser = await updateUserWithProfile(existingUser, profile, tx);
 
           await store.updateIdentityByProvider(
             {
@@ -282,6 +310,12 @@ const createOwnerOperations = <TTransaction>(
 
         const emailForMerge = profile.emailVerified && profile.email !== null ? profile.email : null;
         const existingUser = emailForMerge ? await store.getUserByEmail(emailForMerge, tx) : null;
+        if (ownerUserId !== null && (!existingUser || existingUser.id !== ownerUserId)) {
+          throw createOwnerAuthError(
+            "OAUTH_OWNER_MISMATCH",
+            "OAuth account is not authorized for this project owner."
+          );
+        }
 
         const resolvedUser = existingUser
           ? await updateUserWithProfile(existingUser, profile, tx)
@@ -330,6 +364,10 @@ export class SqliteAtriaDatabase implements AtriaDatabase {
 
   public async hasUsers(): Promise<boolean> {
     return this.owner.hasUsers();
+  }
+
+  public async getFirstUser(): Promise<DatabaseUser | null> {
+    return this.owner.getFirstUser();
   }
 
   public async getOwnerSetupState(): Promise<DatabaseOwnerSetupState> {
@@ -386,6 +424,11 @@ export class SqliteAtriaDatabase implements AtriaDatabase {
         const target = tx ?? this.database;
         const row = target.prepare("SELECT 1 AS has_user FROM atria_users LIMIT 1").get();
         return row !== undefined;
+      },
+      getFirstUser: async (tx) => {
+        const target = tx ?? this.database;
+        const row = target.prepare(sqliteAuthQueries.users.selectFirst).get();
+        return rowToUser(row);
       },
       getMetaValue: async (key) => {
         const row = this.database.prepare(sqliteAuthQueries.meta.selectValue).get(key);
@@ -552,6 +595,11 @@ export class PostgresAtriaDatabase implements AtriaDatabase {
     return this.owner.hasUsers();
   }
 
+  public async getFirstUser(): Promise<DatabaseUser | null> {
+    await this.ensureReady();
+    return this.owner.getFirstUser();
+  }
+
   public async getOwnerSetupState(): Promise<DatabaseOwnerSetupState> {
     await this.ensureReady();
     return this.owner.getOwnerSetupState();
@@ -625,6 +673,11 @@ export class PostgresAtriaDatabase implements AtriaDatabase {
         const target = tx ?? this.pool;
         const result = await target.query("SELECT 1 AS has_user FROM atria_users LIMIT 1");
         return result.rows.length > 0;
+      },
+      getFirstUser: async (tx) => {
+        const target = tx ?? this.pool;
+        const result = await target.query(postgresAuthQueries.users.selectFirst);
+        return rowToUser(result.rows[0]);
       },
       getMetaValue: async (key) => {
         const result = await this.pool.query(postgresAuthQueries.meta.selectValue, [key]);

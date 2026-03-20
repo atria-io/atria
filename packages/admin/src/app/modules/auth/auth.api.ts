@@ -3,7 +3,6 @@ import { resolveBasePathUrl } from "../../../state/api.client.js";
 import type {
   AuthMode,
   AuthUser,
-  BrokerExchangePayload,
   ProviderId,
   ProvidersPayload,
   SessionPayload,
@@ -61,15 +60,16 @@ export const loadAuthBootstrapState = async (apiClient: ApiClient): Promise<Auth
 };
 
 export const exchangeBrokerCode = async (
-  apiClient: ApiClient,
+  basePath: string,
   brokerCode: string
-): Promise<boolean> => {
-  const exchangePayload = await apiClient.postJson<BrokerExchangePayload>(
-    `/api/auth/broker/exchange?code=${encodeURIComponent(brokerCode)}`
-  );
+): Promise<EmailAuthResult> =>
+  postBrokerAuth(basePath, "/api/auth/broker/exchange", { code: brokerCode });
 
-  return exchangePayload?.ok === true;
-};
+export const confirmBrokerConsent = async (
+  basePath: string,
+  consentToken: string
+): Promise<EmailAuthResult> =>
+  postBrokerAuth(basePath, "/api/auth/broker/confirm", { consentToken });
 
 const parseEmailAuthResult = (payload: unknown): EmailAuthResult => {
   if (typeof payload !== "object" || payload === null) {
@@ -102,6 +102,34 @@ const parseEmailAuthResult = (payload: unknown): EmailAuthResult => {
 };
 
 const postEmailAuth = async (
+  basePath: string,
+  routePath: string,
+  body: Record<string, string>
+): Promise<EmailAuthResult> => {
+  try {
+    const response = await fetch(resolveBasePathUrl(basePath, routePath), {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "content-type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(body)
+    });
+
+    const payload = (await response.json().catch(() => null)) as unknown;
+    return parseEmailAuthResult(payload);
+  } catch {
+    return {
+      ok: false,
+      authenticated: false,
+      user: null,
+      error: null,
+      reason: null
+    };
+  }
+};
+
+const postBrokerAuth = async (
   basePath: string,
   routePath: string,
   body: Record<string, string>

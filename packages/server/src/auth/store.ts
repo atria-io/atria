@@ -30,6 +30,7 @@ interface AuthSession {
 export interface AuthStore {
   close: () => Promise<void>;
   hasUsers: () => Promise<boolean>;
+  getFirstUser: () => Promise<AuthUser | null>;
   getOwnerSetupState: () => Promise<OwnerSetupState>;
   setPreferredAuthMethod: (authMethod: AuthMethod | null) => Promise<void>;
   clearPreferredAuthMethod: () => Promise<void>;
@@ -84,6 +85,11 @@ export const createDbAuthStore = (projectRoot: string): AuthStore => {
     },
 
     hasUsers: async (): Promise<boolean> => database.hasUsers(),
+
+    getFirstUser: async () => {
+      const user = await database.getFirstUser();
+      return user ? mapUser(user) : null;
+    },
 
     getOwnerSetupState: async (): Promise<OwnerSetupState> => database.getOwnerSetupState(),
 

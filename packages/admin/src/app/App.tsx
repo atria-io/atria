@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   buildOAuthStartUrl,
+  confirmBrokerConsent,
   exchangeBrokerCode,
   loadAuthBootstrapState,
   loginWithEmail,
@@ -8,6 +9,7 @@ import {
 } from "./modules/auth/auth.api.js";
 import { readAuthQueryState } from "./modules/auth/auth.query.js";
 import { AuthView } from "./modules/auth/views/AuthView.js";
+import { BrokerConsentView } from "./modules/auth/views/BrokerConsentView.js";
 import { DashboardScreen } from "./modules/dashboard/DashboardScreen.js";
 import {
   createTranslator,
@@ -96,6 +98,8 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   const hasAutoStartedProviderRef = useRef(false);
   const hasDispatchedReadyRef = useRef(false);
 
+  const hasPendingBrokerConsent =
+    queryState.brokerConsentToken !== null && queryState.brokerCode === null;
   const needsAuthentication = setupStatus.pending || !session.authenticated;
   const authMode = setupStatus.pending ? "create" : "login";
   const selectedProvider = activeProvider ?? setupStatus.preferredAuthMethod;
@@ -154,17 +158,18 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
       if (queryState.brokerCode) {
         setIsFinalizing(true);
 
-        const exchanged = await exchangeBrokerCode(apiClient, queryState.brokerCode);
+        const exchanged = await exchangeBrokerCode(basePath, queryState.brokerCode);
         if (cancelled) {
           return;
         }
 
-        if (exchanged) {
+        if (exchanged.ok && exchanged.authenticated) {
           window.location.replace(queryState.nextPath);
           return;
         }
 
         setBrokerError(true);
+        setAuthError(exchanged.error);
         setIsFinalizing(false);
       }
 
@@ -185,7 +190,13 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   }, [basePath, queryState.brokerCode, queryState.nextPath]);
 
   useEffect(() => {
-    if (!needsAuthentication || isLoading || isFinalizing || hasAutoStartedProviderRef.current) {
+    if (
+      !needsAuthentication ||
+      isLoading ||
+      isFinalizing ||
+      hasPendingBrokerConsent ||
+      hasAutoStartedProviderRef.current
+    ) {
       return;
     }
 
@@ -213,6 +224,7 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   }, [
     authMode,
     basePath,
+    hasPendingBrokerConsent,
     isFinalizing,
     isLoading,
     needsAuthentication,
@@ -306,15 +318,46 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     });
   };
 
+  const handleBrokerConsentConfirm = async (): Promise<void> => {
+    if (!queryState.brokerConsentToken) {
+      return;
+    }
+
+    setAuthError(null);
+    setIsAuthSubmitting(true);
+
+    const result = await confirmBrokerConsent(basePath, queryState.brokerConsentToken);
+    if (result.ok && result.authenticated) {
+      window.location.replace(queryState.nextPath);
+      return;
+    }
+
+    setAuthError(result.error ?? t("auth.error.brokerConsentDefault"));
+    setIsAuthSubmitting(false);
+  };
+
+  const handleBrokerConsentCancel = (): void => {
+    const targetUrl = new URL(window.location.href);
+    targetUrl.searchParams.delete("broker_consent_token");
+    targetUrl.searchParams.delete("project_id");
+    targetUrl.searchParams.delete("provider");
+
+    const queryString = targetUrl.searchParams.toString();
+    const location = queryString.length > 0 ? `${targetUrl.pathname}?${queryString}` : targetUrl.pathname;
+    window.location.replace(location);
+  };
+
   const handleLocaleChange = (locale: string): void => {
     persistPreferredLocale(locale);
     void loadLocaleBundle(createApiClient(basePath), locale).then(setLocaleBundle);
   };
 
   const title = needsAuthentication
-    ? authMode === "login"
-      ? t("auth.title.login")
-      : t("auth.title.create")
+    ? hasPendingBrokerConsent
+      ? t("auth.title.consent")
+      : authMode === "login"
+        ? t("auth.title.login")
+        : t("auth.title.create")
     : t("dashboard.title");
 
   const subtitle = t(needsAuthentication ? "shell.subtitle.auth" : route.subtitleKey);
@@ -337,6 +380,16 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
       {needsAuthentication ? (
         isLoading || isFinalizing ? (
           <section className="auth-screen" aria-hidden="true" />
+        ) : hasPendingBrokerConsent ? (
+          <BrokerConsentView
+            provider={queryState.provider}
+            projectId={queryState.brokerProjectId}
+            errorMessage={authError}
+            isSubmitting={isAuthSubmitting}
+            onConfirm={handleBrokerConsentConfirm}
+            onCancel={handleBrokerConsentCancel}
+            t={t}
+          />
         ) : (
           <AuthView
             mode={authMode}

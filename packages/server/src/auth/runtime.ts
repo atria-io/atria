@@ -65,6 +65,11 @@ interface BrokerExchangePayload {
   };
 }
 
+interface BrokerConfirmPayload {
+  code: string;
+  projectId: string;
+}
+
 const isOAuthProviderId = (value: string): value is OAuthProviderId =>
   value === "google" || value === "github";
 
@@ -90,6 +95,23 @@ const parseConsentMode = (value: string | null): "auto" | "required" => {
   }
 
   throw new Error("Invalid consent.");
+};
+
+const isOAuthOwnerMismatchError = (error: unknown): boolean => {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  const errorCode = (error as { code?: unknown }).code;
+  return errorCode === "OAUTH_OWNER_MISMATCH";
+};
+
+const writeOwnerMismatchResponse = (response: ServerResponse): void => {
+  writeJson(response, 403, {
+    ok: false,
+    error: "Account is not authorized for this Back Office.",
+    reason: "owner_mismatch"
+  });
 };
 
 const writeJson = (response: ServerResponse, statusCode: number, payload: unknown): void => {
@@ -168,6 +190,12 @@ const createSessionResult = async (
 
   const user = await store.getUserById(session.userId);
   if (!user) {
+    await store.deleteSessionById(session.id);
+    return { authenticated: false, user: null };
+  }
+
+  const ownerUser = await store.getFirstUser();
+  if (!ownerUser || ownerUser.id !== user.id) {
     await store.deleteSessionById(session.id);
     return { authenticated: false, user: null };
   }
@@ -316,6 +344,35 @@ const parseBrokerExchangePayload = (payload: unknown): BrokerExchangePayload | n
   };
 };
 
+const parseBrokerConfirmPayload = (payload: unknown): BrokerConfirmPayload | null => {
+  if (typeof payload !== "object" || payload === null) {
+    return null;
+  }
+
+  const typedPayload = payload as {
+    ok?: unknown;
+    code?: unknown;
+    project_id?: unknown;
+  };
+
+  if (typedPayload.ok !== true) {
+    return null;
+  }
+
+  if (typeof typedPayload.code !== "string" || typedPayload.code.length === 0) {
+    return null;
+  }
+
+  if (typeof typedPayload.project_id !== "string" || typedPayload.project_id.length === 0) {
+    return null;
+  }
+
+  return {
+    code: typedPayload.code,
+    projectId: typedPayload.project_id
+  };
+};
+
 const exchangeBrokerCode = async (
   brokerOrigin: string,
   code: string,
@@ -352,6 +409,36 @@ const exchangeBrokerCode = async (
     avatarUrl: parsed.user.avatarUrl,
     emailVerified: parsed.user.emailVerified
   };
+};
+
+const confirmBrokerConsentToken = async (
+  brokerOrigin: string,
+  consentToken: string,
+  projectId: string
+): Promise<string> => {
+  const confirmUrl = new URL("/oauth/confirm", brokerOrigin);
+  confirmUrl.searchParams.set("consent_token", consentToken);
+
+  const response = await fetch(confirmUrl.toString(), {
+    method: "GET",
+    headers: {
+      accept: "application/json"
+    }
+  });
+
+  const payload = (await response.json().catch(() => null)) as unknown;
+  const parsed = parseBrokerConfirmPayload(payload);
+  if (!response.ok || !parsed || parsed.projectId !== projectId) {
+    const errorMessage =
+      typeof payload === "object" && payload !== null && "error" in payload
+        ? (payload as { error?: unknown }).error
+        : null;
+    throw new Error(
+      `Broker consent confirmation failed${typeof errorMessage === "string" ? `: ${errorMessage}` : "."}`
+    );
+  }
+
+  return parsed.code;
 };
 
 export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntime => {
@@ -502,6 +589,11 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
 
       writeRedirect(response, state.redirectPath || "/", createSessionCookie(sessionId));
     } catch (error) {
+      if (isOAuthOwnerMismatchError(error)) {
+        writeOwnerMismatchResponse(response);
+        return;
+      }
+
       writeJson(response, 500, {
         ok: false,
         error: error instanceof Error ? error.message : "OAuth callback failed."
@@ -561,9 +653,79 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
         })
       );
     } catch (error) {
+      if (isOAuthOwnerMismatchError(error)) {
+        writeOwnerMismatchResponse(response);
+        return;
+      }
+
       writeJson(response, 500, {
         ok: false,
         error: error instanceof Error ? error.message : "Broker exchange failed."
+      });
+    }
+  };
+
+  const handleBrokerConfirm = async (
+    request: IncomingMessage,
+    response: ServerResponse,
+    requestUrl: URL
+  ): Promise<void> => {
+    const brokerOrigin = getBrokerOrigin();
+    if (!brokerOrigin) {
+      writeJson(response, 400, {
+        ok: false,
+        error: "OAuth broker is disabled."
+      });
+      return;
+    }
+
+    let consentToken = requestUrl.searchParams.get("consent_token");
+    if (!consentToken && request.method === "POST") {
+      const payload = await parseJsonBody(request);
+      const bodyToken = payload.consentToken ?? payload.consent_token;
+      consentToken = typeof bodyToken === "string" ? bodyToken : null;
+    }
+
+    if (!consentToken) {
+      writeJson(response, 400, {
+        ok: false,
+        error: "Missing broker consent token."
+      });
+      return;
+    }
+
+    try {
+      const brokerCode = await confirmBrokerConsentToken(brokerOrigin, consentToken, options.projectId);
+      const profile = await exchangeBrokerCode(brokerOrigin, brokerCode, options.projectId);
+      const user = await store.upsertOAuthProfile(profile);
+      await store.clearPreferredAuthMethod();
+      const sessionId = await issueSession(user.id);
+
+      response.writeHead(200, {
+        "content-type": "application/json; charset=utf-8",
+        "set-cookie": createSessionCookie(sessionId)
+      });
+      response.end(
+        JSON.stringify({
+          ok: true,
+          authenticated: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            avatarUrl: user.avatarUrl
+          }
+        })
+      );
+    } catch (error) {
+      if (isOAuthOwnerMismatchError(error)) {
+        writeOwnerMismatchResponse(response);
+        return;
+      }
+
+      writeJson(response, 500, {
+        ok: false,
+        error: error instanceof Error ? error.message : "Broker consent failed."
       });
     }
   };
@@ -699,6 +861,12 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
         return;
       }
 
+      const ownerUser = await store.getFirstUser();
+      if (!ownerUser || ownerUser.id !== userWithPassword.user.id) {
+        writeOwnerMismatchResponse(response);
+        return;
+      }
+
       await respondAuthenticated(response, userWithPassword.user);
     } catch (error) {
       writeJson(response, 500, {
@@ -795,6 +963,11 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
 
       if (pathname === "/api/auth/broker/exchange") {
         await handleBrokerExchange(request, response, requestUrl);
+        return true;
+      }
+
+      if (pathname === "/api/auth/broker/confirm") {
+        await handleBrokerConfirm(request, response, requestUrl);
         return true;
       }
 

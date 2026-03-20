@@ -65,6 +65,7 @@ export interface AtriaDatabase {
   getOwnerSetupState: () => Promise<DatabaseOwnerSetupState>;
   setPreferredAuthMethod: (authMethod: AuthMethod | null) => Promise<void>;
   clearPreferredAuthMethod: () => Promise<void>;
+  getFirstUser: () => Promise<DatabaseUser | null>;
   getUserById: (userId: string) => Promise<DatabaseUser | null>;
   getUserWithPasswordByEmail: (email: string) => Promise<DatabaseUserWithPassword | null>;
   registerOwnerWithPassword: (input: {

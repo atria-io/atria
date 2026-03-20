@@ -3,6 +3,7 @@ export type QueryDialect = "sqlite" | "postgres";
 export interface AuthQuerySet {
   users: {
     selectById: string;
+    selectFirst: string;
     selectByEmail: string;
     selectWithPasswordByEmail: string;
     insert: string;
@@ -50,6 +51,12 @@ export const createAuthQuerySet = (dialect: QueryDialect): AuthQuerySet => {
         SELECT id, email, name, avatar_url, created_at, updated_at
         FROM atria_users
         WHERE id = ${p(1)}
+      `),
+      selectFirst: toSql(`
+        SELECT id, email, name, avatar_url, created_at, updated_at
+        FROM atria_users
+        ORDER BY created_at ASC, id ASC
+        LIMIT 1
       `),
       selectByEmail: toSql(`
         SELECT id, email, name, avatar_url, created_at, updated_at

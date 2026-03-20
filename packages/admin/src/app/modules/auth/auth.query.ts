@@ -3,6 +3,8 @@ import type { ProviderId } from "../../../types/auth.js";
 export interface AuthQueryState {
   provider: ProviderId | null;
   brokerCode: string | null;
+  brokerConsentToken: string | null;
+  brokerProjectId: string | null;
   nextPath: string;
 }
 
@@ -15,11 +17,15 @@ export const readAuthQueryState = (search: string): AuthQueryState => {
       : null;
 
   const brokerCode = params.get("broker_code");
+  const brokerConsentToken = params.get("broker_consent_token");
+  const brokerProjectId = params.get("project_id");
   const nextPath = params.get("next");
 
   return {
     provider,
     brokerCode: brokerCode || null,
+    brokerConsentToken: brokerConsentToken || null,
+    brokerProjectId: brokerProjectId || null,
     nextPath: nextPath && nextPath.startsWith("/") ? nextPath : "/"
   };
 };
