@@ -32,7 +32,6 @@
   "auth.form.create.submit": "Create account",
   "auth.form.login.submit": "Sign in",
   "auth.form.consent.submit": "Authorize project",
-  "auth.form.consent.cancel": "Cancel",
   "auth.form.otherOptions": "← Other sign in options",
   "auth.form.login.forgot": "Forgot password?",
   "auth.error.passwordMismatch": "Passwords do not match.",

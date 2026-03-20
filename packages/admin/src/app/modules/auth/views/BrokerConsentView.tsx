@@ -8,12 +8,11 @@ interface BrokerConsentViewProps {
   errorMessage: string | null;
   isSubmitting: boolean;
   onConfirm: () => Promise<void> | void;
-  onCancel: () => void;
   t: TranslateFn;
 }
 
 export function BrokerConsentView(props: BrokerConsentViewProps): React.JSX.Element {
-  const { provider, projectId, errorMessage, isSubmitting, onConfirm, onCancel, t } = props;
+  const { provider, projectId, errorMessage, isSubmitting, onConfirm, t } = props;
 
   const providerLabel =
     provider === "google" || provider === "github" ? t(`auth.provider.${provider}`) : "OAuth";
@@ -37,14 +36,6 @@ export function BrokerConsentView(props: BrokerConsentViewProps): React.JSX.Elem
             }}
           >
             {t("auth.form.consent.submit")}
-          </button>
-          <button
-            type="button"
-            className="auth-card__button"
-            disabled={isSubmitting}
-            onClick={onCancel}
-          >
-            {t("auth.form.consent.cancel")}
           </button>
         </div>
       </div>

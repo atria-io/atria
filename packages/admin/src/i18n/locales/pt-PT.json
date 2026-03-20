@@ -32,7 +32,6 @@
   "auth.form.create.submit": "Criar conta",
   "auth.form.login.submit": "Iniciar sessão",
   "auth.form.consent.submit": "Autorizar projeto",
-  "auth.form.consent.cancel": "Cancelar",
   "auth.form.otherOptions": "← Outras opções de login",
   "auth.form.login.forgot": "Esqueceste-te da palavra-passe?",
   "auth.error.passwordMismatch": "As palavras-passe não coincidem.",

@@ -336,17 +336,6 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     setIsAuthSubmitting(false);
   };
 
-  const handleBrokerConsentCancel = (): void => {
-    const targetUrl = new URL(window.location.href);
-    targetUrl.searchParams.delete("broker_consent_token");
-    targetUrl.searchParams.delete("project_id");
-    targetUrl.searchParams.delete("provider");
-
-    const queryString = targetUrl.searchParams.toString();
-    const location = queryString.length > 0 ? `${targetUrl.pathname}?${queryString}` : targetUrl.pathname;
-    window.location.replace(location);
-  };
-
   const handleLocaleChange = (locale: string): void => {
     persistPreferredLocale(locale);
     void loadLocaleBundle(createApiClient(basePath), locale).then(setLocaleBundle);
@@ -387,7 +376,6 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
             errorMessage={authError}
             isSubmitting={isAuthSubmitting}
             onConfirm={handleBrokerConsentConfirm}
-            onCancel={handleBrokerConsentCancel}
             t={t}
           />
         ) : (

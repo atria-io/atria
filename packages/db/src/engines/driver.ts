@@ -308,14 +308,15 @@ const createOwnerOperations = <TTransaction>(
           return resolvedUser;
         }
 
-        const emailForMerge = profile.emailVerified && profile.email !== null ? profile.email : null;
-        const existingUser = emailForMerge ? await store.getUserByEmail(emailForMerge, tx) : null;
-        if (ownerUserId !== null && (!existingUser || existingUser.id !== ownerUserId)) {
+        if (ownerUserId !== null) {
           throw createOwnerAuthError(
             "OAUTH_OWNER_MISMATCH",
             "OAuth account is not authorized for this project owner."
           );
         }
+
+        const emailForMerge = profile.emailVerified && profile.email !== null ? profile.email : null;
+        const existingUser = emailForMerge ? await store.getUserByEmail(emailForMerge, tx) : null;
 
         const resolvedUser = existingUser
           ? await updateUserWithProfile(existingUser, profile, tx)
