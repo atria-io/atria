@@ -67,9 +67,9 @@ export const exchangeBrokerCode = async (
 
 export const confirmBrokerConsent = async (
   basePath: string,
-  consentToken: string
+  code: string
 ): Promise<EmailAuthResult> =>
-  postBrokerAuth(basePath, "/api/auth/broker/confirm", { consentToken });
+  postBrokerAuth(basePath, "/api/auth/broker/confirm", { code });
 
 const parseEmailAuthResult = (payload: unknown): EmailAuthResult => {
   if (typeof payload !== "object" || payload === null) {

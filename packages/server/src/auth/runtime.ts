@@ -679,23 +679,24 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       return;
     }
 
-    let consentToken = requestUrl.searchParams.get("consent_token");
-    if (!consentToken && request.method === "POST") {
+    let consentCode =
+      requestUrl.searchParams.get("code") ?? requestUrl.searchParams.get("consent_token");
+    if (!consentCode && request.method === "POST") {
       const payload = await parseJsonBody(request);
-      const bodyToken = payload.consentToken ?? payload.consent_token;
-      consentToken = typeof bodyToken === "string" ? bodyToken : null;
+      const bodyCode = payload.code ?? payload.consentToken ?? payload.consent_token;
+      consentCode = typeof bodyCode === "string" ? bodyCode : null;
     }
 
-    if (!consentToken) {
+    if (!consentCode) {
       writeJson(response, 400, {
         ok: false,
-        error: "Missing broker consent token."
+        error: "Missing broker consent code."
       });
       return;
     }
 
     try {
-      const brokerCode = await confirmBrokerConsentToken(brokerOrigin, consentToken, options.projectId);
+      const brokerCode = await confirmBrokerConsentToken(brokerOrigin, consentCode, options.projectId);
       const profile = await exchangeBrokerCode(brokerOrigin, brokerCode, options.projectId);
       const user = await store.upsertOAuthProfile(profile);
       await store.clearPreferredAuthMethod();

@@ -17,7 +17,7 @@ export const readAuthQueryState = (search: string): AuthQueryState => {
       : null;
 
   const brokerCode = params.get("broker_code");
-  const brokerConsentToken = params.get("broker_consent_token");
+  const brokerConsentToken = params.get("code") ?? params.get("broker_consent_token");
   const brokerProjectId = params.get("project_id");
   const nextPath = params.get("next");
 

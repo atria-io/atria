@@ -18,9 +18,6 @@ const bootElement = document.getElementById("atria-boot");
 const revealApp = () => {
   if (bootElement) {
     bootElement.classList.add("is-hidden");
-    window.setTimeout(() => {
-      bootElement.remove();
-    }, 220);
   }
 };
 

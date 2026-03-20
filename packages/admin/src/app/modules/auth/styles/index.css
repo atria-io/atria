@@ -7,6 +7,12 @@
 
 .auth-card {
   width: min(320px, 100%);
+  transition: opacity 0.14s ease;
+}
+
+.auth-card--leaving {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .auth-card__title {

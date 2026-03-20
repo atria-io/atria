@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { parseAuthMethod } from "@atria/shared";
 import type { AuthRuntime } from "../../auth/runtime.js";
 import { MIME_TYPES } from "../constants.js";
-import { buildAuthLocation, shouldRedirectAdminToAuth } from "./routing.js";
+import { buildAuthLocation } from "./routing.js";
 import { respondWithDefaultNotFound } from "../http/errors.js";
 import { resolveRequestFile } from "../static/resolver.js";
 import { sendFileResponse } from "../static/sender.js";
@@ -65,29 +65,17 @@ export const handleAdminRequest = async (options: HandleAdminRequestOptions): Pr
   const adminSession = await authRuntime.getSession(request);
   const normalizedPath = requestUrl.pathname.replace(/\/+$/, "") || "/";
 
-  if (normalizedPath === "/create" && !ownerSetupState.pending) {
+  if (normalizedPath === "/create" && !ownerSetupState.pending && adminSession.authenticated) {
     const queryProvider = parseAuthMethod(requestUrl.searchParams.get("provider"));
     redirect(response, buildAuthLocation("login", queryProvider, getSafeNextPath(requestUrl)));
     return;
   }
 
-  if (normalizedPath === "/setup" && !requestUrl.searchParams.get("broker_code")) {
+  if (normalizedPath === "/setup" && !requestUrl.searchParams.get("broker_code") && adminSession.authenticated) {
     const mode = ownerSetupState.pending ? "create" : "login";
     const queryProvider = parseAuthMethod(requestUrl.searchParams.get("provider"));
     redirect(response, buildAuthLocation(mode, queryProvider, getSafeNextPath(requestUrl)));
     return;
-  }
-
-  if (shouldRedirectAdminToAuth(requestUrl.pathname)) {
-    if (ownerSetupState.pending) {
-      redirect(response, buildAuthLocation("create", ownerSetupState.preferredAuthMethod));
-      return;
-    }
-
-    if (!adminSession.authenticated) {
-      redirect(response, buildAuthLocation("login", null, requestUrl.pathname + requestUrl.search));
-      return;
-    }
   }
 
   const adminAssetPath = resolveAdminAssetPath(requestUrl.pathname);

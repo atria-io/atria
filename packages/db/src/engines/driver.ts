@@ -290,18 +290,6 @@ const createOwnerOperations = <TTransaction>(
             );
           }
 
-          const ownerEmail =
-            ownerUserId !== null && ownerUser?.email
-              ? ownerUser.email.trim().toLowerCase()
-              : null;
-          const profileEmail = profile.email ? profile.email.trim().toLowerCase() : null;
-          if (ownerEmail && profileEmail && ownerEmail !== profileEmail) {
-            throw createOwnerAuthError(
-              "OAUTH_OWNER_MISMATCH",
-              "OAuth account is not authorized for this project owner."
-            );
-          }
-
           const resolvedUser = await updateUserWithProfile(existingUser, profile, tx);
 
           await store.updateIdentityByProvider(

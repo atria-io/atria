@@ -3,6 +3,7 @@ import type { IncomingMessage, Server, ServerResponse } from "node:http";
 import { randomBytes } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { resolveDatabaseConnection } from "@atria/db";
 import {
   ATRIA_CONFIG_FILE,
   ATRIA_RUNTIME_DIR,
@@ -30,6 +31,8 @@ import {
 import { readDatabaseHealthState } from "./dev/health/state.js";
 import type { DatabaseHealthState } from "./dev/health/state.js";
 import type { SiteTarget } from "./dev/types.js";
+
+const SQLITE_RUNTIME_GUARD_THROTTLE_MS = 1500;
 
 export interface StartDevServerOptions {
   projectRoot: string;
@@ -115,6 +118,13 @@ export const startDevServer = async (
     adminPort,
     projectId
   });
+  const connection = resolveDatabaseConnection(projectRoot);
+  const sqliteRuntimeFilePath =
+    connection.driver === "sqlite" &&
+    connection.sqliteFilePath !== null &&
+    connection.sqliteFilePath !== ":memory:"
+      ? connection.sqliteFilePath
+      : null;
 
   await fs.access(runtimeDir);
   await fs.access(path.join(adminDistDir, "app.js"));
@@ -122,6 +132,8 @@ export const startDevServer = async (
   let publicOutputPublished = false;
   let ownerSetupState: OwnerSetupState;
   let databaseHealthState: DatabaseHealthState;
+  let databaseRuntimeFlag: "sqlite_file_missing" | null = null;
+  let lastRuntimeGuardCheckAt = 0;
 
   const refresh = async (key: "public" | "owner" | "database"): Promise<void> => {
     if (key === "public") {
@@ -135,6 +147,45 @@ export const startDevServer = async (
     }
 
     databaseHealthState = await readDatabaseHealthState(projectRoot);
+  };
+
+  const respondWithRuntimeFlag = (response: ServerResponse, requestUrl: URL): void => {
+    if (requestUrl.pathname.startsWith("/api/")) {
+      response.writeHead(503, { "content-type": "application/json; charset=utf-8" });
+      response.end(
+        JSON.stringify({
+          ok: false,
+          error: "Back Office data store is unavailable.",
+          reason: databaseRuntimeFlag
+        })
+      );
+      return;
+    }
+
+    response.writeHead(503, { "content-type": "text/plain; charset=utf-8" });
+    response.end("503: Back Office data store is unavailable.");
+  };
+
+  const refreshRuntimeDatabaseFlag = async (): Promise<void> => {
+    if (databaseRuntimeFlag || ownerSetupState.pending || !sqliteRuntimeFilePath) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastRuntimeGuardCheckAt < SQLITE_RUNTIME_GUARD_THROTTLE_MS) {
+      return;
+    }
+
+    lastRuntimeGuardCheckAt = now;
+
+    try {
+      await fs.access(sqliteRuntimeFilePath);
+    } catch {
+      databaseRuntimeFlag = "sqlite_file_missing";
+      console.error(
+        `[atria/server] SQLite file missing at runtime (${sqliteRuntimeFilePath}). Admin routes are now locked.`
+      );
+    }
   };
 
   await Promise.all([refresh("public"), refresh("owner"), refresh("database")]);
@@ -156,6 +207,11 @@ export const startDevServer = async (
 
       if (siteTarget === "admin" || setupStatusRequest) {
         await refresh("owner");
+        await refreshRuntimeDatabaseFlag();
+        if (databaseRuntimeFlag) {
+          respondWithRuntimeFlag(response, requestUrl);
+          return;
+        }
       }
 
       if (healthRequest) {

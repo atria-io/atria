@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   buildOAuthStartUrl,
   confirmBrokerConsent,
@@ -11,6 +11,7 @@ import { readAuthQueryState } from "./modules/auth/auth.query.js";
 import { AuthView } from "./modules/auth/views/AuthView.js";
 import { BrokerConsentView } from "./modules/auth/views/BrokerConsentView.js";
 import { DashboardScreen } from "./modules/dashboard/DashboardScreen.js";
+import { RuntimeStatusView, type RuntimeFlagReason } from "./kernel/runtime/components/RuntimeStatusView.js";
 import {
   createTranslator,
   loadLocaleBundle,
@@ -29,6 +30,11 @@ import type { LoginValues } from "./modules/auth/forms/login.js";
 const STUDIO_READY_EVENT = "atria:studio:ready";
 const COLOR_SCHEME_STORAGE_KEY = "atria:color-scheme";
 const AUTH_STYLE_FILES = ["styles/modules/auth.css"];
+const OAUTH_BOOT_REVEAL_DELAY_MS = 120;
+const OAUTH_REDIRECT_DELAY_MS = 220;
+const SERVER_HEARTBEAT_DELAY_MS = 2_000;
+const SERVER_HEARTBEAT_TIMEOUT_MS = 1_500;
+const SERVER_HEARTBEAT_PATH = "/api/setup/status";
 
 type ColorScheme = "light" | "dark";
 
@@ -69,6 +75,7 @@ const resolveInitialColorScheme = (): ColorScheme => {
 const clearBrokerQueryParamsFromLocation = (): void => {
   const targetUrl = new URL(window.location.href);
   targetUrl.searchParams.delete("broker_code");
+  targetUrl.searchParams.delete("code");
   targetUrl.searchParams.delete("broker_consent_token");
   targetUrl.searchParams.delete("project_id");
   targetUrl.searchParams.delete("provider");
@@ -76,6 +83,74 @@ const clearBrokerQueryParamsFromLocation = (): void => {
   const queryString = targetUrl.searchParams.toString();
   const nextLocation = queryString.length > 0 ? `${targetUrl.pathname}?${queryString}` : targetUrl.pathname;
   window.history.replaceState({}, "", nextLocation);
+};
+
+const normalizeLegacyBrokerConsentParamInLocation = (): void => {
+  const targetUrl = new URL(window.location.href);
+  const legacyToken = targetUrl.searchParams.get("broker_consent_token");
+  if (!legacyToken || targetUrl.searchParams.has("code")) {
+    return;
+  }
+
+  targetUrl.searchParams.set("code", legacyToken);
+  targetUrl.searchParams.delete("broker_consent_token");
+
+  const queryString = targetUrl.searchParams.toString();
+  const nextLocation = queryString.length > 0 ? `${targetUrl.pathname}?${queryString}` : targetUrl.pathname;
+  window.history.replaceState({}, "", nextLocation);
+};
+
+const ensureBootOverlay = (): HTMLElement => {
+  const existing = document.getElementById("atria-boot");
+  if (existing) {
+    return existing;
+  }
+
+  const styleId = "atria-boot-fallback-style";
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
+#atria-boot {
+  inset: 0;
+  display: grid;
+  position: fixed;
+  place-items: center;
+  background: var(--boot-bg);
+  transition: opacity 0.2s ease;
+  z-index: 999999999;
+}
+#atria-boot.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.atria-boot__spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  animation: atria-boot-spin 0.8s linear infinite;
+  border: 2px solid var(--boot-spinner-track);
+  border-top-color: var(--boot-spinner);
+}
+@keyframes atria-boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+`;
+    document.head.appendChild(style);
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "atria-boot";
+  overlay.setAttribute("aria-hidden", "true");
+
+  const spinner = document.createElement("div");
+  spinner.className = "atria-boot__spinner";
+  overlay.appendChild(spinner);
+  document.body.appendChild(overlay);
+
+  return overlay;
 };
 
 /**
@@ -103,12 +178,17 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   const [areStylesReady, setAreStylesReady] = useState(false);
   const [brokerError, setBrokerError] = useState(false);
   const [fatalError, setFatalError] = useState<string | null>(null);
+  const [runtimeFlagReason, setRuntimeFlagReason] = useState<RuntimeFlagReason | null>(null);
   const [loadedAt, setLoadedAt] = useState(() => new Date().toLocaleString());
   const [colorScheme] = useState<ColorScheme>(resolveInitialColorScheme);
+  const [isOAuthRedirecting, setIsOAuthRedirecting] = useState(false);
 
   const [localeBundle, setLocaleBundle] = useState<LocaleBundle | null>(null);
   const hasAutoStartedProviderRef = useRef(false);
   const hasDispatchedReadyRef = useRef(false);
+  const bootRevealTimerRef = useRef<number | null>(null);
+  const oauthRedirectTimerRef = useRef<number | null>(null);
+  const isOAuthRedirectingRef = useRef(false);
 
   const needsAuthentication = setupStatus.pending || !session.authenticated;
   const authMode = setupStatus.pending ? "create" : "login";
@@ -126,6 +206,104 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
 
     window.__ATRIA_INITIAL_SCHEME = colorScheme;
   }, [colorScheme]);
+
+  useEffect(() => {
+    normalizeLegacyBrokerConsentParamInLocation();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timerId: number | null = null;
+    let timeoutId: number | null = null;
+    let abortController: AbortController | null = null;
+
+    const clearTimers = (): void => {
+      if (timerId !== null) {
+        window.clearTimeout(timerId);
+        timerId = null;
+      }
+
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const scheduleHeartbeat = (delayMs: number): void => {
+      if (cancelled) {
+        return;
+      }
+
+      timerId = window.setTimeout(() => {
+        void checkServerHeartbeat();
+      }, delayMs);
+    };
+
+    const checkServerHeartbeat = async (): Promise<void> => {
+      if (cancelled) {
+        return;
+      }
+
+      if (!window.navigator.onLine) {
+        setRuntimeFlagReason("network_offline");
+        scheduleHeartbeat(SERVER_HEARTBEAT_DELAY_MS);
+        return;
+      }
+
+      abortController = new AbortController();
+      timeoutId = window.setTimeout(() => {
+        abortController?.abort();
+      }, SERVER_HEARTBEAT_TIMEOUT_MS);
+
+      try {
+        const response = await fetch(resolveBasePathUrl(basePath, SERVER_HEARTBEAT_PATH), {
+          credentials: "include",
+          cache: "no-store",
+          signal: abortController.signal
+        });
+
+        setRuntimeFlagReason(response.ok ? null : "server_unavailable");
+      } catch {
+        if (!cancelled) {
+          setRuntimeFlagReason("server_unreachable");
+        }
+      } finally {
+        abortController = null;
+        if (timeoutId !== null) {
+          window.clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      }
+
+      if (!cancelled) {
+        scheduleHeartbeat(SERVER_HEARTBEAT_DELAY_MS);
+      }
+    };
+
+    const handleOffline = (): void => {
+      setRuntimeFlagReason("network_offline");
+    };
+
+    const handleOnline = (): void => {
+      clearTimers();
+      void checkServerHeartbeat();
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+
+    void checkServerHeartbeat();
+
+    return () => {
+      cancelled = true;
+      clearTimers();
+      if (abortController) {
+        abortController.abort();
+      }
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, [basePath]);
 
   useEffect(() => {
     let cancelled = false;
@@ -219,6 +397,76 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     };
   }, [basePath, queryState.brokerCode, queryState.brokerConsentToken, queryState.nextPath]);
 
+  const resetOAuthRedirectState = useCallback((): void => {
+    if (bootRevealTimerRef.current !== null) {
+      window.clearTimeout(bootRevealTimerRef.current);
+      bootRevealTimerRef.current = null;
+    }
+
+    if (oauthRedirectTimerRef.current !== null) {
+      window.clearTimeout(oauthRedirectTimerRef.current);
+      oauthRedirectTimerRef.current = null;
+    }
+
+    isOAuthRedirectingRef.current = false;
+    setIsOAuthRedirecting(false);
+    setIsAuthSubmitting(false);
+
+    const bootOverlay = document.getElementById("atria-boot");
+    if (bootOverlay) {
+      bootOverlay.classList.add("is-hidden");
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      resetOAuthRedirectState();
+    },
+    [resetOAuthRedirectState]
+  );
+
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent): void => {
+      if (!event.persisted) {
+        return;
+      }
+
+      resetOAuthRedirectState();
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, [resetOAuthRedirectState]);
+
+  const startOAuthRedirect = useCallback(
+    (provider: ProviderId): void => {
+      if (provider === "email" || isOAuthRedirecting || isOAuthRedirectingRef.current) {
+        return;
+      }
+
+      isOAuthRedirectingRef.current = true;
+      setActiveProvider(provider);
+      setAuthError(null);
+      setBrokerError(false);
+      setIsAuthSubmitting(true);
+      setIsOAuthRedirecting(true);
+
+      bootRevealTimerRef.current = window.setTimeout(() => {
+        bootRevealTimerRef.current = null;
+        ensureBootOverlay().classList.remove("is-hidden");
+      }, OAUTH_BOOT_REVEAL_DELAY_MS);
+
+      const target = buildOAuthStartUrl(basePath, provider, authMode, queryState.nextPath);
+      oauthRedirectTimerRef.current = window.setTimeout(() => {
+        oauthRedirectTimerRef.current = null;
+        window.location.href = target;
+      }, OAUTH_REDIRECT_DELAY_MS);
+    },
+    [authMode, basePath, isOAuthRedirecting, queryState.nextPath]
+  );
+
   useEffect(() => {
     if (
       !needsAuthentication ||
@@ -243,24 +491,16 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
      * Re-running this effect before navigation would create redirect loops.
      */
     hasAutoStartedProviderRef.current = true;
-    const timer = window.setTimeout(() => {
-      const target = buildOAuthStartUrl(basePath, selectedProvider, authMode, queryState.nextPath);
-      window.location.href = target;
-    }, 70);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
+    startOAuthRedirect(selectedProvider);
   }, [
-    authMode,
-    basePath,
     hasPendingBrokerConsent,
+    isOAuthRedirecting,
     isFinalizing,
     isLoading,
     needsAuthentication,
     providers,
-    queryState.nextPath,
-    selectedProvider
+    selectedProvider,
+    startOAuthRedirect
   ]);
 
   useEffect(() => {
@@ -276,13 +516,17 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     window.dispatchEvent(new CustomEvent(STUDIO_READY_EVENT));
   }, [areStylesReady, isFinalizing, isLoading]);
 
-  if (fatalError) {
+  const translator = localeBundle ? createTranslator(localeBundle) : null;
+  if (runtimeFlagReason || fatalError) {
     return (
-      <section className="auth-screen">
-        <div className="auth-card">
-          <p className="auth-card__error">{fatalError}</p>
-        </div>
-      </section>
+      <RuntimeStatusView
+        reason={runtimeFlagReason}
+        fatalError={fatalError}
+        t={translator}
+        onRetry={() => {
+          window.location.reload();
+        }}
+      />
     );
   }
 
@@ -290,18 +534,19 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     return <section className="auth-screen" aria-hidden="true" />;
   }
 
-  const t = createTranslator(localeBundle);
+  const t = translator;
+  if (!t) {
+    return <section className="auth-screen" aria-hidden="true" />;
+  }
 
   const handleProviderSelect = (provider: ProviderId): void => {
-    setActiveProvider(provider);
-    setAuthError(null);
-
     if (provider === "email") {
+      setActiveProvider(provider);
+      setAuthError(null);
       return;
     }
 
-    const target = buildOAuthStartUrl(basePath, provider, authMode, queryState.nextPath);
-    window.location.href = target;
+    startOAuthRedirect(provider);
   };
 
   const handleRegister = async (values: RegisterValues): Promise<void> => {
@@ -414,6 +659,7 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
             providers={providers}
             selectedProvider={selectedProvider}
             isSubmitting={isAuthSubmitting}
+            isOAuthRedirecting={isOAuthRedirecting}
             brokerError={brokerError}
             formError={authError}
             onProviderSelect={handleProviderSelect}

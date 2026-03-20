@@ -10,6 +10,7 @@ interface AuthViewProps {
   providers: ProviderId[];
   selectedProvider: ProviderId | null;
   isSubmitting: boolean;
+  isOAuthRedirecting: boolean;
   brokerError: boolean;
   formError: string | null;
   onProviderSelect: (provider: ProviderId) => void;
@@ -26,6 +27,7 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
     providers,
     selectedProvider,
     isSubmitting,
+    isOAuthRedirecting,
     brokerError,
     formError,
     onProviderSelect,
@@ -46,7 +48,7 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
 
   return (
     <section className="auth-screen">
-      <div className="auth-card">
+      <div className={isOAuthRedirecting ? "auth-card auth-card--leaving" : "auth-card"}>
         <h1 className="auth-card__title">
           {showEmailForm
             ? t(isLogin ? "auth.title.login" : "auth.title.create")
