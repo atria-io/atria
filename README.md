@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>atria monorepo</h1>
+  <h1>Atria</h1>
   <p><strong>Document-first CMS built by designers, for designers.</strong></p>
 
   <a href="https://www.npmjs.com/package/atria"><img alt="NPM version" src="https://img.shields.io/npm/v/atria.svg?style=for-the-badge&labelColor=000000"></a>
