@@ -51,5 +51,10 @@
   "dashboard.message.signedInAs": "Sessão iniciada como: {account}",
   "dashboard.message.loadedAt": "Carregado em: {date}",
   "dashboard.user.fallback": "Sem sessão ativa.",
+  "shell.scheme.system": "Sistema",
+  "shell.scheme.dark": "Escuro",
+  "shell.scheme.light": "Claro",
+  "shell.user.defaultName": "Conta",
+  "shell.user.defaultEmail": "Sem e-mail",
   "shell.logout": "Terminar sessão"
 }

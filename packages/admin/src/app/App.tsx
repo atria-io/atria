@@ -15,7 +15,6 @@ import { RuntimeStatusView, type RuntimeFlagReason } from "./kernel/runtime/comp
 import {
   createTranslator,
   loadLocaleBundle,
-  persistPreferredLocale,
   readPreferredLocale
 } from "../i18n/client.js";
 import type { LocaleBundle } from "../i18n/client.js";
@@ -37,6 +36,7 @@ const SERVER_HEARTBEAT_TIMEOUT_MS = 1_500;
 const SERVER_HEARTBEAT_PATH = "/api/setup/status";
 
 type ColorScheme = "light" | "dark";
+type ColorSchemePreference = "system" | ColorScheme;
 
 declare global {
   interface Window {
@@ -56,20 +56,33 @@ const parseColorScheme = (value: string | null | undefined): ColorScheme | null 
   return null;
 };
 
-const resolveInitialColorScheme = (): ColorScheme => {
-  const fromWindow = parseColorScheme(window.__ATRIA_INITIAL_SCHEME);
-  if (fromWindow) {
-    return fromWindow;
+const parseColorSchemePreference = (
+  value: string | null | undefined
+): ColorSchemePreference | null => {
+  if (value === "system" || value === "light" || value === "dark") {
+    return value;
   }
 
+  return null;
+};
+
+const resolveSystemColorScheme = (): ColorScheme =>
+  window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
+const resolveInitialColorSchemePreference = (): ColorSchemePreference => {
   try {
-    const stored = parseColorScheme(localStorage.getItem(COLOR_SCHEME_STORAGE_KEY));
+    const stored = parseColorSchemePreference(localStorage.getItem(COLOR_SCHEME_STORAGE_KEY));
     if (stored) {
       return stored;
     }
   } catch (_error) {}
 
-  return "light";
+  const fromWindow = parseColorScheme(window.__ATRIA_INITIAL_SCHEME);
+  if (fromWindow) {
+    return fromWindow;
+  }
+
+  return "system";
 };
 
 const clearBrokerQueryParamsFromLocation = (): void => {
@@ -179,8 +192,10 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   const [brokerError, setBrokerError] = useState(false);
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [runtimeFlagReason, setRuntimeFlagReason] = useState<RuntimeFlagReason | null>(null);
-  const [loadedAt, setLoadedAt] = useState(() => new Date().toLocaleString());
-  const [colorScheme] = useState<ColorScheme>(resolveInitialColorScheme);
+  const [colorSchemePreference, setColorSchemePreference] = useState<ColorSchemePreference>(
+    resolveInitialColorSchemePreference
+  );
+  const [systemColorScheme, setSystemColorScheme] = useState<ColorScheme>(resolveSystemColorScheme);
   const [isOAuthRedirecting, setIsOAuthRedirecting] = useState(false);
 
   const [localeBundle, setLocaleBundle] = useState<LocaleBundle | null>(null);
@@ -198,14 +213,31 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     queryState.brokerCode === null;
   const selectedProvider = activeProvider ?? setupStatus.preferredAuthMethod;
   const activeStyleFiles = needsAuthentication ? AUTH_STYLE_FILES : route.styleFiles;
+  const colorScheme = colorSchemePreference === "system" ? systemColorScheme : colorSchemePreference;
 
   useEffect(() => {
     try {
-      localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, colorScheme);
+      localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, colorSchemePreference);
     } catch (_error) {}
+  }, [colorSchemePreference]);
 
+  useEffect(() => {
     window.__ATRIA_INITIAL_SCHEME = colorScheme;
   }, [colorScheme]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = (event: MediaQueryListEvent): void => {
+      setSystemColorScheme(event.matches ? "dark" : "light");
+    };
+
+    setSystemColorScheme(mediaQuery.matches ? "dark" : "light");
+    mediaQuery.addEventListener("change", onChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", onChange);
+    };
+  }, []);
 
   useEffect(() => {
     normalizeLegacyBrokerConsentParamInLocation();
@@ -381,7 +413,6 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
         setIsFinalizing(false);
       }
 
-      setLoadedAt(new Date().toLocaleString());
       setIsLoading(false);
     };
 
@@ -611,35 +642,23 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     setIsAuthSubmitting(false);
   };
 
-  const handleLocaleChange = (locale: string): void => {
-    persistPreferredLocale(locale);
-    void loadLocaleBundle(createApiClient(basePath), locale).then(setLocaleBundle);
-  };
-
-  const title = needsAuthentication
-    ? hasPendingBrokerConsent
-      ? t("auth.title.consent")
-      : authMode === "login"
-        ? t("auth.title.login")
-        : t("auth.title.create")
-    : t("dashboard.title");
-
-  const subtitle = t(needsAuthentication ? "shell.subtitle.auth" : route.subtitleKey);
-  const accountLine =
-    session.user?.email ?? session.user?.name ?? session.user?.id ?? t("dashboard.user.fallback");
-
   return (
     <StudioShell
-      title={title}
-      subtitle={subtitle}
       routeId={needsAuthentication ? authMode : route.id}
       colorScheme={colorScheme}
-      locale={localeBundle.locale}
-      locales={localeBundle.availableLocales}
+      colorSchemePreference={colorSchemePreference}
+      onColorSchemeChange={setColorSchemePreference}
+      user={session.user}
       showHeader={!needsAuthentication}
-      onLocaleChange={handleLocaleChange}
+      menuLabels={{
+        system: t("shell.scheme.system"),
+        dark: t("shell.scheme.dark"),
+        light: t("shell.scheme.light"),
+        signOut: t("shell.logout"),
+        defaultName: t("shell.user.defaultName"),
+        defaultEmail: t("shell.user.defaultEmail")
+      }}
       onLogout={!needsAuthentication ? handleLogout : undefined}
-      t={t}
     >
       {needsAuthentication ? (
         isLoading || isFinalizing ? (
@@ -669,7 +688,7 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
           />
         )
       ) : (
-        <DashboardScreen accountLine={accountLine} loadedAt={loadedAt} t={t} />
+        <DashboardScreen />
       )}
     </StudioShell>
   );

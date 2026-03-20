@@ -1,6 +1,6 @@
 {
   "name": "@atria/admin",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Modular admin runtime UI for atria",
   "keywords": [
     "atria",
@@ -30,6 +30,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "lucide-react": "^0.577.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

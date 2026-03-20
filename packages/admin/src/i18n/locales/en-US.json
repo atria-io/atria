@@ -51,5 +51,10 @@
   "dashboard.message.signedInAs": "Signed in as: {account}",
   "dashboard.message.loadedAt": "Loaded at: {date}",
   "dashboard.user.fallback": "No active session.",
+  "shell.scheme.system": "System",
+  "shell.scheme.dark": "Dark",
+  "shell.scheme.light": "Light",
+  "shell.user.defaultName": "Account",
+  "shell.user.defaultEmail": "No e-mail",
   "shell.logout": "Logout"
 }
