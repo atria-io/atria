@@ -1,4 +1,5 @@
 import path from "node:path";
+import { randomBytes } from "node:crypto";
 import {
   ATRIA_CONFIG_FILE,
   ATRIA_RUNTIME_DIR,
@@ -14,6 +15,11 @@ import {
 } from "@atria/shared";
 
 const STUDIO_PACKAGE_NAME = "studio";
+
+const createProjectIdentifier = (): string => {
+  const raw = randomBytes(6).toString("base64url").replace(/[^a-z0-9]/gi, "").toLowerCase();
+  return (raw + "00000000").slice(0, 8);
+};
 
 const buildProjectPackageJson = (): string =>
   `${JSON.stringify(
@@ -34,11 +40,12 @@ const buildProjectPackageJson = (): string =>
     2
   )}\n`;
 
-const buildConfigFile = (projectName: string): string =>
+const buildConfigFile = (projectName: string, projectId: string): string =>
   `${JSON.stringify(
     {
       name: projectName,
-      runtimeDir: ATRIA_RUNTIME_DIR
+      runtimeDir: ATRIA_RUNTIME_DIR,
+      projectId
     },
     null,
     2
@@ -83,7 +90,7 @@ export const runInitCommand = async (args: string[]): Promise<void> => {
     },
     {
       path: path.join(targetRoot, ATRIA_CONFIG_FILE),
-      content: buildConfigFile(path.basename(targetRoot))
+      content: buildConfigFile(path.basename(targetRoot), createProjectIdentifier())
     },
     {
       path: path.join(targetRoot, ".env.example"),

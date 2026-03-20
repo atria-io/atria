@@ -35,6 +35,7 @@ interface ReplacePromptOptions {
 interface ProjectSelection {
   targetArgument: string;
   configProjectName: string;
+  projectId: string | null;
   mode: "new" | "existing";
 }
 
@@ -106,11 +107,12 @@ const createProjectPackageJson = (cliVersion: string): string =>
     2
   )}\n`;
 
-const createConfigJson = (projectName: string): string =>
+const createConfigJson = (projectName: string, projectId: string): string =>
   `${JSON.stringify(
     {
       name: projectName,
-      runtimeDir: ATRIA_RUNTIME_DIR
+      runtimeDir: ATRIA_RUNTIME_DIR,
+      projectId
     },
     null,
     2
@@ -474,6 +476,7 @@ const resolveProjectSelection = async (parsedArgs: ParsedArgs): Promise<ProjectS
     return {
       targetArgument: explicitTarget,
       configProjectName: path.basename(path.resolve(process.cwd(), explicitTarget)),
+      projectId: createProjectIdentifier(),
       mode: "new"
     };
   }
@@ -487,6 +490,7 @@ const resolveProjectSelection = async (parsedArgs: ParsedArgs): Promise<ProjectS
       return {
         targetArgument: modeSelection.project.projectRoot,
         configProjectName: modeSelection.project.configProjectName,
+        projectId: null,
         mode: "existing"
       };
     }
@@ -542,6 +546,7 @@ const resolveProjectSelection = async (parsedArgs: ParsedArgs): Promise<ProjectS
     return {
       targetArgument: outputPath,
       configProjectName,
+      projectId: projectIdentifier,
       mode: "new"
     };
   }
@@ -581,6 +586,7 @@ const run = async (): Promise<void> => {
   const projectRoot = path.resolve(process.cwd(), selection.targetArgument);
   const projectName = path.basename(projectRoot);
   const configProjectName = selection.configProjectName;
+  const projectId = selection.projectId;
   const force = parsedArgs.flags.force === true;
   const skipInstall = parsedArgs.flags["skip-install"] === true;
   const cliVersion =
@@ -600,6 +606,10 @@ const run = async (): Promise<void> => {
     return;
   }
 
+  if (!projectId) {
+    throw new Error("Project ID is required to scaffold a new project.");
+  }
+
   await ensureDirectory(projectRoot);
   await Promise.all([
     ensureDirectory(path.join(projectRoot, STUDIO_CONTENT_DIR)),
@@ -615,7 +625,7 @@ const run = async (): Promise<void> => {
     },
     {
       path: path.join(projectRoot, ATRIA_CONFIG_FILE),
-      content: createConfigJson(configProjectName)
+      content: createConfigJson(configProjectName, projectId)
     },
     {
       path: path.join(projectRoot, ".env.example"),
