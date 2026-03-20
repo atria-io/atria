@@ -1,6 +1,6 @@
 {
   "name": "@atria/db",
-  "version": "0.0.15",
+  "version": "0.0.17",
   "description": "Data persistence layer for atria",
   "keywords": [
     "atria",

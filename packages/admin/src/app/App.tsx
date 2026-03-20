@@ -66,6 +66,18 @@ const resolveInitialColorScheme = (): ColorScheme => {
   return "light";
 };
 
+const clearBrokerQueryParamsFromLocation = (): void => {
+  const targetUrl = new URL(window.location.href);
+  targetUrl.searchParams.delete("broker_code");
+  targetUrl.searchParams.delete("broker_consent_token");
+  targetUrl.searchParams.delete("project_id");
+  targetUrl.searchParams.delete("provider");
+
+  const queryString = targetUrl.searchParams.toString();
+  const nextLocation = queryString.length > 0 ? `${targetUrl.pathname}?${queryString}` : targetUrl.pathname;
+  window.history.replaceState({}, "", nextLocation);
+};
+
 /**
  * Orchestrates admin bootstrap, auth gating, and shell rendering.
  * This is the only place where setup/session/provider state is synchronized from API responses.
@@ -98,10 +110,12 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   const hasAutoStartedProviderRef = useRef(false);
   const hasDispatchedReadyRef = useRef(false);
 
-  const hasPendingBrokerConsent =
-    queryState.brokerConsentToken !== null && queryState.brokerCode === null;
   const needsAuthentication = setupStatus.pending || !session.authenticated;
   const authMode = setupStatus.pending ? "create" : "login";
+  const hasPendingBrokerConsent =
+    authMode === "create" &&
+    queryState.brokerConsentToken !== null &&
+    queryState.brokerCode === null;
   const selectedProvider = activeProvider ?? setupStatus.preferredAuthMethod;
   const activeStyleFiles = needsAuthentication ? AUTH_STYLE_FILES : route.styleFiles;
 
@@ -155,21 +169,37 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
       setProviders(bootstrapState.providers);
       setSession(bootstrapState.session);
 
-      if (queryState.brokerCode) {
+      const shouldFinalizeBrokerCode = queryState.brokerCode !== null;
+      const shouldFinalizeBrokerConsentForLogin =
+        queryState.brokerConsentToken !== null &&
+        queryState.brokerCode === null &&
+        bootstrapState.setupStatus.pending === false;
+
+      if (shouldFinalizeBrokerCode || shouldFinalizeBrokerConsentForLogin) {
         setIsFinalizing(true);
 
-        const exchanged = await exchangeBrokerCode(basePath, queryState.brokerCode);
+        const oauthResult = shouldFinalizeBrokerCode
+          ? await exchangeBrokerCode(basePath, queryState.brokerCode as string)
+          : await confirmBrokerConsent(basePath, queryState.brokerConsentToken as string);
+
         if (cancelled) {
           return;
         }
 
-        if (exchanged.ok && exchanged.authenticated) {
+        if (oauthResult.ok && oauthResult.authenticated) {
           window.location.replace(queryState.nextPath);
           return;
         }
 
+        if (!bootstrapState.setupStatus.pending) {
+          clearBrokerQueryParamsFromLocation();
+          setActiveProvider(null);
+          setAuthError(null);
+        } else {
+          setAuthError(oauthResult.error);
+        }
+
         setBrokerError(true);
-        setAuthError(exchanged.error);
         setIsFinalizing(false);
       }
 
@@ -187,7 +217,7 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [basePath, queryState.brokerCode, queryState.nextPath]);
+  }, [basePath, queryState.brokerCode, queryState.brokerConsentToken, queryState.nextPath]);
 
   useEffect(() => {
     if (

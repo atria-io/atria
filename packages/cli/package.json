@@ -1,6 +1,6 @@
 {
   "name": "@atria/cli",
-  "version": "0.0.34",
+  "version": "0.0.36",
   "description": "CLI for atria project bootstrap and development",
   "keywords": [
     "atria",

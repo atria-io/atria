@@ -1,6 +1,6 @@
 {
   "name": "@atria/server",
-  "version": "0.0.27",
+  "version": "0.0.29",
   "description": "HTTP server and runtime delivery for atria",
   "keywords": [
     "atria",
