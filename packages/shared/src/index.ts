@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { AtriaConfig } from "./types.js";
+import type { AtriaConfig } from "./config/shared.config.js";
 
 export const ATRIA_CONFIG_FILE = "atria.config.json";
 export const ATRIA_INTERNAL_DIR = ".atria";
@@ -24,22 +24,22 @@ export const DEFAULT_DEV_PORT = DEFAULT_ADMIN_PORT;
 export const resolveRuntimeDir = (projectRoot: string): string =>
   path.join(projectRoot, ATRIA_RUNTIME_DIR);
 
-export { DEFAULT_AUTH_BROKER_ORIGIN, parseAuthMethod, type AuthMethod } from "./auth.js";
-export { parseArgs, type ParsedArgs } from "./cli.js";
+export { DEFAULT_AUTH_BROKER_ORIGIN, parseAuthMethod, type AuthMethod } from "./auth/shared.auth.js";
+export { parseArgs, type ParsedArgs } from "./client/shared.cli.js";
 export {
   cleanEnvValue,
   isPostgresConnectionString,
   loadEnvFile,
   parseDotEnvLine,
   updateEnvFile
-} from "./env.js";
-export { ensureDirectory, pathExists, writeFile, type WriteStatus } from "./fs.js";
-export { createEnvExampleFile } from "./templates/env.js";
+} from "./env/shared.env.js";
+export { ensureDirectory, pathExists, writeFile, type WriteStatus } from "./io/shared.fs.js";
+export { createEnvExampleFile } from "./env/shared.template.js";
 export {
   COLOR_SCHEME_STORAGE_KEY,
   READY_EVENT_NAME,
   runtimeAppJs,
   runtimeIndexHtml
-} from "./templates/runtime.js";
+} from "./runtime/shared.runtime.js";
 
 export type { AtriaConfig };

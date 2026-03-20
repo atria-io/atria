@@ -18,6 +18,10 @@ const fileMappings = [
   {
     sourceFile: path.join(packageRoot, "src", "app", "static", "favicon.ico"),
     targetFile: path.join(packageRoot, "dist", "favicon.ico")
+  },
+  {
+    sourceFile: path.join(packageRoot, "src", "app", "static", "favicon.svg"),
+    targetFile: path.join(packageRoot, "dist", "favicon.svg")
   }
 ];
 

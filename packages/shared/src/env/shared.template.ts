@@ -1,4 +1,4 @@
-import { DEFAULT_AUTH_BROKER_ORIGIN } from "../auth.js";
+import { DEFAULT_AUTH_BROKER_ORIGIN } from "../auth/shared.auth.js";
 
 const ENV_EXAMPLE_LINES = [
   "# Preferred",

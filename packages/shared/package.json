@@ -1,6 +1,6 @@
 {
   "name": "@atria/shared",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "Shared types and utilities for atria packages",
   "keywords": [
     "atria",
@@ -24,9 +24,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node src/build/copy-runtime-template.mjs",
     "clean": "rm -rf dist",
-    "prepublishOnly": "tsc -p tsconfig.json"
+    "prepublishOnly": "npm run build"
   },
   "publishConfig": {
     "access": "public"

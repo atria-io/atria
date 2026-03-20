@@ -1,8 +1,4 @@
-export const READY_EVENT_NAME = "atria:studio:ready";
-export const COLOR_SCHEME_STORAGE_KEY = "atria:color-scheme";
-export const LEGACY_COLOR_SCHEME_STORAGE_KEY = "darkMode";
-
-export const runtimeIndexHtml = `<!doctype html>
+<!doctype html>
 <html lang="en">
 <!--
 This file is auto-generated from "atria dev".
@@ -18,6 +14,8 @@ Modifications to this file are automatically discarded.
     <link rel="stylesheet" href="/static/styles/tokens.css">
     <link rel="stylesheet" href="/static/styles/scheme.css">
     <link rel="stylesheet" href="/static/styles/globals.css">
+    <link rel="icon" href="static/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="static/favicon.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
     <style id="atria-scheme"></style>
     <script>
       (function () {
@@ -29,7 +27,7 @@ Modifications to this file are automatically discarded.
         };
 
         try {
-          var stored = localStorage.getItem("${COLOR_SCHEME_STORAGE_KEY}");
+          var stored = localStorage.getItem("__COLOR_SCHEME_STORAGE_KEY__");
           if (stored === "light" || stored === "dark") {
             scheme = stored;
           }
@@ -37,7 +35,7 @@ Modifications to this file are automatically discarded.
 
         if (!scheme) {
           try {
-            var legacy = localStorage.getItem("${LEGACY_COLOR_SCHEME_STORAGE_KEY}");
+            var legacy = localStorage.getItem("__LEGACY_COLOR_SCHEME_STORAGE_KEY__");
             if (legacy === "enabled") {
               scheme = "dark";
             } else if (legacy === "disabled") {
@@ -58,9 +56,9 @@ Modifications to this file are automatically discarded.
         }
 
         try {
-          localStorage.setItem("${COLOR_SCHEME_STORAGE_KEY}", scheme);
+          localStorage.setItem("__COLOR_SCHEME_STORAGE_KEY__", scheme);
           localStorage.setItem(
-            "${LEGACY_COLOR_SCHEME_STORAGE_KEY}",
+            "__LEGACY_COLOR_SCHEME_STORAGE_KEY__",
             scheme === "dark" ? "enabled" : "disabled"
           );
         } catch (_error) {}
@@ -109,30 +107,3 @@ Modifications to this file are automatically discarded.
     <script type="module" src="./app.js"></script>
   </body>
 </html>
-`;
-
-export const runtimeAppJs = `// This file is auto-generated from "atria dev".
-// Modifications to this file are automatically discarded.
-import { mountAdminApp } from "/static/app.js";
-
-const rootElement = document.getElementById("atria");
-const bootElement = document.getElementById("atria-boot");
-
-const revealApp = () => {
-  if (bootElement) {
-    bootElement.classList.add("is-hidden");
-    window.setTimeout(() => {
-      bootElement.remove();
-    }, 220);
-  }
-};
-
-window.addEventListener("${READY_EVENT_NAME}", revealApp, { once: true });
-window.setTimeout(revealApp, 5000);
-
-mountAdminApp({
-  mountElement: rootElement,
-  basePath: "/",
-  reactStrictMode: false
-});
-`;
