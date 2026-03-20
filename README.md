@@ -1,26 +1,38 @@
-# atria monorepo
+<div align="center">
+  <h1>atria monorepo</h1>
+  <p><strong>Document-first CMS built by designers, for designers.</strong></p>
 
-TypeScript monorepo for the atria ecosystem: project scaffolding, CLI, admin runtime, dev server, shared templates, and database layer.
+  <a href="https://www.npmjs.com/package/atria"><img alt="NPM version" src="https://img.shields.io/npm/v/atria.svg?style=for-the-badge&labelColor=000000"></a>
+  <a href="https://www.npmjs.com/package/atria"><img alt="NPM downloads" src="https://img.shields.io/npm/dm/atria.svg?style=for-the-badge&labelColor=000000"></a>
+  <a href="https://github.com/atria-io/atria/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/npm/l/atria.svg?style=for-the-badge&labelColor=000000"></a>
+  <img alt="Project status" src="https://img.shields.io/badge/status-experimental-orange.svg?style=for-the-badge&labelColor=000000">
+</div>
+
+## What is this repository?
+
+This is the TypeScript monorepo for the Atria ecosystem.
+
+Atria is a document-first CMS in active development, based on a custom grammar for structured content and editorial workflows.
 
 ## Packages
 
-| Folder | npm package | Role |
+| Folder | npm package | Responsibility |
 | --- | --- | --- |
-| `packages/admin` | `@atria/admin` | React admin runtime bundle served on `studio.localhost` |
-| `packages/atria` | `atria` | Unscoped wrapper for the CLI (`atria` binary) |
-| `packages/cli` | `@atria/cli` | Commands: `init`, `setup`, `dev` |
+| `packages/admin` | `@atria/admin` | Admin runtime UI |
+| `packages/atria` | `atria` | Thin public wrapper for the CLI (`atria` binary) |
+| `packages/cli` | `@atria/cli` | Command orchestration (`init`, `setup`, `dev`) |
 | `packages/core` | `@atria/core` | Core foundation package |
-| `packages/create` | `create-atria` | Project scaffolder (`npm create atria@latest`) |
-| `packages/db` | `@atria/db` | Database connection + auth persistence |
-| `packages/server` | `@atria/server` | Local dev HTTP server (`localhost` + `studio.localhost`) |
-| `packages/shared` | `@atria/shared` | Shared constants, templates, types, auth helpers |
+| `packages/create` | `create-atria` | Project scaffolding (`npm create atria@latest`) |
+| `packages/db` | `@atria/db` | Persistence and auth storage |
+| `packages/server` | `@atria/server` | Routing and auth server layer |
+| `packages/shared` | `@atria/shared` | Canonical shared primitives |
 
-## Runtime model
+## Project status
 
-- `production/public` is the public site output.
-- `production/studio` stores source content/theme.
-- `.atria/runtime` is internal runtime space for Studio shell files.
-- Admin runtime assets are loaded from installed packages in `node_modules` (not from `.atria` source code).
+Atria is experimental and evolves quickly.
+
+- APIs and command behavior may change.
+- Some features are still under development.
 
 ## Monorepo development
 
@@ -31,13 +43,9 @@ corepack pnpm -r --filter "./packages/*" build
 
 ## Create a new project
 
-Create in current folder:
-
 ```bash
 npm create atria@latest
 ```
-
-Create in a named folder:
 
 ```bash
 npm create atria@latest -- my-project
@@ -50,6 +58,11 @@ Equivalent direct command:
 ```bash
 npx create-atria my-project
 ```
+
+## Repository
+
+- Source: [atria-io/atria](https://github.com/atria-io/atria)
+- Issues: [github.com/atria-io/atria/issues](https://github.com/atria-io/atria/issues)
 
 ## License
 
