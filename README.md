@@ -2,7 +2,7 @@
   <h1>Atria</h1>
   <p><strong>Document-first CMS built by designers, for designers.</strong></p>
 
-  <a href="https://www.npmjs.com/package/atria"><img alt="NPM version" src="https://img.shields.io/npm/v/atria.svg?style=flat&labelColor=222&color=f28c38"></a>
+  <a href="https://www.npmjs.com/package/atria"><img alt="NPM version" src="https://img.shields.io/npm/v/atria.svg?style=flat&label=npm%40latest&labelColor=222&color=f28c38"></a>
   <a href="https://www.npmjs.com/package/atria"><img alt="NPM downloads" src="https://img.shields.io/npm/dm/atria.svg?style=flat&labelColor=222&color=2ea043"></a>
   <a href="https://github.com/atria-io/atria/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/npm/l/atria.svg?style=flat&labelColor=222&color=1f6feb"></a>
   <img alt="Project status" src="https://img.shields.io/badge/status-experimental-ff5a3c.svg?style=flat&labelColor=222">
