@@ -1,6 +1,6 @@
 {
   "name": "@atria/shared",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "description": "Shared types and utilities for atria packages",
   "keywords": [
     "atria",
@@ -24,7 +24,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && node build/runtime/runtime.mjs",
+    "build": "tsc -p tsconfig.json && node build/dist.mjs",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },

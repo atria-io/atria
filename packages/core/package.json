@@ -1,6 +1,6 @@
 {
   "name": "@atria/core",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "Core compiler and build pipeline primitives for atria",
   "keywords": [
     "atria",

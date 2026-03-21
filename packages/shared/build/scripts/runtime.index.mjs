@@ -1,6 +1,6 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
-import { injectRuntimeSchemeMap } from "./scheme.mjs";
+import { injectRuntimeSchemeMap } from "./runtime.scheme.mjs";
 
 const packageRoot = process.cwd();
 const sourceFile = path.join(packageRoot, "src", "runtime", "index.htm");

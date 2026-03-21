@@ -1,5 +1,7 @@
 import path from "node:path";
+import { rollup } from "rollup";
 import { syncDirectory, syncFile } from "./scripts/file.system.mjs";
+import appRollupConfig from "./scripts/rollup.config.mjs";
 import { syncStaticStyles } from "./scripts/styles.static.mjs";
 import { syncScopedStyles } from "./scripts/styles.module.mjs";
 import { composeRuntimeGlobalsStyles } from "./scripts/styles.globals.mjs";
@@ -13,6 +15,11 @@ const layoutStyleSourceRoot = path.join(packageRoot, "src", "app", "kernel", "la
 const globalsStyleSourceFile = path.join(staticStylesSourceRoot, "globals.css");
 const criticalStyleSourceFile = path.join(modulesRoot, "critical", "styles", "critical.css");
 const globalsStyleDistFile = path.join(staticStylesDistRoot, "globals.css");
+
+const { output: appOutputOptions, ...appInputOptions } = appRollupConfig;
+const appBundle = await rollup(appInputOptions);
+await appBundle.write(appOutputOptions);
+await appBundle.close();
 
 await syncStaticStyles(staticStylesSourceRoot, staticStylesDistRoot);
 await syncDirectory(path.join(packageRoot, "src", "i18n", "locales"), path.join(packageRoot, "dist", "locales"));

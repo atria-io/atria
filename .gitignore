@@ -1,1 +1,32 @@
 .vscode/
+
+# OS artifacts
+.DS_Store
+
+# Dependencies
+node_modules/
+packages/*/node_modules/
+
+# Build output
+dist/
+packages/*/dist/
+
+# Local runtime and project data
+.atria/
+workspace/
+data/
+auth-broker/
+
+# Local SQLite files
+*.db
+*.db-shm
+*.db-wal
+
+# Local environment files (keep templates)
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Local agent instructions
+AGENTS.md
