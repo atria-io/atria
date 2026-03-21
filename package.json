@@ -6,7 +6,6 @@
   "packageManager": "pnpm@10.32.1",
   "scripts": {
     "build": "corepack pnpm -r --filter \"./packages/*\" build",
-    "bump:package": "node scripts/bump-package.mjs",
     "clean": "corepack pnpm -r --filter \"./packages/*\" clean",
     "typecheck": "corepack pnpm -r --filter \"./packages/*\" build",
     "publish:dry-run": "corepack pnpm -r --filter \"./packages/*\" publish --access public --dry-run --no-git-checks",
