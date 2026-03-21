@@ -1,5 +1,6 @@
 /**
- * Clears broker exchange params after they have been consumed to avoid repeating the same finalization step.
+ * Clears broker exchange params after they have been
+ * consumed to avoid repeating the same finalization step.
  *
  * @returns {void}
  */
@@ -18,7 +19,8 @@ export const clearBrokerQueryParamsFromLocation = (): void => {
 
 /**
  * Backward-compat boundary for legacy `broker_consent_token`.
- * We normalize once into `code` so the rest of auth flow only reasons about one parameter.
+ * We normalize once into `code` so the rest of auth flow only
+ * reasons about one parameter.
  *
  * @returns {void}
  */

@@ -30,7 +30,8 @@ interface UseAuthActionsResult {
 
 /**
  * User-triggered auth actions wired to API endpoints and redirect rules.
- * This hook is the only owner of submit/error state transitions for manual auth interactions.
+ * This hook is the only owner of submit/error state transitions for manual
+ * auth interactions.
  *
  * @param {UseAuthActionsOptions} options
  * @returns {UseAuthActionsResult}

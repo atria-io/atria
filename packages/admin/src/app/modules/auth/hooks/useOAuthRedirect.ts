@@ -26,8 +26,9 @@ interface UseOAuthRedirectResult {
 }
 
 /**
- * Coordinates provider redirect lifecycle so one click produces one redirect attempt.
- * Timer/reset logic prevents stale spinner state when the page is restored from bfcache.
+ * Coordinates provider redirect lifecycle so one click produces one
+ * redirect attempt. Timer/reset logic prevents stale spinner state when
+ * the page is restored from bfcache.
  *
  * @param {UseOAuthRedirectOptions} options
  * @returns {UseOAuthRedirectResult}

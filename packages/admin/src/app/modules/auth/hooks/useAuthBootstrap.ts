@@ -45,8 +45,10 @@ interface UseAuthBootstrapResult {
 }
 
 /**
- * Owns first-pass auth bootstrap: locale load, setup/session/providers fetch and broker code finalization.
- * Any redirect to `nextPath` must happen only from here or from explicit user actions to avoid double redirects.
+ * Owns first-pass auth bootstrap: locale load,
+ * setup/session/providers fetch and broker code finalization.
+ * Any redirect to `nextPath` must happen only from here or
+ * from explicit user actions to avoid double redirects.
  *
  * @param {UseAuthBootstrapOptions} options
  * @returns {UseAuthBootstrapResult}

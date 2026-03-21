@@ -10,15 +10,19 @@ interface UseStudioReadyOptions {
 }
 
 /**
- * Emits the runtime-ready event only after route CSS has been applied and auth finalization is done.
- * Dispatch timing here controls when the host hides `atria-boot`, so early dispatch causes unstyled flashes.
+ * Emits the runtime-ready event only after route CSS
+ * has been applied and auth finalization is done.
+ * Dispatch timing here controls when the host hides
+ * `atria-boot`, so early dispatch causes unstyled flashes.
  *
  * @param {UseStudioReadyOptions} options
  * @returns {void}
  */
 export const useStudioReady = (options: UseStudioReadyOptions): void => {
-  const { basePath, styleFiles, isLoading, isFinalizing, readyEventName } = options;
-  const stableStyleFiles = useMemo(() => [...styleFiles], [styleFiles.join("|")]);
+  const { basePath, styleFiles, isLoading, isFinalizing, readyEventName } =
+    options;
+  const stableStyleFiles = useMemo(() => [...styleFiles],
+    [styleFiles.join("|")]);
   const [areStylesReady, setAreStylesReady] = useState(false);
   const hasDispatchedReadyRef = useRef(false);
 
@@ -38,7 +42,8 @@ export const useStudioReady = (options: UseStudioReadyOptions): void => {
   }, [basePath, stableStyleFiles]);
 
   useEffect(() => {
-    if (isLoading || isFinalizing || !areStylesReady || hasDispatchedReadyRef.current) {
+    if (isLoading || isFinalizing || !areStylesReady ||
+        hasDispatchedReadyRef.current) {
       return;
     }
 

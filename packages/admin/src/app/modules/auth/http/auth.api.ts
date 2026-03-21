@@ -47,7 +47,8 @@ const sanitizeProviders = (providersPayload: ProvidersPayload | null): ProviderI
 
 /**
  * Auth bootstrap read model for admin startup.
- * Missing or invalid backend payloads are normalized to safe defaults so hooks can keep a single state shape.
+ * Missing or invalid backend payloads are normalized to safe
+ * defaults so hooks can keep a single state shape.
  *
  * @param {ApiClient} apiClient
  * @returns {Promise<AuthBootstrapState>}

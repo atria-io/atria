@@ -8,7 +8,8 @@ export interface AdminRoute {
 
 export const AUTH_ROUTE_STYLE_FILES = ["styles/modules/auth.css"];
 const HOME_STYLE_FILES = ["styles/modules/dashboard.css"];
-const AUTH_ROUTE = { subtitleKey: "shell.subtitle.auth", styleFiles: AUTH_ROUTE_STYLE_FILES };
+const AUTH_ROUTE = { subtitleKey: "shell.subtitle.auth",
+  styleFiles: AUTH_ROUTE_STYLE_FILES };
 const HOME_ROUTE: AdminRoute = {
   id: "home",
   subtitleKey: "shell.subtitle.home",
@@ -17,7 +18,8 @@ const HOME_ROUTE: AdminRoute = {
 
 /**
  * Route lookup used by shell + style loading.
- * Returned `id` and `styleFiles` must stay in sync because UI chrome and CSS are resolved from this object.
+ * Returned `id` and `styleFiles` must stay in sync because
+ * UI chrome and CSS are resolved from this object.
  *
  * @param {string} pathname
  * @returns {AdminRoute}

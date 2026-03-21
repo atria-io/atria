@@ -13,7 +13,8 @@ interface LoginFormProps {
   t: TranslateFn;
 }
 
-export function LoginForm({ disabled, errorMessage, onSubmit, t }: LoginFormProps): React.JSX.Element {
+export function LoginForm({ disabled, errorMessage, onSubmit, t }:
+    LoginFormProps): React.JSX.Element {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -65,8 +66,11 @@ export function LoginForm({ disabled, errorMessage, onSubmit, t }: LoginFormProp
 
       {errorMessage ? <p className="auth-form__error">{errorMessage}</p> : null}
 
-      <button type="submit" className="auth-card__button auth-card__button--primary" disabled={disabled}>
-        {t("auth.form.login.submit")}
+      <button
+        type="submit"
+        className="auth-card__button auth-card__button--primary"
+        disabled={disabled}>
+          {t("auth.form.login.submit")}
       </button>
     </form>
   );

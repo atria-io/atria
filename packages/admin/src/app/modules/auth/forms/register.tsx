@@ -14,7 +14,8 @@ interface RegisterFormProps {
   t: TranslateFn;
 }
 
-export function RegisterForm({ disabled, errorMessage, onSubmit, t }: RegisterFormProps): React.JSX.Element {
+export function RegisterForm({ disabled, errorMessage, onSubmit, t }:
+    RegisterFormProps): React.JSX.Element {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,7 +33,8 @@ export function RegisterForm({ disabled, errorMessage, onSubmit, t }: RegisterFo
 
     setLocalError(null);
 
-    const mergedName = [firstName.trim(), lastName.trim()].filter((value) => value.length > 0).join(" ");
+    const mergedName = [firstName.trim(), lastName.trim()].filter((value) =>
+      value.length > 0).join(" ");
 
     void onSubmit({
       name: mergedName,

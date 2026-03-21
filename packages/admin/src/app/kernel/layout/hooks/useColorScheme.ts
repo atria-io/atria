@@ -9,18 +9,9 @@ declare global {
   }
 }
 
-interface UseColorSchemeOptions {
-  storageKey: string;
-}
-
-interface UseColorSchemeResult {
-  colorScheme: ColorScheme;
-  colorSchemePreference: ColorSchemePreference;
-  setColorSchemePreference: (scheme: ColorSchemePreference) => void;
-}
-
 /**
- * Storage boundary accepts only known enum values; invalid persisted data is ignored.
+ * Storage boundary accepts only known enum values.
+ * Invalid persisted data is ignored.
  *
  * @param {string | null | undefined} value
  * @returns {ColorSchemePreference | null}
@@ -38,9 +29,13 @@ const parseColorSchemePreference = (
 const resolveSystemColorScheme = (): ColorScheme =>
   window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 
-const resolveInitialColorSchemePreference = (storageKey: string): ColorSchemePreference => {
+const resolveInitialColorSchemePreference = (
+  storageKey: string
+): ColorSchemePreference => {
   try {
-    const stored = parseColorSchemePreference(localStorage.getItem(storageKey));
+    const stored = parseColorSchemePreference(
+      localStorage.getItem(storageKey)
+    );
     if (stored) {
       return stored;
     }
@@ -51,18 +46,26 @@ const resolveInitialColorSchemePreference = (storageKey: string): ColorSchemePre
 
 /**
  * Single source for scheme preference + resolved scheme used by the shell.
- * Writes are best-effort and the resolved scheme is mirrored to `window.__ATRIA_INITIAL_SCHEME` for host bootstrap parity.
+ * Writes are best-effort and the resolved scheme is mirrored to
+ * `window.__ATRIA_INITIAL_SCHEME` for host bootstrap parity.
  *
- * @param {UseColorSchemeOptions} options
- * @returns {UseColorSchemeResult}
+ * @param {{ storageKey: string }} options
  */
-export const useColorScheme = (options: UseColorSchemeOptions): UseColorSchemeResult => {
-  const { storageKey } = options;
-  const [colorSchemePreference, setColorSchemePreference] = useState<ColorSchemePreference>(() =>
-    resolveInitialColorSchemePreference(storageKey)
-  );
-  const [systemColorScheme, setSystemColorScheme] = useState<ColorScheme>(resolveSystemColorScheme);
-  const colorScheme = colorSchemePreference === "system" ? systemColorScheme : colorSchemePreference;
+export const useColorScheme = ({
+  storageKey
+}: {
+  storageKey: string;
+}) => {
+  const [colorSchemePreference, setColorSchemePreference] =
+    useState<ColorSchemePreference>(() =>
+      resolveInitialColorSchemePreference(storageKey)
+    );
+  const [systemColorScheme, setSystemColorScheme] =
+    useState<ColorScheme>(resolveSystemColorScheme);
+  const colorScheme =
+    colorSchemePreference === "system"
+      ? systemColorScheme
+      : colorSchemePreference;
 
   useEffect(() => {
     try {
