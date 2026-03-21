@@ -16,7 +16,8 @@ const HOME_ROUTE: AdminRoute = {
 };
 
 /**
- * Resolves the current admin route from the browser pathname.
+ * Route lookup used by shell + style loading.
+ * Returned `id` and `styleFiles` must stay in sync because UI chrome and CSS are resolved from this object.
  *
  * @param {string} pathname
  * @returns {AdminRoute}

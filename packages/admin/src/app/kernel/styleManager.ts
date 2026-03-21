@@ -1,9 +1,8 @@
 import { resolveBasePathUrl } from "../../state/api.client.js";
 
-export const ADMIN_SHELL_BUNDLE_STYLE_FILE = "styles/admin-shell.bundle.css";
-
 const styleLinks = new Map<string, HTMLLinkElement>();
 const loadedLinks = new WeakSet<HTMLLinkElement>();
+let latestApplyRequestId = 0;
 const styleHref = (basePath: string, stylePath: string): string =>
   resolveBasePathUrl(basePath, `static/${stylePath}`);
 
@@ -107,7 +106,8 @@ const waitForStyleLink = (link: HTMLLinkElement): Promise<void> => {
 };
 
 /**
- * Ensures the route-specific stylesheet set is mounted before the app becomes ready.
+ * Applies route-scoped styles atomically: mounts required links, removes stale ones and waits for load/error.
+ * `latestApplyRequestId` guards against race conditions when navigation changes style sets quickly.
  *
  * @param {string} basePath
  * @param {string[]} moduleStyleFiles
@@ -117,6 +117,7 @@ export const applyRouteStyles = async (
   basePath: string,
   moduleStyleFiles: string[]
 ): Promise<void> => {
+  const applyRequestId = ++latestApplyRequestId;
   const requiredStyles = new Set<string>(moduleStyleFiles);
   const ensuredLinks: HTMLLinkElement[] = [];
 
@@ -124,7 +125,11 @@ export const applyRouteStyles = async (
     ensuredLinks.push(ensureStyleLink(basePath, stylePath));
   }
 
-  removeUnusedModuleLinks(moduleStyleFiles);
+  if (applyRequestId !== latestApplyRequestId) {
+    return;
+  }
+
+  removeUnusedModuleLinks(Array.from(requiredStyles));
 
   await Promise.all(ensuredLinks.map((link) => waitForStyleLink(link)));
 };

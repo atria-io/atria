@@ -1,6 +1,12 @@
 import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
+import terser from '@rollup/plugin-terser'
 
+/**
+ * Rewrites NODE_ENV checks to production literals so dependencies can be fully minified.
+ *
+ * @returns {{name: string; transform: (code: string) => {code: string; map: null} | null}}
+ */
 const forceProductionNodeEnv = () => ({
   name: 'force-production-node-env',
   transform(code) {
@@ -20,11 +26,20 @@ export default {
   output: {
     file: 'dist/app.js',
     format: 'esm',
-    sourcemap: true
+    sourcemap: 'hidden'
   },
   plugins: [
     forceProductionNodeEnv(),
     resolve({browser: true}),
-    commonjs()
+    commonjs(),
+    terser({
+      compress: true,
+      mangle: true,
+      format: {
+        comments: false,
+        beautify: false,
+        max_line_len: false
+      }
+    })
   ]
 }

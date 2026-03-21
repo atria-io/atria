@@ -45,10 +45,11 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
   }, [selectedProvider]);
 
   const isLogin = mode === "login";
+  const isBusy = isSubmitting || isOAuthRedirecting;
 
   return (
     <section className="auth-screen">
-      <div className={isOAuthRedirecting ? "auth-card auth-card--leaving" : "auth-card"}>
+      <div className="auth-card">
         <h1 className="auth-card__title">
           {showEmailForm
             ? t(isLogin ? "auth.title.login" : "auth.title.create")
@@ -62,10 +63,10 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
             </p>
 
             {isLogin ? (
-              <LoginForm disabled={isSubmitting} errorMessage={formError} onSubmit={onLogin} t={t} />
+              <LoginForm disabled={isBusy} errorMessage={formError} onSubmit={onLogin} t={t} />
             ) : (
               <RegisterForm
-                disabled={isSubmitting}
+                disabled={isBusy}
                 errorMessage={formError}
                 onSubmit={onRegister}
                 t={t}
@@ -75,7 +76,7 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
             <button
               type="button"
               className="auth-card__switch"
-              disabled={isSubmitting}
+              disabled={isBusy}
               onClick={() => setShowEmailForm(false)}
             >
               {t("auth.form.otherOptions")}
@@ -88,7 +89,8 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
                 <OAuthProviderButton
                   key={provider}
                   provider={provider}
-                  disabled={isSubmitting || !providers.includes(provider)}
+                  disabled={isBusy || !providers.includes(provider)}
+                  isLoading={isBusy && selectedProvider === provider}
                   onSelect={onProviderSelect}
                   t={t}
                 />
@@ -100,7 +102,7 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
             <button
               type="button"
               className="auth-provider-button auth-provider-button--plain"
-              disabled={isSubmitting || !providers.includes("email")}
+              disabled={isBusy || !providers.includes("email")}
               onClick={() => {
                 setShowEmailForm(true);
                 onProviderSelect("email");

@@ -37,6 +37,13 @@ const formatMessage = (template: string, params?: Record<string, string | number
         params[token] === undefined ? match : String(params[token])
       );
 
+/**
+ * Translator contract for admin views: missing keys fail fast instead of rendering silent placeholders.
+ *
+ * @param {LocaleBundle} bundle
+ * @returns {TranslateFn}
+ * @throws {Error}
+ */
 export const createTranslator = (bundle: LocaleBundle): TranslateFn => {
   return (key: string, params?: Record<string, string | number>): string => {
     const template = bundle.messages[key];
@@ -48,6 +55,11 @@ export const createTranslator = (bundle: LocaleBundle): TranslateFn => {
   };
 };
 
+/**
+ * Locale preference is best-effort persistence; browser storage failures must not block boot.
+ *
+ * @returns {string}
+ */
 export const readPreferredLocale = (): string => {
   try {
     const locale = window.localStorage.getItem(LOCALE_STORAGE_KEY);
@@ -59,6 +71,12 @@ export const readPreferredLocale = (): string => {
   return window.navigator.language || DEFAULT_LOCALE;
 };
 
+/**
+ * Locale preference write is intentionally non-fatal.
+ *
+ * @param {string} locale
+ * @returns {void}
+ */
 export const persistPreferredLocale = (locale: string): void => {
   try {
     window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
@@ -66,11 +84,13 @@ export const persistPreferredLocale = (locale: string): void => {
 };
 
 /**
- * Loads the locale list and the selected locale dictionary from the admin API.
+ * i18n bootstrap boundary: reads available locales first, then enforces a valid dictionary for the selected locale.
+ * Boot stops with an explicit error when locale metadata or dictionary integrity is broken.
  *
  * @param {ApiClient} apiClient
  * @param {string} requestedLocale
  * @returns {Promise<LocaleBundle>}
+ * @throws {Error}
  */
 export const loadLocaleBundle = async (
   apiClient: ApiClient,

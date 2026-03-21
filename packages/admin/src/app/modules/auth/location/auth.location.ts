@@ -1,3 +1,8 @@
+/**
+ * Clears broker exchange params after they have been consumed to avoid repeating the same finalization step.
+ *
+ * @returns {void}
+ */
 export const clearBrokerQueryParamsFromLocation = (): void => {
   const targetUrl = new URL(window.location.href);
   targetUrl.searchParams.delete("broker_code");
@@ -11,6 +16,12 @@ export const clearBrokerQueryParamsFromLocation = (): void => {
   window.history.replaceState({}, "", nextLocation);
 };
 
+/**
+ * Backward-compat boundary for legacy `broker_consent_token`.
+ * We normalize once into `code` so the rest of auth flow only reasons about one parameter.
+ *
+ * @returns {void}
+ */
 export const normalizeLegacyBrokerConsentParamInLocation = (): void => {
   const targetUrl = new URL(window.location.href);
   const legacyToken = targetUrl.searchParams.get("broker_consent_token");

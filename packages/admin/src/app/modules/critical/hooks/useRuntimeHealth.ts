@@ -9,6 +9,13 @@ interface UseRuntimeHealthOptions {
   heartbeatTimeoutMs: number;
 }
 
+/**
+ * Runtime liveness probe used by the critical screen.
+ * It merges browser offline events with heartbeat results into a single reason code for UI routing.
+ *
+ * @param {UseRuntimeHealthOptions} options
+ * @returns {CriticalStatusReason | null}
+ */
 export const useRuntimeHealth = (options: UseRuntimeHealthOptions): CriticalStatusReason | null => {
   const { basePath, serverHeartbeatPath, heartbeatDelayMs, heartbeatTimeoutMs } = options;
   const [runtimeFlagReason, setRuntimeFlagReason] = useState<CriticalStatusReason | null>(null);

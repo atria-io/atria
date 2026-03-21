@@ -8,6 +8,13 @@ export interface MountAdminOptions {
   reactStrictMode?: boolean;
 }
 
+/**
+ * Public runtime entrypoint for the admin bundle.
+ * Missing mount element is a deliberate no-op to keep embedding hosts from crashing.
+ *
+ * @param {MountAdminOptions} [options]
+ * @returns {void}
+ */
 export const mountAdminApp = (options: MountAdminOptions = {}): void => {
   const mountElement = options.mountElement ?? document.getElementById("atria");
 

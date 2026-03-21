@@ -8,6 +8,13 @@ export interface AuthQueryState {
   nextPath: string;
 }
 
+/**
+ * Canonical parser for auth query state consumed by bootstrap and redirect hooks.
+ * Invalid provider/next values are normalized to safe defaults to keep auth flow deterministic.
+ *
+ * @param {string} search
+ * @returns {AuthQueryState}
+ */
 export const readAuthQueryState = (search: string): AuthQueryState => {
   const params = new URLSearchParams(search);
   const providerValue = params.get("provider");

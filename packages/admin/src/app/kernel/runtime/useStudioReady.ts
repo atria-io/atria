@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { applyRouteStyles } from "../StyleManager.js";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { applyRouteStyles } from "../styleManager.js";
 
 interface UseStudioReadyOptions {
   basePath: string;
@@ -9,8 +9,16 @@ interface UseStudioReadyOptions {
   readyEventName: string;
 }
 
+/**
+ * Emits the runtime-ready event only after route CSS has been applied and auth finalization is done.
+ * Dispatch timing here controls when the host hides `atria-boot`, so early dispatch causes unstyled flashes.
+ *
+ * @param {UseStudioReadyOptions} options
+ * @returns {void}
+ */
 export const useStudioReady = (options: UseStudioReadyOptions): void => {
   const { basePath, styleFiles, isLoading, isFinalizing, readyEventName } = options;
+  const stableStyleFiles = useMemo(() => [...styleFiles], [styleFiles.join("|")]);
   const [areStylesReady, setAreStylesReady] = useState(false);
   const hasDispatchedReadyRef = useRef(false);
 
@@ -18,7 +26,7 @@ export const useStudioReady = (options: UseStudioReadyOptions): void => {
     let cancelled = false;
     setAreStylesReady(false);
 
-    void applyRouteStyles(basePath, styleFiles).finally(() => {
+    void applyRouteStyles(basePath, stableStyleFiles).finally(() => {
       if (!cancelled) {
         setAreStylesReady(true);
       }
@@ -27,17 +35,13 @@ export const useStudioReady = (options: UseStudioReadyOptions): void => {
     return () => {
       cancelled = true;
     };
-  }, [basePath, styleFiles]);
+  }, [basePath, stableStyleFiles]);
 
   useEffect(() => {
     if (isLoading || isFinalizing || !areStylesReady || hasDispatchedReadyRef.current) {
       return;
     }
 
-    /**
-     * Runtime bootstrap waits for this event to hide the loading overlay.
-     * Dispatching early causes unstyled flashes; dispatching multiple times creates racey UI transitions.
-     */
     hasDispatchedReadyRef.current = true;
     window.dispatchEvent(new CustomEvent(readyEventName));
   }, [areStylesReady, isFinalizing, isLoading, readyEventName]);

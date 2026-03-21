@@ -1,11 +1,13 @@
 import React from "react";
 import type { TranslateFn } from "../../../../i18n/client.js";
+import { Spinner } from "../../../kernel/layout/ui/Spinner.js";
 
 export type OAuthProvider = "google" | "github";
 
 interface OAuthProviderButtonProps {
   provider: OAuthProvider;
   disabled: boolean;
+  isLoading: boolean;
   onSelect: (provider: OAuthProvider) => void;
   t: TranslateFn;
 }
@@ -48,20 +50,24 @@ const ProviderIcon = ({ provider }: { provider: OAuthProvider }): React.JSX.Elem
 export function OAuthProviderButton({
   provider,
   disabled,
+  isLoading,
   onSelect,
   t
 }: OAuthProviderButtonProps): React.JSX.Element {
   return (
     <button
       type="button"
-      className="auth-provider-button"
+      className={isLoading ? "auth-provider-button is-loading" : "auth-provider-button"}
       disabled={disabled}
       onClick={() => onSelect(provider)}
     >
       <span className="auth-provider-button__icon">
         <ProviderIcon provider={provider} />
       </span>
-      <span>{t(labelByProvider[provider])}</span>
+      <span className="auth-provider-button__label">{t(labelByProvider[provider])}</span>
+      <span className="auth-provider-button__spinner" aria-hidden="true">
+        <Spinner size={16} />
+      </span>
     </button>
   );
 }

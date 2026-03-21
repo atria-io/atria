@@ -4,7 +4,8 @@ export interface ApiClient {
 }
 
 /**
- * Resolves a path against the admin app base path.
+ * Canonical join for admin base path + relative route.
+ * Keeping this in one place avoids mismatched URLs between runtime and auth requests.
  *
  * @param {string} basePath
  * @param {string} path
@@ -13,6 +14,14 @@ export interface ApiClient {
 export const resolveBasePathUrl = (basePath: string, path: string): string =>
   `${!basePath || basePath === "/" ? "/" : basePath.endsWith("/") ? basePath : `${basePath}/`}${path.startsWith("/") ? path.slice(1) : path}`;
 
+/**
+ * Fetch boundary for JSON endpoints used by the admin app.
+ * Any transport error or non-2xx response is normalized to `null` so UI flow can branch explicitly.
+ *
+ * @param {string} url
+ * @param {RequestInit} [init]
+ * @returns {Promise<T | null>}
+ */
 const requestJson = async <T,>(url: string, init?: RequestInit): Promise<T | null> => {
   try {
     const response = await fetch(url, {
@@ -31,7 +40,8 @@ const requestJson = async <T,>(url: string, init?: RequestInit): Promise<T | nul
 };
 
 /**
- * Creates the tiny JSON client used by the admin app.
+ * API contract used during auth/bootstrap: success returns parsed JSON, failure returns `null`.
+ * This keeps network behavior deterministic for the hooks that decide loading/error state.
  *
  * @param {string} basePath
  * @returns {ApiClient}

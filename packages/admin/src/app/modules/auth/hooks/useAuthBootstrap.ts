@@ -44,6 +44,13 @@ interface UseAuthBootstrapResult {
   setBrokerError: (value: boolean) => void;
 }
 
+/**
+ * Owns first-pass auth bootstrap: locale load, setup/session/providers fetch and broker code finalization.
+ * Any redirect to `nextPath` must happen only from here or from explicit user actions to avoid double redirects.
+ *
+ * @param {UseAuthBootstrapOptions} options
+ * @returns {UseAuthBootstrapResult}
+ */
 export const useAuthBootstrap = (options: UseAuthBootstrapOptions): UseAuthBootstrapResult => {
   const { basePath, queryState } = options;
   const [setupStatus, setSetupStatus] = useState<SetupStatus>({

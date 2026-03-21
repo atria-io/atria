@@ -10,11 +10,6 @@
   transition: opacity 0.14s ease;
 }
 
-.auth-card--leaving {
-  opacity: 0;
-  pointer-events: none;
-}
-
 .auth-card__title {
   margin: 0 0 12px;
   text-align: center;
@@ -40,6 +35,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  position: relative;
 }
 
 .auth-provider-button__icon {
@@ -48,6 +44,36 @@
   justify-content: center;
   width: 20px;
   height: 20px;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.auth-provider-button__label {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.auth-provider-button__spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.96);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.auth-provider-button.is-loading .auth-provider-button__icon {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.auth-provider-button.is-loading .auth-provider-button__label {
+  opacity: 0;
+  transform: translateY(-1px);
+}
+
+.auth-provider-button.is-loading .auth-provider-button__spinner {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .auth-provider-button--plain {

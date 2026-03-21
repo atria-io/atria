@@ -45,6 +45,13 @@ const sanitizeProviders = (providersPayload: ProvidersPayload | null): ProviderI
   );
 };
 
+/**
+ * Auth bootstrap read model for admin startup.
+ * Missing or invalid backend payloads are normalized to safe defaults so hooks can keep a single state shape.
+ *
+ * @param {ApiClient} apiClient
+ * @returns {Promise<AuthBootstrapState>}
+ */
 export const loadAuthBootstrapState = async (apiClient: ApiClient): Promise<AuthBootstrapState> => {
   const [setupStatus, providersPayload, sessionPayload] = await Promise.all([
     apiClient.getJson<SetupStatus>("/api/setup/status"),
@@ -71,6 +78,13 @@ export const confirmBrokerConsent = async (
 ): Promise<EmailAuthResult> =>
   postBrokerAuth(basePath, "/api/auth/broker/confirm", { code });
 
+/**
+ * Runtime parser for email/broker auth responses where backend shape may drift.
+ * Unknown payloads collapse to a non-authenticated result without throwing.
+ *
+ * @param {unknown} payload
+ * @returns {EmailAuthResult}
+ */
 const parseEmailAuthResult = (payload: unknown): EmailAuthResult => {
   if (typeof payload !== "object" || payload === null) {
     return {
@@ -173,6 +187,16 @@ export const loginWithEmail = (basePath: string, input: LoginInput): Promise<Ema
     password: input.password
   });
 
+/**
+ * OAuth kickoff URL contract shared with provider buttons and redirect hook.
+ * `next` is only forwarded when it differs from root to keep callback URLs stable.
+ *
+ * @param {string} basePath
+ * @param {ProviderId} provider
+ * @param {AuthMode} mode
+ * @param {string} nextPath
+ * @returns {string}
+ */
 export const buildOAuthStartUrl = (
   basePath: string,
   provider: ProviderId,

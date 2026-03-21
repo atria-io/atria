@@ -8,7 +8,6 @@ import { DashboardScreen } from "./modules/dashboard/DashboardScreen.js";
 import { CriticalStatusView } from "./modules/critical/CriticalStatusView.js";
 import { useRuntimeHealth } from "./modules/critical/hooks/useRuntimeHealth.js";
 import { createTranslator } from "../i18n/client.js";
-import { ADMIN_SHELL_BUNDLE_STYLE_FILE } from "./kernel/StyleManager.js";
 import { AUTH_ROUTE_STYLE_FILES, resolveAdminRoute } from "./kernel/routing/Routes.js";
 import { useStudioReady } from "./kernel/runtime/useStudioReady.js";
 import { StudioShell } from "./kernel/layout/StudioShell.js";
@@ -16,8 +15,7 @@ import { useColorScheme } from "./kernel/layout/hooks/useColorScheme.js";
 
 const STUDIO_READY_EVENT = "atria:studio:ready";
 const COLOR_SCHEME_STORAGE_KEY = "atria:color-scheme";
-const SHELL_STYLE_FILES = [ADMIN_SHELL_BUNDLE_STYLE_FILE];
-const CRITICAL_STYLE_FILES = ["styles/modules/critical.css"];
+const CRITICAL_STYLE_FILES: string[] = [];
 const SERVER_HEARTBEAT_DELAY_MS = 2_000;
 const SERVER_HEARTBEAT_TIMEOUT_MS = 1_500;
 const SERVER_HEARTBEAT_PATH = "/api/setup/status";
@@ -90,14 +88,15 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     setIsAuthSubmitting
   });
 
-  const activeStyleFiles = [
-    ...SHELL_STYLE_FILES,
-    ...(runtimeFlagReason || fatalError
-      ? CRITICAL_STYLE_FILES
-      : needsAuthentication
-        ? AUTH_ROUTE_STYLE_FILES
-        : route.styleFiles)
-  ];
+  const activeStyleFiles = React.useMemo(
+    () =>
+      runtimeFlagReason || fatalError
+        ? CRITICAL_STYLE_FILES
+        : needsAuthentication
+          ? AUTH_ROUTE_STYLE_FILES
+          : route.styleFiles,
+    [fatalError, needsAuthentication, route.styleFiles, runtimeFlagReason]
+  );
 
   useStudioReady({
     basePath,

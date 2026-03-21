@@ -19,6 +19,12 @@ interface UseColorSchemeResult {
   setColorSchemePreference: (scheme: ColorSchemePreference) => void;
 }
 
+/**
+ * Storage boundary accepts only known enum values; invalid persisted data is ignored.
+ *
+ * @param {string | null | undefined} value
+ * @returns {ColorSchemePreference | null}
+ */
 const parseColorSchemePreference = (
   value: string | null | undefined
 ): ColorSchemePreference | null => {
@@ -43,6 +49,13 @@ const resolveInitialColorSchemePreference = (storageKey: string): ColorSchemePre
   return "system";
 };
 
+/**
+ * Single source for scheme preference + resolved scheme used by the shell.
+ * Writes are best-effort and the resolved scheme is mirrored to `window.__ATRIA_INITIAL_SCHEME` for host bootstrap parity.
+ *
+ * @param {UseColorSchemeOptions} options
+ * @returns {UseColorSchemeResult}
+ */
 export const useColorScheme = (options: UseColorSchemeOptions): UseColorSchemeResult => {
   const { storageKey } = options;
   const [colorSchemePreference, setColorSchemePreference] = useState<ColorSchemePreference>(() =>

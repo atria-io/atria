@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { buildOAuthStartUrl } from "../http/auth.api.js";
 import type { ProviderId } from "../../../../types/auth.js";
 
-const OAUTH_BOOT_REVEAL_DELAY_MS = 120;
 const OAUTH_REDIRECT_DELAY_MS = 220;
 
 interface UseOAuthRedirectOptions {
@@ -26,59 +25,13 @@ interface UseOAuthRedirectResult {
   startOAuthRedirect: (provider: ProviderId) => void;
 }
 
-const ensureBootOverlay = (): HTMLElement => {
-  const existing = document.getElementById("atria-boot");
-  if (existing) {
-    return existing;
-  }
-
-  const styleId = "atria-boot-fallback-style";
-  if (!document.getElementById(styleId)) {
-    const style = document.createElement("style");
-    style.id = styleId;
-    style.textContent = `
-#atria-boot {
-  inset: 0;
-  display: grid;
-  position: fixed;
-  place-items: center;
-  background: var(--boot-bg);
-  transition: opacity 0.2s ease;
-  z-index: 999999999;
-}
-#atria-boot.is-hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-.atria-boot__spinner {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  animation: atria-boot-spin 0.8s linear infinite;
-  border: 2px solid var(--boot-spinner-track);
-  border-top-color: var(--boot-spinner);
-}
-@keyframes atria-boot-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-`;
-    document.head.appendChild(style);
-  }
-
-  const overlay = document.createElement("div");
-  overlay.id = "atria-boot";
-  overlay.setAttribute("aria-hidden", "true");
-
-  const spinner = document.createElement("div");
-  spinner.className = "atria-boot__spinner";
-  overlay.appendChild(spinner);
-  document.body.appendChild(overlay);
-
-  return overlay;
-};
-
+/**
+ * Coordinates provider redirect lifecycle so one click produces one redirect attempt.
+ * Timer/reset logic prevents stale spinner state when the page is restored from bfcache.
+ *
+ * @param {UseOAuthRedirectOptions} options
+ * @returns {UseOAuthRedirectResult}
+ */
 export const useOAuthRedirect = (options: UseOAuthRedirectOptions): UseOAuthRedirectResult => {
   const {
     basePath,
@@ -97,16 +50,10 @@ export const useOAuthRedirect = (options: UseOAuthRedirectOptions): UseOAuthRedi
   } = options;
   const [isOAuthRedirecting, setIsOAuthRedirecting] = useState(false);
   const hasAutoStartedProviderRef = useRef(false);
-  const bootRevealTimerRef = useRef<number | null>(null);
   const oauthRedirectTimerRef = useRef<number | null>(null);
   const isOAuthRedirectingRef = useRef(false);
 
   const resetOAuthRedirectState = useCallback((): void => {
-    if (bootRevealTimerRef.current !== null) {
-      window.clearTimeout(bootRevealTimerRef.current);
-      bootRevealTimerRef.current = null;
-    }
-
     if (oauthRedirectTimerRef.current !== null) {
       window.clearTimeout(oauthRedirectTimerRef.current);
       oauthRedirectTimerRef.current = null;
@@ -115,11 +62,6 @@ export const useOAuthRedirect = (options: UseOAuthRedirectOptions): UseOAuthRedi
     isOAuthRedirectingRef.current = false;
     setIsOAuthRedirecting(false);
     setIsAuthSubmitting(false);
-
-    const bootOverlay = document.getElementById("atria-boot");
-    if (bootOverlay) {
-      bootOverlay.classList.add("is-hidden");
-    }
   }, [setIsAuthSubmitting]);
 
   useEffect(
@@ -156,11 +98,6 @@ export const useOAuthRedirect = (options: UseOAuthRedirectOptions): UseOAuthRedi
       setBrokerError(false);
       setIsAuthSubmitting(true);
       setIsOAuthRedirecting(true);
-
-      bootRevealTimerRef.current = window.setTimeout(() => {
-        bootRevealTimerRef.current = null;
-        ensureBootOverlay().classList.remove("is-hidden");
-      }, OAUTH_BOOT_REVEAL_DELAY_MS);
 
       const target = buildOAuthStartUrl(basePath, provider, authMode, nextPath);
       oauthRedirectTimerRef.current = window.setTimeout(() => {
