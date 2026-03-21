@@ -1,9 +1,3 @@
-.admin-shell__header {
-  display: flex;
-  justify-content: flex-end;
-  padding: 12px;
-}
-
 .admin-shell__user-menu {
   position: relative;
 }

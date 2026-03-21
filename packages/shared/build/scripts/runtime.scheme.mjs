@@ -5,20 +5,11 @@ const SCHEME_FILE_PATH = ["..", "admin", "src", "app", "static", "styles", "sche
 const SCHEME_BLOCK_PATTERN = /\[data-scheme="(dark|light)"\]\s*\{([\s\S]*?)\}/g;
 const TOKEN_PATTERN = /--([a-z0-9-]+)\s*:\s*([^;]+);/gi;
 const SCHEME_MAP_PLACEHOLDER = "__ATRIA_SCHEME_MAP__";
-const REQUIRED_TOKENS = ["color_background", "color_foreground"];
 
 const toTokenKey = (rawToken) => rawToken.trim().toLowerCase().replace(/-/g, "_");
 
 const sortObject = (value) =>
   Object.fromEntries(Object.entries(value).sort(([left], [right]) => left.localeCompare(right)));
-
-const assertRequiredTokens = (schemeName, tokens) => {
-  for (const tokenName of REQUIRED_TOKENS) {
-    if (!tokens[tokenName]) {
-      throw new Error(`Missing token "${tokenName}" in [data-scheme="${schemeName}"]`);
-    }
-  }
-};
 
 const parseSchemeMap = (source) => {
   const schemeMap = Object.create(null);
@@ -36,7 +27,6 @@ const parseSchemeMap = (source) => {
     }
 
     TOKEN_PATTERN.lastIndex = 0;
-    assertRequiredTokens(schemeName, tokens);
     schemeMap[schemeName] = sortObject(tokens);
     match = SCHEME_BLOCK_PATTERN.exec(source);
   }

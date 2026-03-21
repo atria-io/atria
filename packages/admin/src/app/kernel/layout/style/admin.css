@@ -1,0 +1,9 @@
+.admin-shell {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.admin-shell__main {
+  min-height: calc(100vh - 68px);
+}

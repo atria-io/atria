@@ -14,11 +14,31 @@ import { mountAdminApp } from "/static/app.js";
 
 const rootElement = document.getElementById("atria");
 const bootElement = document.getElementById("atria-boot");
+const BOOT_REVEAL_DELAY_MS = 150;
+let hasRevealedApp = false;
+const bootRevealTimeoutId = window.setTimeout(() => {
+  if (!hasRevealedApp && bootElement) {
+    bootElement.classList.add("is-visible");
+  }
+}, BOOT_REVEAL_DELAY_MS);
 
 const revealApp = () => {
+  if (hasRevealedApp) {
+    return;
+  }
+
+  hasRevealedApp = true;
+  window.clearTimeout(bootRevealTimeoutId);
+
   if (bootElement) {
+    bootElement.classList.remove("is-visible");
     bootElement.classList.add("is-hidden");
   }
+  setTimeout(() => {
+    if (bootElement) {
+      bootElement.remove();
+    }
+  }, 500);
 };
 
 window.addEventListener("${READY_EVENT_NAME}", revealApp, { once: true });

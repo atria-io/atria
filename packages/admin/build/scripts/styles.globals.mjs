@@ -2,12 +2,10 @@ import path from "node:path";
 import { promises as fs } from "node:fs";
 import { minifyCss } from "./css.minify.mjs";
 
-const SHELL_STYLE_SOURCE_FILES = [
-  "admin-shell.css",
-  "admin-shell_header.css",
-  "admin-shell_header-menu.css",
-  "admin-shell_main.css"
-];
+const listLayoutStyleFiles = async (layoutStyleSourceRoot) =>
+  (await fs.readdir(layoutStyleSourceRoot))
+    .filter((entry) => entry.endsWith(".css"))
+    .sort((left, right) => left.localeCompare(right));
 
 /**
  * Produces the runtime `globals.css` bundle consumed by the host HTML.
@@ -28,9 +26,10 @@ export const composeRuntimeGlobalsStyles = async (options) => {
     criticalStyleSourceFile,
     globalsStyleDistFile
   } = options;
+  const shellStyleSourceFiles = await listLayoutStyleFiles(layoutStyleSourceRoot);
   const composedSourceParts = [await fs.readFile(globalsStyleSourceFile, "utf-8")];
 
-  for (const sourceFileName of SHELL_STYLE_SOURCE_FILES) {
+  for (const sourceFileName of shellStyleSourceFiles) {
     const sourceFile = path.join(layoutStyleSourceRoot, sourceFileName);
     composedSourceParts.push(await fs.readFile(sourceFile, "utf-8"));
   }

@@ -1,0 +1,5 @@
+.admin-shell__header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px;
+}
