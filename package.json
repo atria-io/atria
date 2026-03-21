@@ -1,6 +1,6 @@
 {
   "name": "atria",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Monorepo foundation for the atria ecosystem",
   "packageManager": "pnpm@10.32.1",

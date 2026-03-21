@@ -3,7 +3,7 @@ import { parseAuthMethod } from "@atria/shared";
 import type { AuthRuntime } from "../../auth/runtime.js";
 import { MIME_TYPES } from "../constants.js";
 import { buildAuthLocation } from "./routing.js";
-import { respondWithDefaultNotFound } from "../http/errors.js";
+import { respondWithBadRequest, respondWithDefaultNotFound } from "../http/errors.js";
 import { resolveRequestFile } from "../static/resolver.js";
 import { sendFileResponse } from "../static/sender.js";
 import type { OwnerSetupState } from "../setup/types.js";
@@ -33,6 +33,14 @@ const redirect = (response: ServerResponse, location: string): void => {
 const getSafeNextPath = (requestUrl: URL): string | undefined => {
   const nextPath = requestUrl.searchParams.get("next");
   return nextPath?.startsWith("/") ? nextPath : undefined;
+};
+
+const decodePathname = (encodedPathname: string): string | null => {
+  try {
+    return decodeURIComponent(encodedPathname);
+  } catch {
+    return null;
+  }
 };
 
 /**
@@ -80,9 +88,15 @@ export const handleAdminRequest = async (options: HandleAdminRequestOptions): Pr
 
   const adminAssetPath = resolveAdminAssetPath(requestUrl.pathname);
   if (adminAssetPath) {
+    const decodedAssetPath = decodePathname(adminAssetPath);
+    if (decodedAssetPath === null) {
+      respondWithBadRequest(response);
+      return;
+    }
+
     const adminTarget = await resolveRequestFile(
       adminDistDir,
-      decodeURIComponent(adminAssetPath),
+      decodedAssetPath,
       "strict"
     );
 
@@ -100,9 +114,15 @@ export const handleAdminRequest = async (options: HandleAdminRequestOptions): Pr
     return;
   }
 
+  const decodedPathname = decodePathname(requestUrl.pathname);
+  if (decodedPathname === null) {
+    respondWithBadRequest(response);
+    return;
+  }
+
   const targetFile = await resolveRequestFile(
     runtimeDir,
-    decodeURIComponent(requestUrl.pathname),
+    decodedPathname,
     "spa-fallback"
   );
 

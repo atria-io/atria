@@ -17,6 +17,16 @@ const SESSION_COOKIE_NAME = "atria_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 const OAUTH_STATE_MAX_AGE_MS = 10 * 60 * 1000;
 const SESSION_PRUNE_INTERVAL_MS = 60 * 1000;
+const AUTH_RATE_LIMIT_WINDOW_MS = 60 * 1000;
+
+const AUTH_RATE_LIMIT_MAX_REQUESTS = {
+  logout: 20,
+  emailRegister: 10,
+  emailLogin: 20,
+  brokerExchange: 30,
+  brokerConfirm: 30,
+  oauthStart: 60
+} as const;
 
 interface CreateAuthRuntimeOptions {
   projectRoot: string;
@@ -131,8 +141,28 @@ const nowMs = (): number => Date.now();
 const getOrigin = (adminPort: number): string =>
   process.env.ATRIA_AUTH_ORIGIN?.trim() || `http://localhost:${adminPort}`;
 
-const getProviderCallbackUrl = (provider: OAuthProviderId, adminPort: number): string =>
-  `${getOrigin(adminPort)}/api/auth/callback/${provider}`;
+const parseHttpOrigin = (value: string): string | null => {
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null;
+    }
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+};
+
+const resolveAuthOrigin = (adminPort: number): string => {
+  const parsed = parseHttpOrigin(getOrigin(adminPort));
+  if (!parsed) {
+    throw new Error("Invalid ATRIA_AUTH_ORIGIN. Expected an absolute http(s) origin.");
+  }
+  return parsed;
+};
+
+const getProviderCallbackUrl = (provider: OAuthProviderId, authOrigin: string): string =>
+  `${authOrigin}/api/auth/callback/${provider}`;
 
 const getBrokerOrigin = (): string | null => {
   const configured = process.env.ATRIA_AUTH_BROKER_ORIGIN?.trim();
@@ -152,18 +182,20 @@ const readRequestSessionId = (request: IncomingMessage): string | null => {
   return cookies[SESSION_COOKIE_NAME] ?? null;
 };
 
-const clearSessionCookie = (): string =>
+const clearSessionCookie = (secure: boolean): string =>
   serializeCookie(SESSION_COOKIE_NAME, "", {
     httpOnly: true,
     sameSite: "Lax",
-    maxAge: 0
+    maxAge: 0,
+    secure
   });
 
-const createSessionCookie = (sessionId: string): string =>
+const createSessionCookie = (sessionId: string, secure: boolean): string =>
   serializeCookie(SESSION_COOKIE_NAME, sessionId, {
     httpOnly: true,
     sameSite: "Lax",
-    maxAge: SESSION_MAX_AGE_SECONDS
+    maxAge: SESSION_MAX_AGE_SECONDS,
+    secure
   });
 
 const createSessionResult = async (
@@ -237,6 +269,44 @@ const parseJsonBody = async (request: IncomingMessage): Promise<Record<string, u
 
     request.on("error", reject);
   });
+
+const readHeaderValue = (header: string | string[] | undefined): string | null => {
+  if (Array.isArray(header)) {
+    return header[0]?.trim() || null;
+  }
+
+  return typeof header === "string" && header.trim() ? header.trim() : null;
+};
+
+const readRequestOrigin = (request: IncomingMessage): string | null => {
+  const originHeader = readHeaderValue(request.headers.origin);
+  if (originHeader) {
+    return parseHttpOrigin(originHeader);
+  }
+
+  const refererHeader = readHeaderValue(request.headers.referer);
+  if (!refererHeader) {
+    return null;
+  }
+
+  try {
+    return new URL(refererHeader).origin;
+  } catch {
+    return null;
+  }
+};
+
+const readClientAddress = (request: IncomingMessage): string => {
+  const forwarded = readHeaderValue(request.headers["x-forwarded-for"]);
+  if (forwarded) {
+    const candidate = forwarded.split(",")[0]?.trim();
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  return request.socket.remoteAddress?.trim() || "unknown";
+};
 
 const toBrokerProviders = (payload: unknown): OAuthProviderId[] => {
   if (typeof payload !== "object" || payload === null || !("providers" in payload)) {
@@ -446,9 +516,65 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     throw new Error("Project ID is required for OAuth broker flows.");
   }
 
+  const authOrigin = resolveAuthOrigin(options.adminPort);
+  const sessionCookieSecure = authOrigin.startsWith("https://");
   const store = createDbAuthStore(options.projectRoot);
   const oauthStates = new Map<string, OAuthState>();
+  const authRateLimitBuckets = new Map<string, number[]>();
   let lastExpiredSessionCleanupAt = 0;
+
+  const enforceAuthRateLimit = (
+    request: IncomingMessage,
+    response: ServerResponse,
+    pathname: string,
+    maxRequests: number
+  ): boolean => {
+    const key = `${pathname}:${readClientAddress(request)}`;
+    const now = nowMs();
+    const threshold = now - AUTH_RATE_LIMIT_WINDOW_MS;
+    const existing = authRateLimitBuckets.get(key) ?? [];
+    const recent = existing.filter((timestamp) => timestamp > threshold);
+
+    if (recent.length >= maxRequests) {
+      const oldest = recent[0] ?? now;
+      const retryAfterMs = AUTH_RATE_LIMIT_WINDOW_MS - (now - oldest);
+      const retryAfterSeconds = Math.max(1, Math.ceil(retryAfterMs / 1000));
+      authRateLimitBuckets.set(key, recent);
+      response.writeHead(429, {
+        "content-type": "application/json; charset=utf-8",
+        "retry-after": String(retryAfterSeconds)
+      });
+      response.end(
+        JSON.stringify({
+          ok: false,
+          error: "Too many requests.",
+          reason: "rate_limited"
+        })
+      );
+      return false;
+    }
+
+    recent.push(now);
+    authRateLimitBuckets.set(key, recent);
+    return true;
+  };
+
+  const enforceTrustedWriteOrigin = (
+    request: IncomingMessage,
+    response: ServerResponse
+  ): boolean => {
+    const requestOrigin = readRequestOrigin(request);
+    if (requestOrigin && requestOrigin === authOrigin) {
+      return true;
+    }
+
+    writeJson(response, 403, {
+      ok: false,
+      error: "Invalid origin.",
+      reason: "invalid_origin"
+    });
+    return false;
+  };
 
   const pruneExpiredSessionsIfNeeded = async (): Promise<void> => {
     const now = nowMs();
@@ -498,7 +624,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     const redirectPath = nextPath && nextPath.startsWith("/") ? nextPath : "/";
     const mode = requestUrl.searchParams.get("mode");
     const returnPath = mode === "login" ? "/" : mode === "create" ? "/create" : "/setup";
-    const returnTo = new URL(returnPath, getOrigin(options.adminPort));
+    const returnTo = new URL(returnPath, authOrigin);
     returnTo.searchParams.set("provider", provider);
     if (redirectPath !== "/") {
       returnTo.searchParams.set("next", redirectPath);
@@ -551,7 +677,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       redirectPath
     });
 
-    const callbackUrl = getProviderCallbackUrl(provider, options.adminPort);
+    const callbackUrl = getProviderCallbackUrl(provider, authOrigin);
     const authorizationUrl = buildOAuthAuthorizationUrl(provider, callbackUrl, stateId);
     writeRedirect(response, authorizationUrl);
   };
@@ -581,13 +707,17 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     }
 
     try {
-      const callbackUrl = getProviderCallbackUrl(provider, options.adminPort);
+      const callbackUrl = getProviderCallbackUrl(provider, authOrigin);
       const profile = await getOAuthProfileFromCode(provider, code, callbackUrl);
       const user = await store.upsertOAuthProfile(profile);
       await store.clearPreferredAuthMethod();
       const sessionId = await issueSession(user.id);
 
-      writeRedirect(response, state.redirectPath || "/", createSessionCookie(sessionId));
+      writeRedirect(
+        response,
+        state.redirectPath || "/",
+        createSessionCookie(sessionId, sessionCookieSecure)
+      );
     } catch (error) {
       if (isOAuthOwnerMismatchError(error)) {
         writeOwnerMismatchResponse(response);
@@ -603,8 +733,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
 
   const handleBrokerExchange = async (
     request: IncomingMessage,
-    response: ServerResponse,
-    requestUrl: URL
+    response: ServerResponse
   ): Promise<void> => {
     const brokerOrigin = getBrokerOrigin();
     if (!brokerOrigin) {
@@ -615,13 +744,13 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       return;
     }
 
-    let code = requestUrl.searchParams.get("code");
-    if (!code && request.method === "POST") {
-      const payload = await parseJsonBody(request);
-      const bodyCode = payload.code;
-      code = typeof bodyCode === "string" ? bodyCode : null;
+    const payload = await parseRequestPayload(request, response);
+    if (!payload) {
+      return;
     }
 
+    const bodyCode = payload.code;
+    const code = typeof bodyCode === "string" ? bodyCode.trim() : "";
     if (!code) {
       writeJson(response, 400, {
         ok: false,
@@ -638,7 +767,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
 
       response.writeHead(200, {
         "content-type": "application/json; charset=utf-8",
-        "set-cookie": createSessionCookie(sessionId)
+        "set-cookie": createSessionCookie(sessionId, sessionCookieSecure)
       });
       response.end(
         JSON.stringify({
@@ -667,8 +796,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
 
   const handleBrokerConfirm = async (
     request: IncomingMessage,
-    response: ServerResponse,
-    requestUrl: URL
+    response: ServerResponse
   ): Promise<void> => {
     const brokerOrigin = getBrokerOrigin();
     if (!brokerOrigin) {
@@ -679,14 +807,13 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       return;
     }
 
-    let consentCode =
-      requestUrl.searchParams.get("code") ?? requestUrl.searchParams.get("consent_token");
-    if (!consentCode && request.method === "POST") {
-      const payload = await parseJsonBody(request);
-      const bodyCode = payload.code ?? payload.consentToken ?? payload.consent_token;
-      consentCode = typeof bodyCode === "string" ? bodyCode : null;
+    const payload = await parseRequestPayload(request, response);
+    if (!payload) {
+      return;
     }
 
+    const rawCode = payload.code ?? payload.consentToken ?? payload.consent_token;
+    const consentCode = typeof rawCode === "string" ? rawCode.trim() : "";
     if (!consentCode) {
       writeJson(response, 400, {
         ok: false,
@@ -704,7 +831,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
 
       response.writeHead(200, {
         "content-type": "application/json; charset=utf-8",
-        "set-cookie": createSessionCookie(sessionId)
+        "set-cookie": createSessionCookie(sessionId, sessionCookieSecure)
       });
       response.end(
         JSON.stringify({
@@ -758,7 +885,7 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
     const sessionId = await issueSession(user.id);
     response.writeHead(200, {
       "content-type": "application/json; charset=utf-8",
-      "set-cookie": createSessionCookie(sessionId)
+      "set-cookie": createSessionCookie(sessionId, sessionCookieSecure)
     });
     response.end(
       JSON.stringify({
@@ -925,12 +1052,35 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
       }
 
       if (pathname === "/api/auth/logout") {
+        if (request.method !== "POST") {
+          writeJson(response, 405, {
+            ok: false,
+            error: "Method not allowed."
+          });
+          return true;
+        }
+
+        if (
+          !enforceAuthRateLimit(
+            request,
+            response,
+            pathname,
+            AUTH_RATE_LIMIT_MAX_REQUESTS.logout
+          )
+        ) {
+          return true;
+        }
+
+        if (!enforceTrustedWriteOrigin(request, response)) {
+          return true;
+        }
+
         const sessionId = readRequestSessionId(request);
         if (sessionId) {
           await store.deleteSessionById(sessionId);
         }
         response.writeHead(204, {
-          "set-cookie": clearSessionCookie()
+          "set-cookie": clearSessionCookie(sessionCookieSecure)
         });
         response.end();
         return true;
@@ -942,6 +1092,21 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
             ok: false,
             error: "Method not allowed."
           });
+          return true;
+        }
+
+        if (
+          !enforceAuthRateLimit(
+            request,
+            response,
+            pathname,
+            AUTH_RATE_LIMIT_MAX_REQUESTS.emailRegister
+          )
+        ) {
+          return true;
+        }
+
+        if (!enforceTrustedWriteOrigin(request, response)) {
           return true;
         }
 
@@ -958,22 +1123,94 @@ export const createAuthRuntime = (options: CreateAuthRuntimeOptions): AuthRuntim
           return true;
         }
 
+        if (
+          !enforceAuthRateLimit(
+            request,
+            response,
+            pathname,
+            AUTH_RATE_LIMIT_MAX_REQUESTS.emailLogin
+          )
+        ) {
+          return true;
+        }
+
+        if (!enforceTrustedWriteOrigin(request, response)) {
+          return true;
+        }
+
         await handleEmailLogin(request, response);
         return true;
       }
 
       if (pathname === "/api/auth/broker/exchange") {
-        await handleBrokerExchange(request, response, requestUrl);
+        if (request.method !== "POST") {
+          writeJson(response, 405, {
+            ok: false,
+            error: "Method not allowed."
+          });
+          return true;
+        }
+
+        if (
+          !enforceAuthRateLimit(
+            request,
+            response,
+            pathname,
+            AUTH_RATE_LIMIT_MAX_REQUESTS.brokerExchange
+          )
+        ) {
+          return true;
+        }
+
+        if (!enforceTrustedWriteOrigin(request, response)) {
+          return true;
+        }
+
+        await handleBrokerExchange(request, response);
         return true;
       }
 
       if (pathname === "/api/auth/broker/confirm") {
-        await handleBrokerConfirm(request, response, requestUrl);
+        if (request.method !== "POST") {
+          writeJson(response, 405, {
+            ok: false,
+            error: "Method not allowed."
+          });
+          return true;
+        }
+
+        if (
+          !enforceAuthRateLimit(
+            request,
+            response,
+            pathname,
+            AUTH_RATE_LIMIT_MAX_REQUESTS.brokerConfirm
+          )
+        ) {
+          return true;
+        }
+
+        if (!enforceTrustedWriteOrigin(request, response)) {
+          return true;
+        }
+
+        await handleBrokerConfirm(request, response);
         return true;
       }
 
       const startProvider = parseProviderFromPath(pathname, "/api/auth/start/");
       if (startProvider) {
+        if (
+          !enforceAuthRateLimit(
+            request,
+            response,
+            pathname,
+            AUTH_RATE_LIMIT_MAX_REQUESTS.oauthStart
+          )
+        ) {
+          return true;
+        }
+
         await handleStart(startProvider, response, requestUrl);
         return true;
       }

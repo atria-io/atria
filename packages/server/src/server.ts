@@ -34,6 +34,22 @@ import type { SiteTarget } from "./dev/types.js";
 
 const SQLITE_RUNTIME_GUARD_THROTTLE_MS = 1500;
 
+const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = {
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "SAMEORIGIN",
+  "referrer-policy": "same-origin",
+  "cross-origin-resource-policy": "same-origin",
+  "permissions-policy": "camera=(), microphone=(), geolocation=()",
+  "content-security-policy":
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+};
+
+const applyBaseSecurityHeaders = (response: ServerResponse): void => {
+  for (const [headerName, headerValue] of Object.entries(BASE_SECURITY_HEADERS)) {
+    response.setHeader(headerName, headerValue);
+  }
+};
+
 export interface StartDevServerOptions {
   projectRoot: string;
   adminPort?: number;
@@ -197,6 +213,7 @@ export const startDevServer = async (
     response: ServerResponse
   ): Promise<void> => {
     try {
+      applyBaseSecurityHeaders(response);
       const requestUrl = new URL(request.url ?? "/", `http://${DEV_PUBLIC_HOST}:${requestPort}`);
       const healthRequest = isHealthRequest(requestUrl);
       const setupStatusRequest = isSetupStatusRequest(requestUrl);

@@ -1,9 +1,15 @@
 import type { ServerResponse } from "node:http";
 import {
+  DEFAULT_BAD_REQUEST_TEXT,
   DEFAULT_INTERNAL_SERVER_ERROR_TEXT,
   DEFAULT_NOT_FOUND_TEXT,
   MIME_TYPES
 } from "../constants.js";
+
+export const respondWithBadRequest = (response: ServerResponse): void => {
+  response.writeHead(400, { "content-type": MIME_TYPES[".txt"] });
+  response.end(DEFAULT_BAD_REQUEST_TEXT);
+};
 
 export const respondWithDefaultNotFound = (response: ServerResponse): void => {
   response.writeHead(404, { "content-type": MIME_TYPES[".txt"] });

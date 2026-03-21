@@ -1,6 +1,6 @@
 import type { ServerResponse } from "node:http";
 import { MIME_TYPES } from "../constants.js";
-import { respondWithDefaultNotFound } from "../http/errors.js";
+import { respondWithBadRequest, respondWithDefaultNotFound } from "../http/errors.js";
 import { isRootPublicPath } from "./routing.js";
 import {
   respondWithPublicNotFound,
@@ -15,6 +15,14 @@ interface HandlePublicRequestOptions {
   publicDir: string;
   publicOutputPublished: boolean;
 }
+
+const decodePathname = (encodedPathname: string): string | null => {
+  try {
+    return decodeURIComponent(encodedPathname);
+  } catch {
+    return null;
+  }
+};
 
 /**
  * Handles public-site requests served during local development.
@@ -32,7 +40,13 @@ export const handlePublicRequest = async (options: HandlePublicRequestOptions): 
     return;
   }
 
-  const targetFile = await resolveRequestFile(publicDir, decodeURIComponent(requestUrl.pathname), "strict");
+  const decodedPathname = decodePathname(requestUrl.pathname);
+  if (decodedPathname === null) {
+    respondWithBadRequest(response);
+    return;
+  }
+
+  const targetFile = await resolveRequestFile(publicDir, decodedPathname, "strict");
 
   if (targetFile.type === "forbidden") {
     response.writeHead(403, { "content-type": MIME_TYPES[".txt"] });
