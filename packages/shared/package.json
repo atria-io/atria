@@ -1,6 +1,6 @@
 {
   "name": "@atria/shared",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "description": "Shared types and utilities for atria packages",
   "keywords": [
     "atria",

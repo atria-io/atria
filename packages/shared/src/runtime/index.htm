@@ -16,6 +16,7 @@ Modifications to this file are automatically discarded.
     <link rel="stylesheet" href="/static/styles/tokens.css">
     <link rel="stylesheet" href="/static/styles/scheme.css">
     <link rel="stylesheet" href="/static/styles/globals.css">
+    <link rel="stylesheet" href="/static/styles/admin-shell.bundle.css">
     <style id="atria-scheme"></style>
     <script>
       (function () {
@@ -84,10 +85,6 @@ Modifications to this file are automatically discarded.
             colorScheme = "light";
           }
         }
-
-        try {
-          localStorage.setItem("__COLOR_SCHEME_STORAGE_KEY__", colorScheme);
-        } catch (_persistError) {}
 
         if (schemeStyle) {
           schemeStyle.textContent = bootstrapByScheme[colorScheme];

@@ -1,0 +1,28 @@
+.critical-section {
+  min-height: calc(100vh - 68px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.critical-card {
+  width: min(320px, 100%);
+}
+
+.critical-card__title {
+  margin: 0 0 12px;
+  text-align: center;
+}
+
+.critical-card__text {
+  margin: 0 0 12px;
+}
+
+.critical-card__error {
+  margin: 0;
+}
+
+.critical-card__button {
+  width: 100%;
+  min-height: 44px;
+}

@@ -26,6 +26,15 @@ const fileMappings = [
 
 const modulesRoot = path.join(packageRoot, "src", "app", "modules");
 const modulesStylesDistRoot = path.join(packageRoot, "dist", "styles", "modules");
+const kernelRoot = path.join(packageRoot, "src", "app", "kernel");
+const layoutStyleSourceRoot = path.join(kernelRoot, "layout", "style");
+const adminShellBundleSourceFiles = [
+  "admin-shell.css",
+  "admin-shell_header.css",
+  "admin-shell_header-menu.css",
+  "admin-shell_main.css"
+];
+const adminShellBundleDistFile = path.join(packageRoot, "dist", "styles", "admin-shell.bundle.css");
 
 const pathExists = async (targetPath) => {
   try {
@@ -146,18 +155,19 @@ const collectStyleDirs = async (rootDir) => {
 
 const normalizePathForUrl = (value) => value.replace(/\\/g, "/").toLowerCase();
 
-const syncModuleStyles = async () => {
-  await fs.rm(modulesStylesDistRoot, { recursive: true, force: true });
+const syncScopedStyles = async (scopeRoot, scopeStylesDistRoot) => {
+  await fs.rm(scopeStylesDistRoot, { recursive: true, force: true });
 
-  if (!(await pathExists(modulesRoot))) {
+  if (!(await pathExists(scopeRoot))) {
     return;
   }
 
-  const styleDirs = await collectStyleDirs(modulesRoot);
+  const styleDirs = await collectStyleDirs(scopeRoot);
 
   for (const styleDir of styleDirs) {
     const moduleDir = path.dirname(styleDir);
-    const moduleRelativeDir = normalizePathForUrl(path.relative(modulesRoot, moduleDir));
+    const moduleRelativeDir = normalizePathForUrl(path.relative(scopeRoot, moduleDir));
+    const moduleName = path.basename(moduleDir).toLowerCase();
     const entries = await fs.readdir(styleDir, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -167,14 +177,38 @@ const syncModuleStyles = async () => {
 
       const sourceFile = path.join(styleDir, entry.name);
       const targetRelativePath =
-        entry.name === "index.css"
+        entry.name === "index.css" || entry.name.toLowerCase() === `${moduleName}.css`
           ? `${moduleRelativeDir}.css`
           : normalizePathForUrl(path.join(moduleRelativeDir, entry.name));
 
-      const targetFile = path.join(modulesStylesDistRoot, targetRelativePath);
+      const targetFile = path.join(scopeStylesDistRoot, targetRelativePath);
       await writeMinifiedCss(sourceFile, targetFile);
     }
   }
+};
+
+const syncAdminShellBundleStyles = async () => {
+  await fs.rm(adminShellBundleDistFile, { force: true });
+
+  if (!(await pathExists(layoutStyleSourceRoot))) {
+    return;
+  }
+
+  const bundledSourceParts = [];
+
+  for (const sourceFileName of adminShellBundleSourceFiles) {
+    const sourceFile = path.join(layoutStyleSourceRoot, sourceFileName);
+    bundledSourceParts.push(await fs.readFile(sourceFile, "utf-8"));
+  }
+
+  const bundledSource = bundledSourceParts.join("\n");
+  const minified = minifyCss(
+    bundledSource,
+    path.join(layoutStyleSourceRoot, adminShellBundleSourceFiles[0])
+  );
+
+  await fs.mkdir(path.dirname(adminShellBundleDistFile), { recursive: true });
+  await fs.writeFile(adminShellBundleDistFile, minified, "utf-8");
 };
 
 await syncStaticStyles();
@@ -187,4 +221,5 @@ for (const mapping of fileMappings) {
   await syncFile(mapping.sourceFile, mapping.targetFile);
 }
 
-await syncModuleStyles();
+await syncScopedStyles(modulesRoot, modulesStylesDistRoot);
+await syncAdminShellBundleStyles();

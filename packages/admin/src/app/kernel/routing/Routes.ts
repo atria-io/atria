@@ -6,9 +6,9 @@ export interface AdminRoute {
   styleFiles: string[];
 }
 
-const AUTH_STYLE_FILES = ["styles/modules/auth.css"];
+export const AUTH_ROUTE_STYLE_FILES = ["styles/modules/auth.css"];
 const HOME_STYLE_FILES = ["styles/modules/dashboard.css"];
-const AUTH_ROUTE = { subtitleKey: "shell.subtitle.auth", styleFiles: AUTH_STYLE_FILES };
+const AUTH_ROUTE = { subtitleKey: "shell.subtitle.auth", styleFiles: AUTH_ROUTE_STYLE_FILES };
 const HOME_ROUTE: AdminRoute = {
   id: "home",
   subtitleKey: "shell.subtitle.home",

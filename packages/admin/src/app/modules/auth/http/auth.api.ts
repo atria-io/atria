@@ -1,5 +1,5 @@
-import type { ApiClient } from "../../../state/api.client.js";
-import { resolveBasePathUrl } from "../../../state/api.client.js";
+import type { ApiClient } from "../../../../state/api.client.js";
+import { resolveBasePathUrl } from "../../../../state/api.client.js";
 import type {
   AuthMode,
   AuthUser,
@@ -7,7 +7,7 @@ import type {
   ProvidersPayload,
   SessionPayload,
   SetupStatus
-} from "../../../types/auth.js";
+} from "../../../../types/auth.js";
 
 export interface AuthBootstrapState {
   setupStatus: SetupStatus;

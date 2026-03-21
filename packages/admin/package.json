@@ -1,6 +1,6 @@
 {
   "name": "@atria/admin",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "Modular admin runtime UI for atria",
   "keywords": [
     "atria",
@@ -25,7 +25,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json && rollup -c build/app.build.mjs && node build/sync-dist.mjs",
+    "build": "rm -rf dist && tsc -p tsconfig.json && rollup -c build/app-build.mjs && node build/sync-dist.mjs",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },

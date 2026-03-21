@@ -16,7 +16,7 @@ const forceProductionNodeEnv = () => ({
 })
 
 export default {
-  input: 'dist/app/kernel/runtime/main.js',
+  input: 'dist/app/kernel/createRoot.js',
   output: {
     file: 'dist/app.js',
     format: 'esm',

@@ -1,5 +1,7 @@
 import { resolveBasePathUrl } from "../../state/api.client.js";
 
+export const ADMIN_SHELL_BUNDLE_STYLE_FILE = "styles/admin-shell.bundle.css";
+
 const styleLinks = new Map<string, HTMLLinkElement>();
 const loadedLinks = new WeakSet<HTMLLinkElement>();
 const styleHref = (basePath: string, stylePath: string): string =>
