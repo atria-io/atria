@@ -7,7 +7,7 @@ const loadedLinks = new WeakSet<HTMLLinkElement>();
 const styleHref = (basePath: string, stylePath: string): string =>
   resolveBasePathUrl(basePath, `static/${stylePath}`);
 
-const findExistingStyleLinkByHref = (href: string): HTMLLinkElement | null => {
+const findStyleLinkByHref = (href: string): HTMLLinkElement | null => {
   const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'));
 
   for (const link of links) {
@@ -52,7 +52,7 @@ const ensureStyleLink = (basePath: string, stylePath: string): HTMLLinkElement =
     return known;
   }
 
-  const existing = findExistingStyleLinkByHref(href);
+  const existing = findStyleLinkByHref(href);
   if (existing) {
     placeStyleLink(existing);
     existing.removeAttribute("data-atria-admin-style");
