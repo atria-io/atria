@@ -18,6 +18,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./auth-route": {
+      "types": "./dist/auth/shared.auth-route.d.ts",
+      "default": "./dist/auth/shared.auth-route.js"
     }
   },
   "files": [

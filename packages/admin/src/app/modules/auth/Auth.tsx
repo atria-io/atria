@@ -3,7 +3,7 @@ import {
   AUTH_ROUTE_QUERY_KEY,
   parseAuthRouteView,
   type AuthRouteView
-} from "@atria/shared";
+} from "@atria/shared/auth-route";
 import type { TranslateFn } from "../../../i18n/client.js";
 import type { ProviderId } from "../../../types/auth.js";
 import type { RegisterValues } from "./forms/Register.js";
