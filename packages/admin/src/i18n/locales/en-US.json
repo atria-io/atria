@@ -1,60 +1,53 @@
 {
-  "common.brand": "atria Back Office",
-  "shell.language": "Language",
-  "shell.subtitle.auth": "Owner authentication",
-  "shell.subtitle.home": "Workspace",
-  "auth.title.create": "Create owner account",
-  "auth.title.login": "Sign in",
-  "auth.title.consent": "Authorize project",
-  "auth.title.chooseProvider": "Choose login provider",
-  "auth.message.finalizing": "Finalizing sign-in...",
-  "auth.message.createLead": "Create your owner account to continue with OAuth.",
-  "auth.message.loginLead": "Sign in to continue to Back Office.",
-  "auth.message.selectedMethod": "Selected sign-in method: {provider}",
-  "auth.message.chooseMethod": "Choose Email, GitHub, or Google to continue.",
-  "auth.message.createHelp": "Complete setup in this browser to unlock Studio.",
-  "auth.message.loginHelp": "Complete sign-in in this browser to continue.",
-  "auth.message.emailCreateLead": "Use your email and password to create the owner account.",
-  "auth.message.emailLoginLead": "Sign in with your email and password.",
-  "auth.message.brokerFailed": "Could not complete browser sign-in. Please try again.",
-  "auth.message.consentLead": "Confirm this project can use your {provider} account.",
-  "auth.message.consentProject": "Project: {projectId}",
-  "auth.provider.google": "Google",
-  "auth.provider.github": "GitHub",
-  "auth.provider.email": "E-mail / password",
-  "auth.form.orEmail": "or",
-  "auth.form.name.label": "Name",
-  "auth.form.firstName.label": "First name",
-  "auth.form.lastName.label": "Last name",
-  "auth.form.email.label": "Email address",
-  "auth.form.password.label": "Password",
-  "auth.form.confirmPassword.label": "Confirm password",
-  "auth.form.create.submit": "Create account",
-  "auth.form.login.submit": "Sign in",
-  "auth.form.consent.submit": "Authorize project",
-  "auth.form.otherOptions": "← Other sign in options",
-  "auth.form.login.forgot": "Forgot password?",
-  "auth.error.passwordMismatch": "Passwords do not match.",
-  "auth.error.createDefault": "Could not create account. Please try again.",
-  "auth.error.loginDefault": "Invalid email or password.",
-  "auth.error.brokerConsentDefault": "Could not authorize this project.",
-  "runtime.flag.offline.title": "No network connection",
-  "runtime.flag.offline.message": "Network connection is unavailable.",
-  "runtime.flag.unreachable.title": "Back Office server unreachable",
-  "runtime.flag.unreachable.message": "The browser cannot reach the Back Office server.",
-  "runtime.flag.unavailable.title": "Back Office unavailable",
-  "runtime.flag.unavailable.message": "Back Office returned an unavailable status.",
-  "runtime.flag.error.title": "Back Office error",
-  "runtime.flag.retry": "Retry",
-  "dashboard.title": "atria Back Office",
-  "dashboard.message.active": "Runtime is active.",
-  "dashboard.message.signedInAs": "Signed in as: {account}",
-  "dashboard.message.loadedAt": "Loaded at: {date}",
-  "dashboard.user.fallback": "No active session.",
-  "shell.scheme.system": "System",
-  "shell.scheme.dark": "Dark",
-  "shell.scheme.light": "Light",
-  "shell.user.defaultName": "Account",
-  "shell.user.defaultEmail": "No e-mail",
-  "shell.logout": "Logout"
+  "common": {
+    "brand": "atria Back Office"
+  },
+  "dashboard": {
+    "message": {
+      "active": "Runtime is active.",
+      "loadedAt": "Loaded at: {date}",
+      "signedInAs": "Signed in as: {account}"
+    },
+    "title": "atria Back Office",
+    "user": {
+      "fallback": "No active session."
+    }
+  },
+  "runtime": {
+    "flag": {
+      "error": {
+        "title": "Back Office error"
+      },
+      "offline": {
+        "message": "Network connection is unavailable.",
+        "title": "No network connection"
+      },
+      "retry": "Retry",
+      "unavailable": {
+        "message": "Back Office returned an unavailable status.",
+        "title": "Back Office unavailable"
+      },
+      "unreachable": {
+        "message": "The browser cannot reach the Back Office server.",
+        "title": "Back Office server unreachable"
+      }
+    }
+  },
+  "shell": {
+    "language": "Language",
+    "logout": "Logout",
+    "scheme": {
+      "dark": "Dark",
+      "light": "Light",
+      "system": "System"
+    },
+    "subtitle": {
+      "auth": "Owner authentication",
+      "home": "Workspace"
+    },
+    "user": {
+      "defaultEmail": "No e-mail",
+      "defaultName": "Account"
+    }
+  }
 }

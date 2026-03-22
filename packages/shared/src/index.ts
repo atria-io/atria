@@ -25,6 +25,11 @@ export const resolveRuntimeDir = (projectRoot: string): string =>
   path.join(projectRoot, ATRIA_RUNTIME_DIR);
 
 export { DEFAULT_AUTH_BROKER_ORIGIN, parseAuthMethod, type AuthMethod } from "./auth/shared.auth.js";
+export {
+  AUTH_ROUTE_QUERY_KEY,
+  parseAuthRouteView,
+  type AuthRouteView
+} from "./auth/shared.auth-route.js";
 export { parseArgs, type ParsedArgs } from "./client/shared.cli.js";
 export {
   cleanEnvValue,

@@ -1,8 +1,8 @@
 import React from "react";
-import type { TranslateFn } from "../../../i18n/client.js";
-import type { ProviderId } from "../../../types/auth.js";
+import type { TranslateFn } from "../../../../i18n/client.js";
+import type { ProviderId } from "../../../../types/auth.js";
 
-interface AuthBrokerViewProps {
+interface AuthViewBrokerConsentProps {
   provider: ProviderId | null;
   projectId: string | null;
   errorMessage: string | null;
@@ -11,7 +11,7 @@ interface AuthBrokerViewProps {
   t: TranslateFn;
 }
 
-export function AuthBrokerView(props: AuthBrokerViewProps): React.JSX.Element {
+export function AuthViewBrokerConsent(props: AuthViewBrokerConsentProps): React.JSX.Element {
   const { provider, projectId, errorMessage, isSubmitting, onConfirm, t } = props;
 
   const providerLabel =

@@ -17,6 +17,9 @@ importers:
 
   packages/admin:
     dependencies:
+      '@atria/shared':
+        specifier: workspace:*
+        version: link:../shared
       lucide-react:
         specifier: ^0.577.0
         version: 0.577.0(react@18.3.1)

@@ -1,60 +1,53 @@
 {
-  "common.brand": "atria Back Office",
-  "shell.language": "Idioma",
-  "shell.subtitle.auth": "Autenticação do proprietário",
-  "shell.subtitle.home": "Painel",
-  "auth.title.create": "Criar conta do proprietário",
-  "auth.title.login": "Iniciar sessão",
-  "auth.title.consent": "Autorizar projeto",
-  "auth.title.chooseProvider": "Escolher método de login",
-  "auth.message.finalizing": "A concluir autenticação...",
-  "auth.message.createLead": "Cria a tua conta de proprietário para continuar com OAuth.",
-  "auth.message.loginLead": "Inicia sessão para continuar no Back Office.",
-  "auth.message.selectedMethod": "Método selecionado: {provider}",
-  "auth.message.chooseMethod": "Escolhe Email, GitHub ou Google para continuar.",
-  "auth.message.createHelp": "Conclui o setup neste browser para desbloquear o Studio.",
-  "auth.message.loginHelp": "Conclui o login neste browser para continuar.",
-  "auth.message.emailCreateLead": "Usa email e palavra-passe para criar a conta de proprietário.",
-  "auth.message.emailLoginLead": "Inicia sessão com email e palavra-passe.",
-  "auth.message.brokerFailed": "Não foi possível concluir o login no browser. Tenta novamente.",
-  "auth.message.consentLead": "Confirma a autorização deste projeto para usar a tua conta {provider}.",
-  "auth.message.consentProject": "Projeto: {projectId}",
-  "auth.provider.google": "Google",
-  "auth.provider.github": "GitHub",
-  "auth.provider.email": "E-mail / password",
-  "auth.form.orEmail": "ou",
-  "auth.form.name.label": "Nome",
-  "auth.form.firstName.label": "Primeiro nome",
-  "auth.form.lastName.label": "Último nome",
-  "auth.form.email.label": "Email",
-  "auth.form.password.label": "Palavra-passe",
-  "auth.form.confirmPassword.label": "Confirmar palavra-passe",
-  "auth.form.create.submit": "Criar conta",
-  "auth.form.login.submit": "Iniciar sessão",
-  "auth.form.consent.submit": "Autorizar projeto",
-  "auth.form.otherOptions": "← Outras opções de login",
-  "auth.form.login.forgot": "Esqueceste-te da palavra-passe?",
-  "auth.error.passwordMismatch": "As palavras-passe não coincidem.",
-  "auth.error.createDefault": "Não foi possível criar a conta. Tenta novamente.",
-  "auth.error.loginDefault": "Email ou palavra-passe inválidos.",
-  "auth.error.brokerConsentDefault": "Não foi possível autorizar o projeto.",
-  "runtime.flag.offline.title": "Sem ligação de rede",
-  "runtime.flag.offline.message": "A ligação de rede não está disponível.",
-  "runtime.flag.unreachable.title": "Servidor Back Office inacessível",
-  "runtime.flag.unreachable.message": "O browser não consegue contactar o servidor Back Office.",
-  "runtime.flag.unavailable.title": "Back Office indisponível",
-  "runtime.flag.unavailable.message": "O Back Office respondeu com estado indisponível.",
-  "runtime.flag.error.title": "Erro do Back Office",
-  "runtime.flag.retry": "Tentar novamente",
-  "dashboard.title": "atria Back Office",
-  "dashboard.message.active": "Runtime ativo.",
-  "dashboard.message.signedInAs": "Sessão iniciada como: {account}",
-  "dashboard.message.loadedAt": "Carregado em: {date}",
-  "dashboard.user.fallback": "Sem sessão ativa.",
-  "shell.scheme.system": "Sistema",
-  "shell.scheme.dark": "Escuro",
-  "shell.scheme.light": "Claro",
-  "shell.user.defaultName": "Conta",
-  "shell.user.defaultEmail": "Sem e-mail",
-  "shell.logout": "Terminar sessão"
+  "common": {
+    "brand": "atria Back Office"
+  },
+  "dashboard": {
+    "message": {
+      "active": "Runtime ativo.",
+      "loadedAt": "Carregado em: {date}",
+      "signedInAs": "Sessão iniciada como: {account}"
+    },
+    "title": "atria Back Office",
+    "user": {
+      "fallback": "Sem sessão ativa."
+    }
+  },
+  "runtime": {
+    "flag": {
+      "error": {
+        "title": "Erro do Back Office"
+      },
+      "offline": {
+        "message": "A ligação de rede não está disponível.",
+        "title": "Sem ligação de rede"
+      },
+      "retry": "Tentar novamente",
+      "unavailable": {
+        "message": "O Back Office respondeu com estado indisponível.",
+        "title": "Back Office indisponível"
+      },
+      "unreachable": {
+        "message": "O browser não consegue contactar o servidor Back Office.",
+        "title": "Servidor Back Office inacessível"
+      }
+    }
+  },
+  "shell": {
+    "language": "Idioma",
+    "logout": "Terminar sessão",
+    "scheme": {
+      "dark": "Escuro",
+      "light": "Claro",
+      "system": "Sistema"
+    },
+    "subtitle": {
+      "auth": "Autenticação do proprietário",
+      "home": "Painel"
+    },
+    "user": {
+      "defaultEmail": "Sem e-mail",
+      "defaultName": "Conta"
+    }
+  }
 }

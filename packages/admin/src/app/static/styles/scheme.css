@@ -1,10 +1,10 @@
 [data-scheme="dark"] {
-  --primary: #131316;
-  --secondary: #2a2d3f;
   --text: #f3f4f6;
+  --text-hover: #f3f4f6;
   --text-muted: #9ca3af;
   --accent: #005fcc;
-  --link: #aac1ff;
+
+  --link: #aaadeb;
 
   --color-border: #24252f;
 
@@ -13,8 +13,9 @@
 
   --button: #e4e5e9;
   --button-hover: #eeeef2;
-  --button-muted: #181821;
-  --button-hover-muted: #21212c;
+  --button-muted: #181820;
+  --button-hover-muted: #21212a;
+
   --button-accent: #005fcc;
   --button-hover-accent: #0071ff;
 
@@ -32,16 +33,25 @@
 }
 
 [data-scheme="light"] {
-  --primary: #131316;
-  --secondary: #2a2d3f;
-  --text: #131316;
-  --text-muted: #9ca3af;
+  --text: #252837;
+  --text-hover: #252837;
+  --text-muted: #515870;
   --accent: #e4e5e9;
 
-  --color-border: #2a2d3f;
+  --link: #4a46e0;
+
+  --color-border: #e3e4e8;
 
   --background: #ffffff;
   --foreground: #131316;
+
+  --button: #252837;
+  --button-hover: #eeeef2;
+  --button-muted: #f6f6f8;
+  --button-hover-muted: #e4e5e9;
+
+  --button-accent: #005fcc;
+  --button-hover-accent: #0071ff;
 
   --error: #f97373;
   --valid: #34d399;

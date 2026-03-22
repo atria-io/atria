@@ -9,7 +9,14 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const packagesDir = path.join(rootDir, "packages");
 const workspaceDir = path.join(rootDir, "workspace");
 const ADMIN_DIST_DIR = path.join(packagesDir, "admin", "dist");
-const BROWSER_RELOAD_MODE = (process.env.ATRIA_BROWSER_RELOAD ?? "off").toLowerCase();
+/**
+ * Controls browser auto-reload after dev restarts.
+ * Use `off` or `false` in `ATRIA_BROWSER_RELOAD` to disable it.
+ */
+const BROWSER_RELOAD_MODE = (() => {
+  const mode = (process.env.ATRIA_BROWSER_RELOAD ?? "cmdr").toLowerCase();
+  return mode === "false" ? "off" : mode;
+})();
 const BROWSER_RELOAD_DELAY_MS = 700;
 const RESTART_DEBOUNCE_MS = 350;
 const WATCH_DEBOUNCE_MS = 200;

@@ -1,6 +1,6 @@
 import React from "react";
 import { readAuthQueryState } from "./modules/auth/http/auth.query.js";
-import { AuthGateView } from "./modules/auth/AuthGateView.js";
+import { Auth } from "./modules/auth/Auth.js";
 import { useAuthActions } from "./modules/auth/hooks/useAuthActions.js";
 import { useAuthBootstrap } from "./modules/auth/hooks/useAuthBootstrap.js";
 import { useOAuthRedirect } from "./modules/auth/hooks/useOAuthRedirect.js";
@@ -19,6 +19,8 @@ const SERVER_HEARTBEAT_DELAY_MS = 2_000;
 const SERVER_HEARTBEAT_TIMEOUT_MS = 1_500;
 const SERVER_HEARTBEAT_PATH = "/api/setup/status";
 const RUNTIME_RECOVERY_FADE_MS = 180;
+const DEFAULT_DOCUMENT_TITLE = "Atria";
+const CREATE_DOCUMENT_TITLE = "Create";
 
 export interface AdminAppProps {
   basePath: string;
@@ -191,6 +193,13 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
 
   const isCritical = runtimeFlagReason !== null || fatalError !== null;
 
+  React.useEffect(() => {
+    document.title =
+      needsAuthentication && authMode === "create"
+        ? CREATE_DOCUMENT_TITLE
+        : DEFAULT_DOCUMENT_TITLE;
+  }, [authMode, needsAuthentication]);
+
   if (!localeBundle || !locale) {
     return <section className="auth-screen" aria-hidden="true" />;
   }
@@ -221,7 +230,7 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     );
   } else if (needsAuthentication) {
     content = (
-      <AuthGateView
+      <Auth
         isLoading={isLoading}
         isFinalizing={isFinalizing}
         hasPendingBrokerConsent={hasPendingBrokerConsent}

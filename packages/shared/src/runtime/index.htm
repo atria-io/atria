@@ -10,7 +10,7 @@ Modifications to this file are automatically discarded.
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <meta name="referrer" content="same-origin" />
-  <title>Atria Studio</title>
+  <title>Atria</title>
   <link rel="icon" href="static/favicon.ico" />
   <link rel="icon" href="static/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="static/favicon.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
@@ -37,7 +37,9 @@ Modifications to this file are automatically discarded.
       window.__atria__ = atriaGlobal;
 
       var colorScheme = null;
+      var colorSchemePreference = "system";
       var schemeStyle = document.getElementById("atria-scheme");
+      var systemSchemeMediaQuery = null;
       var bootstrapByScheme = {
         dark:
           ":root {" +
@@ -59,30 +61,56 @@ Modifications to this file are automatically discarded.
           "}"
       };
 
+      var applyScheme = function (nextScheme) {
+        if (nextScheme !== "light" && nextScheme !== "dark") {
+          return;
+        }
+
+        colorScheme = nextScheme;
+
+        if (schemeStyle) {
+          schemeStyle.textContent = bootstrapByScheme[nextScheme];
+        }
+
+        window.__ATRIA_INITIAL_SCHEME = nextScheme;
+      };
+
       try {
         var storedScheme = localStorage.getItem("__COLOR_SCHEME_STORAGE_KEY__");
-        if (storedScheme === "light" || storedScheme === "dark") {
-          colorScheme = storedScheme;
+        if (storedScheme === "light" || storedScheme === "dark" || storedScheme === "system") {
+          colorSchemePreference = storedScheme;
         }
       } catch (_storageError) { }
 
-      if (!colorScheme) {
+      var resolveSystemScheme = function () {
         try {
-          colorScheme =
-            window.matchMedia &&
-              window.matchMedia("(prefers-color-scheme: dark)").matches
-              ? "dark"
-              : "light";
-        } catch (_mediaQueryError) {
-          colorScheme = "light";
+          if (systemSchemeMediaQuery === null && window.matchMedia) {
+            systemSchemeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+          }
+        } catch (_mediaQueryInitError) {
+          systemSchemeMediaQuery = null;
+        }
+
+        return systemSchemeMediaQuery && systemSchemeMediaQuery.matches ? "dark" : "light";
+      };
+
+      if (colorSchemePreference === "light" || colorSchemePreference === "dark") {
+        applyScheme(colorSchemePreference);
+      } else {
+        applyScheme(resolveSystemScheme());
+
+        if (systemSchemeMediaQuery) {
+          var onSystemSchemeChange = function (event) {
+            applyScheme(event.matches ? "dark" : "light");
+          };
+
+          if (typeof systemSchemeMediaQuery.addEventListener === "function") {
+            systemSchemeMediaQuery.addEventListener("change", onSystemSchemeChange);
+          } else if (typeof systemSchemeMediaQuery.addListener === "function") {
+            systemSchemeMediaQuery.addListener(onSystemSchemeChange);
+          }
         }
       }
-
-      if (schemeStyle) {
-        schemeStyle.textContent = bootstrapByScheme[colorScheme];
-      }
-
-      window.__ATRIA_INITIAL_SCHEME = colorScheme;
     })();
   </script>
   <style>
