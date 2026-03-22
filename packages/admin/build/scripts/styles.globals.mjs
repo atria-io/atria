@@ -9,7 +9,7 @@ const listLayoutStyleFiles = async (layoutStyleSourceRoot) =>
 
 /**
  * Produces the runtime `globals.css` bundle consumed by the host HTML.
- * Order is intentional: base globals, shell layout CSS, then critical CSS overrides.
+ * Order is intentional: base globals, shell layout, then critical overrides.
  *
  * @param {{
  *  globalsStyleSourceFile: string;

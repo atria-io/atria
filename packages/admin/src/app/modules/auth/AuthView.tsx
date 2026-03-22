@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import type { TranslateFn } from "../../../i18n/client.js";
 import type { ProviderId } from "../../../types/auth.js";
 import { OAuthProviderButton, type OAuthProvider } from "./components/OAuthProviderButton.js";
-import { LoginForm, type LoginValues } from "./forms/login.js";
-import { RegisterForm, type RegisterValues } from "./forms/register.js";
+import { LoginForm, type LoginValues } from "./forms/Login.js";
+import { RegisterForm, type RegisterValues } from "./forms/Register.js";
 
 interface AuthViewProps {
   mode: "login" | "create";

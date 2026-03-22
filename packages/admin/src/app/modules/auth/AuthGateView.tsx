@@ -1,8 +1,8 @@
 import React from "react";
 import type { TranslateFn } from "../../../i18n/client.js";
 import type { ProviderId } from "../../../types/auth.js";
-import type { RegisterValues } from "./forms/register.js";
-import type { LoginValues } from "./forms/login.js";
+import type { RegisterValues } from "./forms/Register.js";
+import type { LoginValues } from "./forms/Login.js";
 import { AuthView } from "./AuthView.js";
 import { AuthBrokerView } from "./AuthBrokerView.js";
 

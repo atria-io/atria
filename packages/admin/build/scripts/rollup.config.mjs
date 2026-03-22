@@ -3,9 +3,11 @@ import resolve from '@rollup/plugin-node-resolve'
 import terser from '@rollup/plugin-terser'
 
 /**
- * Rewrites NODE_ENV checks to production literals so dependencies can be fully minified.
+ * Rewrites NODE_ENV checks to production literals
+ * so dependencies can be fully minified.
  *
- * @returns {{name: string; transform: (code: string) => {code: string; map: null} | null}}
+ * @returns {{name: string; transform: (code: string) =>
+ *  {code: string; map: null} | null}}
  */
 const forceProductionNodeEnv = () => ({
   name: 'force-production-node-env',

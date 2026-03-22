@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { resolveBasePathUrl } from "../../../../state/api.client.js";
 import type { ProviderId } from "../../../../types/auth.js";
-import type { RegisterValues } from "../forms/register.js";
-import type { LoginValues } from "../forms/login.js";
+import type { RegisterValues } from "../forms/Register.js";
+import type { LoginValues } from "../forms/Login.js";
 import {
   confirmBrokerConsent,
   loginWithEmail,
