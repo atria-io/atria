@@ -66,10 +66,13 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
 
   const needsAuthentication = setupStatus.pending || !session.authenticated;
   const authMode = setupStatus.pending ? "create" : "login";
+  const flowRouteId = needsAuthentication ? authMode : route.id;
   const nonCriticalStyleFiles = needsAuthentication ? AUTH_ROUTE_STYLE_FILES : route.styleFiles;
   const previousNonCriticalStyleFilesRef = React.useRef<string[]>(nonCriticalStyleFiles);
   const [isRecoveringFromRuntimeCritical, setIsRecoveringFromRuntimeCritical] = React.useState(false);
+  const [isRouteTransitioning, setIsRouteTransitioning] = React.useState(false);
   const hadRuntimeCriticalRef = React.useRef(false);
+  const previousFlowRouteIdRef = React.useRef(flowRouteId);
   const hasPendingBrokerConsent =
     authMode === "create" &&
     queryState.brokerConsentToken !== null &&
@@ -123,6 +126,28 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     };
   }, [runtimeFlagReason]);
 
+  React.useEffect(() => {
+    if (runtimeFlagReason !== null || fatalError !== null) {
+      previousFlowRouteIdRef.current = flowRouteId;
+      return;
+    }
+
+    if (previousFlowRouteIdRef.current === flowRouteId) {
+      return;
+    }
+
+    previousFlowRouteIdRef.current = flowRouteId;
+    setIsRouteTransitioning(false);
+
+    const frameId = window.requestAnimationFrame(() => {
+      setIsRouteTransitioning(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [fatalError, flowRouteId, runtimeFlagReason]);
+
   const activeStyleFiles = React.useMemo(
     () => (runtimeFlagReason || fatalError
       ? previousNonCriticalStyleFilesRef.current
@@ -174,6 +199,13 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   const showHeader = isCritical || !needsAuthentication;
   const onLogout =
     session.authenticated && (isCritical || !needsAuthentication) ? handleLogout : undefined;
+  const contentClassName = [
+    "admin-shell__content",
+    isRecoveringFromRuntimeCritical ? "admin-shell__content--recovering" : "",
+    isRouteTransitioning ? "admin-shell__content--route-transition" : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   let content: React.JSX.Element;
   if (isCritical) {
@@ -225,11 +257,16 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
       onLogout={onLogout}
     >
       <div
-        className={
-          isRecoveringFromRuntimeCritical
-            ? "admin-shell__content admin-shell__content--recovering"
-            : "admin-shell__content"
-        }
+        className={contentClassName}
+        onAnimationEnd={(event) => {
+          if (event.target !== event.currentTarget) {
+            return;
+          }
+
+          if (event.animationName === "admin-shell-route-enter") {
+            setIsRouteTransitioning(false);
+          }
+        }}
       >
         {content}
       </div>

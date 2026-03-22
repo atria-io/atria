@@ -22,7 +22,7 @@
   "auth.provider.google": "Google",
   "auth.provider.github": "GitHub",
   "auth.provider.email": "E-mail / password",
-  "auth.form.orEmail": "or continue with email",
+  "auth.form.orEmail": "or",
   "auth.form.name.label": "Name",
   "auth.form.firstName.label": "First name",
   "auth.form.lastName.label": "Last name",

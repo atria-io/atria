@@ -5,11 +5,16 @@
 }
 
 .admin-shell__content {
+  height: 100%;
   opacity: 1;
 }
 
 .admin-shell__content--recovering {
   animation: admin-shell-recover var(--duration-base) var(--easing);
+}
+
+.admin-shell__content--route-transition {
+  animation: admin-shell-route-enter var(--duration-base) var(--easing);
 }
 
 @keyframes admin-shell-recover {
@@ -19,5 +24,17 @@
 
   to {
     opacity: 1;
+  }
+}
+
+@keyframes admin-shell-route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

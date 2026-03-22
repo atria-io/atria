@@ -20,6 +20,7 @@ interface AuthViewProps {
 }
 
 const oauthProviders: OAuthProvider[] = ["google", "github"];
+type FooterView = "auth" | "privacy" | "help";
 
 export function AuthView(props: AuthViewProps): React.JSX.Element {
   const {
@@ -37,6 +38,7 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
   } = props;
 
   const [showEmailForm, setShowEmailForm] = useState(selectedProvider === "email");
+  const [footerView, setFooterView] = useState<FooterView>("auth");
 
   useEffect(() => {
     if (selectedProvider === "email") {
@@ -65,68 +67,101 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
           </div>
         </div>
         <div className="auth-card__content">
-          {showEmailForm ? (
-            <>
-              <p className="auth-card__text">
-                {t(isLogin ? "auth.message.emailLoginLead" : "auth.message.emailCreateLead")}
-              </p>
+          {footerView === "auth"
+            ? (showEmailForm ? (
+              <>
+                <p className="auth-card__text">
+                  {t(isLogin ? "auth.message.emailLoginLead" : "auth.message.emailCreateLead")}
+                </p>
 
-              {isLogin ? (
-                <LoginForm disabled={isBusy} errorMessage={formError} onSubmit={onLogin} t={t} />
-              ) : (
-                <RegisterForm
-                  disabled={isBusy}
-                  errorMessage={formError}
-                  onSubmit={onRegister}
-                  t={t}
-                />
-              )}
-
-              <button
-                type="button"
-                className="auth-card__switch"
-                disabled={isBusy}
-                onClick={() => setShowEmailForm(false)}
-              >
-                {t("auth.form.otherOptions")}
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="auth-card__actions">
-                {oauthProviders.map((provider) => (
-                  <OAuthProviderButton
-                    key={provider}
-                    provider={provider}
-                    disabled={isBusy || !providers.includes(provider)}
-                    isLoading={isBusy && selectedProvider === provider}
-                    onSelect={onProviderSelect}
+                {isLogin ? (
+                  <LoginForm disabled={isBusy} errorMessage={formError} onSubmit={onLogin} t={t} />
+                ) : (
+                  <RegisterForm
+                    disabled={isBusy}
+                    errorMessage={formError}
+                    onSubmit={onRegister}
                     t={t}
                   />
-                ))}
-              </div>
+                )}
 
-              <div className="auth-card__divider-container">
-                <p className="auth-card__divider">{t("auth.form.orEmail")}</p>
-              </div>
-
-              <div className="auth-card__actions">
                 <button
                   type="button"
-                  className="auth-provider-button auth-provider-button--plain"
-                  disabled={isBusy || !providers.includes("email")}
-                  onClick={() => {
-                    setShowEmailForm(true);
-                    onProviderSelect("email");
-                  }}
+                  className="auth-card__switch"
+                  disabled={isBusy}
+                  onClick={() => setShowEmailForm(false)}
                 >
-                  <span>{t("auth.provider.email")}</span>
+                  {t("auth.form.otherOptions")}
                 </button>
-              </div>
+              </>
+            ) : (
+              <>
+                <div className="auth-card__actions">
+                  {oauthProviders.map((provider) => (
+                    <OAuthProviderButton
+                      key={provider}
+                      provider={provider}
+                      disabled={isBusy || !providers.includes(provider)}
+                      isLoading={isBusy && selectedProvider === provider}
+                      onSelect={onProviderSelect}
+                      t={t}
+                    />
+                  ))}
+                </div>
 
-              {brokerError ? <p className="auth-card__error">{t("auth.message.brokerFailed")}</p> : null}
-            </>
-          )}
+                <div className="auth-card__divider">
+                  <span className="auth-card__divider-text">{t("auth.form.orEmail")}</span>
+                </div>
+
+                <div className="auth-card__actions">
+                  <button
+                    type="button"
+                    className="auth-provider-button auth-provider-button--plain"
+                    disabled={isBusy || !providers.includes("email")}
+                    onClick={() => {
+                      setShowEmailForm(true);
+                      onProviderSelect("email");
+                    }}
+                  >
+                    <span>{t("auth.provider.email")}</span>
+                  </button>
+                </div>
+
+                {brokerError ? <p className="auth-card__error">{t("auth.message.brokerFailed")}</p> : null}
+              </>
+            ))
+            : (
+              <>
+                <p className="auth-card__text">
+                  {footerView === "privacy"
+                    ? "Privacy page placeholder."
+                    : "Help page placeholder."}
+                </p>
+                <button
+                  type="button"
+                  className="auth-card__switch"
+                  onClick={() => setFooterView("auth")}
+                >
+                  Back
+                </button>
+              </>
+            )}
+        </div>
+        <div className="auth-card__footer">
+          <button
+            type="button"
+            className="auth-card__footer-link"
+            onClick={() => setFooterView("privacy")}
+          >
+            <span>Privacy</span>
+          </button>
+          <button
+            type="button"
+            className="auth-card__footer-link"
+            onClick={() => setFooterView("help")}
+          >
+            <span>Need help -&gt;</span>
+          </button>
         </div>
       </div>
     </div>

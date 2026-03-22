@@ -68,6 +68,7 @@ select {
 [type=submit],
 button {
   width: auto;
+  appearance: button;
   -webkit-appearance: button;
   cursor: pointer;
 }

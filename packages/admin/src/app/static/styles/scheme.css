@@ -4,26 +4,25 @@
   --text: #f3f4f6;
   --text-muted: #9ca3af;
   --accent: #005fcc;
+  --link: #aac1ff;
 
-  --color-border: #282a34;
+  --color-border: #24252f;
 
   --background: #131319;
   --foreground: #f3f4f6;
 
   --button: #e4e5e9;
   --button-hover: #eeeef2;
-
-  --button-muted: #191a24;
-  --button-hover-muted: #21232f;
-
-  --button-y: ;
-  --button-y-hover: ;
+  --button-muted: #181821;
+  --button-hover-muted: #21212c;
+  --button-accent: #005fcc;
+  --button-hover-accent: #0071ff;
 
   --error: #f97373;
   --error-bg: #24161b;
   --valid: #34d399;
 
-  --boot-track: #282a34;
+  --boot-track: #24252f;
   --boot-spinner: #8a8a8a;
 
   --shadow: #00000033;

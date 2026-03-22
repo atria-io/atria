@@ -227,6 +227,13 @@ const restorePlaceholders = (source, placeholders) => {
   return restored;
 };
 
+/**
+ * Preserves quoted strings and protected function calls while compacting
+ * whitespace, selectors, and declaration tokens in CSS content.
+ *
+ * @param {string} source Raw CSS source content.
+ * @returns {string} Minified CSS content.
+ */
 export const minifyCss = (source) => {
   if (source === "") {
     return "";
@@ -255,6 +262,14 @@ export const minifyCss = (source) => {
   return restorePlaceholders(withFunctionsRestored, stringPlaceholders);
 };
 
+/**
+ * Owns the CSS minification file boundary from source read to target write.
+ *
+ * @param {string} sourceFile Source CSS path.
+ * @param {string} targetFile Output CSS path.
+ * @returns {Promise<void>}
+ * @throws {Error} Propagates file-system failures from read, mkdir, or write.
+ */
 export const writeMinifiedCss = async (sourceFile, targetFile) => {
   const source = await fs.readFile(sourceFile, "utf-8");
   const minified = minifyCss(source);
