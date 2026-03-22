@@ -20,7 +20,7 @@ const SERVER_HEARTBEAT_TIMEOUT_MS = 1_500;
 const SERVER_HEARTBEAT_PATH = "/api/setup/status";
 const RUNTIME_RECOVERY_FADE_MS = 180;
 const DEFAULT_DOCUMENT_TITLE = "Atria";
-const CREATE_DOCUMENT_TITLE = "Create";
+const CREATE_DOCUMENT_TITLE = "Atria - Create";
 
 export interface AdminAppProps {
   basePath: string;

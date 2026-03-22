@@ -21,18 +21,25 @@ export const useRuntimeHealth = (options: UseRuntimeHealthOptions): CriticalStat
   useEffect(() => {
     let cancelled = false;
     let timerId: number | null = null;
-    let timeoutId: number | null = null;
-    let abortController: AbortController | null = null;
+    let activeController: AbortController | null = null;
+    let activeRequestId = 0;
+
+    const isAbortError = (error: unknown): boolean => {
+      if (error instanceof DOMException) {
+        return error.name === "AbortError";
+      }
+
+      if (typeof error !== "object" || error === null || !("name" in error)) {
+        return false;
+      }
+
+      return (error as { name?: unknown }).name === "AbortError";
+    };
 
     const clearTimers = (): void => {
       if (timerId !== null) {
         window.clearTimeout(timerId);
         timerId = null;
-      }
-
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-        timeoutId = null;
       }
     };
 
@@ -57,32 +64,44 @@ export const useRuntimeHealth = (options: UseRuntimeHealthOptions): CriticalStat
         return;
       }
 
-      abortController = new AbortController();
-      timeoutId = window.setTimeout(() => {
-        abortController?.abort();
+      if (activeController) {
+        activeController.abort();
+      }
+
+      const requestId = activeRequestId + 1;
+      activeRequestId = requestId;
+      const requestController = new AbortController();
+      activeController = requestController;
+      let didTimeout = false;
+      const timeoutId = window.setTimeout(() => {
+        didTimeout = true;
+        requestController.abort();
       }, heartbeatTimeoutMs);
 
       try {
         const response = await fetch(resolveBasePathUrl(basePath, serverHeartbeatPath), {
           credentials: "include",
           cache: "no-store",
-          signal: abortController.signal
+          signal: requestController.signal
         });
 
-        setRuntimeFlagReason(response.ok ? null : "server_unavailable");
-      } catch {
-        if (!cancelled) {
-          setRuntimeFlagReason("server_unreachable");
+        if (!cancelled && requestId === activeRequestId) {
+          setRuntimeFlagReason(response.ok ? null : "server_unavailable");
+        }
+      } catch (error) {
+        if (!cancelled && requestId === activeRequestId) {
+          if (didTimeout || !isAbortError(error)) {
+            setRuntimeFlagReason("server_unreachable");
+          }
         }
       } finally {
-        abortController = null;
-        if (timeoutId !== null) {
-          window.clearTimeout(timeoutId);
-          timeoutId = null;
+        window.clearTimeout(timeoutId);
+        if (activeController === requestController) {
+          activeController = null;
         }
       }
 
-      if (!cancelled) {
+      if (!cancelled && requestId === activeRequestId) {
         scheduleHeartbeat(heartbeatDelayMs);
       }
     };
@@ -126,8 +145,8 @@ export const useRuntimeHealth = (options: UseRuntimeHealthOptions): CriticalStat
     return () => {
       cancelled = true;
       clearTimers();
-      if (abortController) {
-        abortController.abort();
+      if (activeController) {
+        activeController.abort();
       }
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);

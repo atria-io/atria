@@ -11,7 +11,7 @@
     "publish:dry-run": "corepack pnpm -r --filter \"./packages/*\" publish --access public --dry-run --no-git-checks",
     "publish:public": "corepack pnpm -r --filter \"./packages/*\" publish --access public --no-git-checks",
     "publish:public:otp": "corepack pnpm -r --filter \"./packages/*\" publish --access public --no-git-checks --otp $NPM_OTP",
-    "watch:live": "node ./watch.mjs"
+    "watch:live": "node ./watch.live.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",

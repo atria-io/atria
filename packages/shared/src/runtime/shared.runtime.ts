@@ -14,8 +14,10 @@ import { mountAdminApp } from "/static/app.js";
 
 const rootElement = document.getElementById("atria");
 const bootElement = document.getElementById("atria-boot");
-const BOOT_REVEAL_DELAY_MS = 150;
+const BOOT_REVEAL_DELAY_MS = 300;
+
 let hasRevealedApp = false;
+
 const bootRevealTimeoutId = window.setTimeout(() => {
   if (!hasRevealedApp && bootElement) {
     bootElement.classList.add("is-visible");

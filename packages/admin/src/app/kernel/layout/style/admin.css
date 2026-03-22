@@ -2,6 +2,7 @@
 .admin-shell__main {
   height: 100%;
   color: var(--text);
+  background: var(--background);
 }
 
 .admin-shell__content {
@@ -17,6 +18,18 @@
   animation: admin-shell-route-enter var(--duration-base) var(--easing);
 }
 
+.card__button {
+
+}
+
+.card__button--primary {
+
+}
+
+
+
+/** Card route transition
+ */
 @keyframes admin-shell-recover {
   from {
     opacity: 0;
@@ -28,6 +41,18 @@
 }
 
 @keyframes admin-shell-route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-route-transition {
   from {
     opacity: 0;
     transform: translateY(0.25rem);
