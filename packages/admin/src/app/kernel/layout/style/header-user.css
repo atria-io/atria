@@ -3,8 +3,8 @@
 }
 
 .admin-shell__avatar-button {
-  width: 44px;
-  height: 44px;
+  width: 28px;
+  height: 26px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -15,8 +15,8 @@
 }
 
 .admin-shell__avatar {
-  width: 36px;
-  height: 36px;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
   border-radius: 999px;

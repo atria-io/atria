@@ -7,7 +7,9 @@ const styleHref = (basePath: string, stylePath: string): string =>
   resolveBasePathUrl(basePath, `static/${stylePath}`);
 
 const findStyleLinkByHref = (href: string): HTMLLinkElement | null => {
-  const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'));
+  const links = Array.from(
+    document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')
+  );
 
   for (const link of links) {
     const currentHref = link.getAttribute("href");
@@ -35,7 +37,10 @@ const placeStyleLink = (link: HTMLLinkElement): void => {
   head.appendChild(link);
 };
 
-const ensureStyleLink = (basePath: string, stylePath: string): HTMLLinkElement => {
+const ensureStyleLink = (
+  basePath: string,
+  stylePath: string
+): HTMLLinkElement => {
   const href = styleHref(basePath, stylePath);
   const known = styleLinks.get(stylePath);
 
@@ -106,8 +111,10 @@ const waitForStyleLink = (link: HTMLLinkElement): Promise<void> => {
 };
 
 /**
- * Applies route-scoped styles atomically: mounts required links, removes stale ones and waits for load/error.
- * `latestApplyRequestId` guards against race conditions when navigation changes style sets quickly.
+ * Applies route-scoped styles atomically: mounts required links, removes
+ * stale ones and waits for load/error.
+ * `latestApplyRequestId` guards against race conditions when navigation
+ * changes style sets quickly.
  *
  * @param {string} basePath
  * @param {string[]} moduleStyleFiles

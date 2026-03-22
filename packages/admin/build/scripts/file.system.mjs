@@ -2,7 +2,8 @@ import path from "node:path";
 import { promises as fs } from "node:fs";
 
 /**
- * Filesystem existence check used by build steps that must tolerate optional sources.
+ * Filesystem existence check used by build steps
+ * that must tolerate optional sources.
  *
  * @param {string} targetPath
  * @returns {Promise<boolean>}
