@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
-import { randomBytes } from "node:crypto";
 import { promises as fs } from "node:fs";
 import type { Dirent } from "node:fs";
 import path from "node:path";
@@ -12,8 +11,10 @@ import {
   STUDIO_CONTENT_DIR,
   STUDIO_THEME_DIR,
   createEnvExampleFile,
+  createProjectIdentifier,
   ensureDirectory,
   parseArgs,
+  terminal,
   type ParsedArgs,
   runtimeAppJs,
   runtimeIndexHtml,
@@ -48,20 +49,6 @@ const STUDIO_PACKAGE_NAME = "studio";
 const DEFAULT_PROJECT_NAME = "my-project";
 const DEFAULT_PROJECT_NAME_LABEL = "My Studio Project";
 const PROJECT_DISCOVERY_IGNORED_DIRS = new Set(["node_modules", ".git", ".pnpm-store"]);
-
-const supportsColor = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR;
-
-const paint = (openCode: number, text: string): string =>
-  supportsColor ? `\u001b[${openCode}m${text}\u001b[0m` : text;
-
-const terminal = {
-  blue: (text: string): string => paint(34, text),
-  cyan: (text: string): string => paint(36, text),
-  green: (text: string): string => paint(32, text),
-  red: (text: string): string => paint(31, text),
-  dim: (text: string): string => paint(90, text),
-  bold: (text: string): string => paint(1, text)
-};
 
 const done = (text: string): string => `${terminal.green("✔")} ${text}`;
 const doneField = (label: string, value: string): string =>
@@ -361,11 +348,6 @@ const normalizeProjectName = (value: string): string => {
     .replace(/^-+|-+$/g, "");
 
   return normalized.length > 0 ? normalized : DEFAULT_PROJECT_NAME;
-};
-
-const createProjectIdentifier = (): string => {
-  const raw = randomBytes(6).toString("base64url").replace(/[^a-z0-9]/gi, "").toLowerCase();
-  return (raw + "00000000").slice(0, 8);
 };
 
 const formatScaffoldedAt = (baseDir: string, targetDir: string): string => {

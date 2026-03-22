@@ -1,12 +1,11 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { parseAuthMethod } from "@atria/shared";
+import { parseAuthMethod, type OwnerSetupState } from "@atria/shared";
 import type { AuthRuntime } from "../../auth/runtime.js";
 import { MIME_TYPES } from "../constants.js";
 import { buildAuthLocation } from "./routing.js";
 import { respondWithBadRequest, respondWithDefaultNotFound } from "../http/errors.js";
 import { resolveRequestFile } from "../static/resolver.js";
 import { sendFileResponse } from "../static/sender.js";
-import type { OwnerSetupState } from "../setup/types.js";
 import { resolveAdminAssetPath } from "./assets.js";
 import { handleI18nRequest } from "./i18n.js";
 

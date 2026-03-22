@@ -13,14 +13,10 @@ import {
   parseAuthMethod,
   pathExists,
   type AuthMethod,
+  type OwnerSetupState,
   updateEnvFile
 } from "@atria/shared";
 import { terminal } from "../utils/terminal.js";
-
-interface OwnerSetupState {
-  pending: boolean;
-  preferredAuthMethod: AuthMethod | null;
-}
 
 interface StudioRequestResult {
   statusCode: number;

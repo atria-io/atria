@@ -2,7 +2,7 @@ import type { ServerResponse } from "node:http";
 import type { SiteTarget } from "../types.js";
 import { MIME_TYPES } from "../constants.js";
 import { respondWithDefaultNotFound } from "../http/errors.js";
-import type { OwnerSetupState } from "./types.js";
+import type { OwnerSetupState } from "@atria/shared";
 
 const SETUP_STATUS_PATH = "/api/setup/status";
 const respondJson = (response: ServerResponse, body: unknown): void => {

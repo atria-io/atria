@@ -1,6 +1,6 @@
 export interface ApiClient {
-  getJson<T>(path: string): Promise<T | null>;
-  postJson<T>(path: string, body?: unknown): Promise<T | null>;
+  getJson<T>(path: string): Promise<T>;
+  postJson<T>(path: string, body?: unknown): Promise<T>;
 }
 
 /**
@@ -16,41 +16,38 @@ export const resolveBasePathUrl = (basePath: string, path: string): string =>
 
 /**
  * Fetch boundary for JSON endpoints used by the admin app.
- * Any transport error or non-2xx response is normalized to `null` so UI flow can branch explicitly.
+ * Network errors propagate naturally. Non-2xx responses throw with status and body.
  *
  * @param {string} url
  * @param {RequestInit} [init]
- * @returns {Promise<T | null>}
+ * @returns {Promise<T>}
  */
-const requestJson = async <T,>(url: string, init?: RequestInit): Promise<T | null> => {
-  try {
-    const response = await fetch(url, {
-      credentials: "include",
-      ...(init ?? {})
-    });
+const requestJson = async <T,>(url: string, init?: RequestInit): Promise<T> => {
+  const response = await fetch(url, {
+    credentials: "include",
+    ...(init ?? {})
+  });
 
-    if (!response.ok) {
-      return null;
-    }
-
-    return (await response.json()) as T;
-  } catch {
-    return null;
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`HTTP ${response.status}: ${text || response.statusText}`);
   }
+
+  return (await response.json()) as T;
 };
 
 /**
- * API contract used during auth/bootstrap: success returns parsed JSON, failure returns `null`.
- * This keeps network behavior deterministic for the hooks that decide loading/error state.
+ * API contract: success returns parsed JSON, errors throw.
+ * Callers can handle errors explicitly where needed.
  *
  * @param {string} basePath
  * @returns {ApiClient}
  */
 export const createApiClient = (basePath: string): ApiClient => ({
-  getJson: <T,>(path: string): Promise<T | null> =>
+  getJson: <T,>(path: string): Promise<T> =>
     requestJson<T>(resolveBasePathUrl(basePath, path)),
 
-  postJson: <T,>(path: string, body?: unknown): Promise<T | null> =>
+  postJson: <T,>(path: string, body?: unknown): Promise<T> =>
     requestJson<T>(resolveBasePathUrl(basePath, path), {
       method: "POST",
       headers: {

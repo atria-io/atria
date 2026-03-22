@@ -1,5 +1,4 @@
 import path from "node:path";
-import { randomBytes } from "node:crypto";
 import {
   ATRIA_CONFIG_FILE,
   ATRIA_RUNTIME_DIR,
@@ -7,6 +6,7 @@ import {
   STUDIO_CONTENT_DIR,
   STUDIO_THEME_DIR,
   createEnvExampleFile,
+  createProjectIdentifier,
   ensureDirectory,
   parseArgs,
   runtimeAppJs,
@@ -15,11 +15,6 @@ import {
 } from "@atria/shared";
 
 const STUDIO_PACKAGE_NAME = "studio";
-
-const createProjectIdentifier = (): string => {
-  const raw = randomBytes(6).toString("base64url").replace(/[^a-z0-9]/gi, "").toLowerCase();
-  return (raw + "00000000").slice(0, 8);
-};
 
 const buildProjectPackageJson = (): string =>
   `${JSON.stringify(

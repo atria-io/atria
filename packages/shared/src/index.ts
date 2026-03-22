@@ -41,5 +41,8 @@ export {
   runtimeAppJs,
   runtimeIndexHtml
 } from "./runtime/shared.runtime.js";
+export { type OwnerSetupState } from "./setup/shared.setup.js";
+export { terminal } from "./terminal/shared.terminal.js";
+export { createProjectIdentifier } from "./identifier/shared.identifier.js";
 
 export type { AtriaConfig };

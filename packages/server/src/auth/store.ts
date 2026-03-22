@@ -5,27 +5,12 @@ import {
   type DatabaseSession,
   type DatabaseUser,
 } from "@atria/db";
-import type { AuthMethod } from "@atria/shared";
+import type { AuthMethod, OwnerSetupState } from "@atria/shared";
 import type { OAuthProfile } from "./types.js";
 
-interface OwnerSetupState {
-  pending: boolean;
-  preferredAuthMethod: AuthMethod | null;
-}
+type AuthUser = Pick<DatabaseUser, "id" | "email" | "name" | "avatarUrl">;
 
-interface AuthUser {
-  id: string;
-  email: string | null;
-  name: string | null;
-  avatarUrl: string | null;
-}
-
-interface AuthSession {
-  id: string;
-  userId: string;
-  createdAt: string;
-  expiresAt: string;
-}
+type AuthSession = Pick<DatabaseSession, "id" | "userId" | "createdAt" | "expiresAt">;
 
 export interface AuthStore {
   close: () => Promise<void>;
@@ -60,22 +45,6 @@ const toDatabaseProfile = (profile: OAuthProfile): DatabaseOAuthProfile => ({
   avatarUrl: profile.avatarUrl
 });
 
-const mapUser = (user: Pick<DatabaseUser, "id" | "email" | "name" | "avatarUrl">): AuthUser => ({
-  id: user.id,
-  email: user.email,
-  name: user.name,
-  avatarUrl: user.avatarUrl
-});
-
-const mapSession = (
-  session: Pick<DatabaseSession, "id" | "userId" | "createdAt" | "expiresAt">
-): AuthSession => ({
-  id: session.id,
-  userId: session.userId,
-  createdAt: session.createdAt,
-  expiresAt: session.expiresAt
-});
-
 export const createDbAuthStore = (projectRoot: string): AuthStore => {
   const database = openAtriaDatabase(projectRoot);
 
@@ -87,8 +56,7 @@ export const createDbAuthStore = (projectRoot: string): AuthStore => {
     hasUsers: async (): Promise<boolean> => database.hasUsers(),
 
     getFirstUser: async () => {
-      const user = await database.getFirstUser();
-      return user ? mapUser(user) : null;
+      return database.getFirstUser();
     },
 
     getOwnerSetupState: async (): Promise<OwnerSetupState> => database.getOwnerSetupState(),
@@ -102,29 +70,25 @@ export const createDbAuthStore = (projectRoot: string): AuthStore => {
     },
 
     getUserById: async (userId: string) => {
-      const user = await database.getUserById(userId);
-      return user ? mapUser(user) : null;
+      return database.getUserById(userId);
     },
 
     getUserWithPasswordByEmail: async (email: string) => {
-      const user = await database.getUserWithPasswordByEmail(email);
-      return user ? { user: mapUser(user.user), passwordHash: user.passwordHash } : null;
+      return database.getUserWithPasswordByEmail(email);
     },
 
     registerOwnerWithPassword: async (input) => database.registerOwnerWithPassword(input),
 
     upsertOAuthProfile: async (profile: OAuthProfile) => {
-      const user = await database.upsertOAuthProfile(toDatabaseProfile(profile));
-      return mapUser(user);
+      return database.upsertOAuthProfile(toDatabaseProfile(profile));
     },
 
     getSessionById: async (sessionId: string) => {
-      const session = await database.getSessionById(sessionId);
-      return session ? mapSession(session) : null;
+      return database.getSessionById(sessionId);
     },
 
     createSession: async (session: AuthSession) => {
-      await database.createSession(mapSession(session));
+      await database.createSession(session);
     },
 
     deleteSessionById: async (sessionId: string) => {

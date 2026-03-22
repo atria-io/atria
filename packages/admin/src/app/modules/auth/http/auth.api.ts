@@ -61,9 +61,9 @@ export const loadAuthBootstrapState = async (apiClient: ApiClient): Promise<Auth
   ]);
 
   return {
-    setupStatus: setupStatus ?? { pending: true, preferredAuthMethod: null },
+    setupStatus,
     providers: sanitizeProviders(providersPayload),
-    session: sessionPayload ?? { authenticated: false, user: null }
+    session: sessionPayload
   };
 };
 

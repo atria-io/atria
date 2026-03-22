@@ -16,43 +16,34 @@ export interface LoginCredentials {
   password: string;
 }
 
+const parseString = (value: unknown): string | null => {
+  return typeof value === "string" ? value : null;
+};
+
 const parseEmail = (value: unknown): string | null => {
-  if (typeof value !== "string") {
-    return null;
-  }
+  const str = parseString(value);
+  if (!str) return null;
 
-  const normalized = value.trim().toLowerCase();
-  if (!EMAIL_PATTERN.test(normalized)) {
-    return null;
-  }
-
-  return normalized;
+  const normalized = str.trim().toLowerCase();
+  return EMAIL_PATTERN.test(normalized) ? normalized : null;
 };
 
 const parsePassword = (value: unknown): string | null => {
-  if (typeof value !== "string") {
-    return null;
-  }
+  const str = parseString(value);
+  if (!str) return null;
 
-  const password = value.trim();
-  if (password.length < MIN_PASSWORD_LENGTH || password.length > MAX_PASSWORD_LENGTH) {
-    return null;
-  }
-
-  return password;
+  const password = str.trim();
+  return password.length >= MIN_PASSWORD_LENGTH && password.length <= MAX_PASSWORD_LENGTH
+    ? password
+    : null;
 };
 
 const parseName = (value: unknown): string | null => {
-  if (typeof value !== "string") {
-    return null;
-  }
+  const str = parseString(value);
+  if (!str) return null;
 
-  const trimmed = value.trim();
-  if (trimmed.length === 0) {
-    return null;
-  }
-
-  return trimmed.slice(0, MAX_NAME_LENGTH);
+  const trimmed = str.trim();
+  return trimmed.length > 0 ? trimmed.slice(0, MAX_NAME_LENGTH) : null;
 };
 
 const readCredentials = (
