@@ -2,20 +2,28 @@
   --primary: #131316;
   --secondary: #2a2d3f;
   --text: #f3f4f6;
-  --accent: #e4e5e9;
-
   --text-muted: #9ca3af;
+  --accent: #005fcc;
 
-  --color-border: #2a2d3f;
+  --color-border: #282a34;
 
   --background: #131319;
   --foreground: #f3f4f6;
+
+  --button: #e4e5e9;
+  --button-hover: #eeeef2;
+
+  --button-muted: #191a24;
+  --button-hover-muted: #21232f;
+
+  --button-y: ;
+  --button-y-hover: ;
 
   --error: #f97373;
   --error-bg: #24161b;
   --valid: #34d399;
 
-  --boot-track: #2a2d3f;
+  --boot-track: #282a34;
   --boot-spinner: #8a8a8a;
 
   --shadow: #00000033;
@@ -28,9 +36,8 @@
   --primary: #131316;
   --secondary: #2a2d3f;
   --text: #131316;
-  --accent: #e4e5e9;
-
   --text-muted: #9ca3af;
+  --accent: #e4e5e9;
 
   --color-border: #2a2d3f;
 

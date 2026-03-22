@@ -48,78 +48,87 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
   const isBusy = isSubmitting || isOAuthRedirecting;
 
   return (
-    <section className="auth-screen">
+    <div className="auth-screen">
       <div className="auth-card">
         <div className="auth-card__header">
           <h1 className="auth-card__title">
-            {showEmailForm
-              ? t(isLogin ? "auth.title.login" : "auth.title.create")
-              : t(isLogin ? "auth.title.chooseProvider" : "auth.title.create")}
+            <span>
+              {showEmailForm
+                ? t(isLogin ? "auth.title.login" : "auth.title.create")
+                : t(isLogin ? "auth.title.chooseProvider" : "auth.title.create")}
+            </span>
           </h1>
+          <div className="auth-card__header-text">
+            <span>
+              This studio is not registered and cannot access your content yet. Choose how you want to connect it.
+            </span>
+          </div>
         </div>
-        {showEmailForm ? (
-          <>
-            <p className="auth-card__text">
-              {t(isLogin ? "auth.message.emailLoginLead" : "auth.message.emailCreateLead")}
-            </p>
+        <div className="auth-card__content">
+          {showEmailForm ? (
+            <>
+              <p className="auth-card__text">
+                {t(isLogin ? "auth.message.emailLoginLead" : "auth.message.emailCreateLead")}
+              </p>
 
-            {isLogin ? (
-              <LoginForm disabled={isBusy} errorMessage={formError} onSubmit={onLogin} t={t} />
-            ) : (
-              <RegisterForm
-                disabled={isBusy}
-                errorMessage={formError}
-                onSubmit={onRegister}
-                t={t}
-              />
-            )}
-
-            <button
-              type="button"
-              className="auth-card__switch"
-              disabled={isBusy}
-              onClick={() => setShowEmailForm(false)}
-            >
-              {t("auth.form.otherOptions")}
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="auth-card__actions">
-              {oauthProviders.map((provider) => (
-                <OAuthProviderButton
-                  key={provider}
-                  provider={provider}
-                  disabled={isBusy || !providers.includes(provider)}
-                  isLoading={isBusy && selectedProvider === provider}
-                  onSelect={onProviderSelect}
+              {isLogin ? (
+                <LoginForm disabled={isBusy} errorMessage={formError} onSubmit={onLogin} t={t} />
+              ) : (
+                <RegisterForm
+                  disabled={isBusy}
+                  errorMessage={formError}
+                  onSubmit={onRegister}
                   t={t}
                 />
-              ))}
-            </div>
+              )}
 
-            <div className="auth-card__divider-container">
-              <p className="auth-card__divider">{t("auth.form.orEmail")}</p>
-            </div>
-
-            <div className="auth-card__actions">
               <button
                 type="button"
-                className="auth-provider-button auth-provider-button--plain"
-                disabled={isBusy || !providers.includes("email")}
-                onClick={() => {
-                  setShowEmailForm(true);
-                  onProviderSelect("email");
-                }}
+                className="auth-card__switch"
+                disabled={isBusy}
+                onClick={() => setShowEmailForm(false)}
               >
-                <span>{t("auth.provider.email")}</span>
+                {t("auth.form.otherOptions")}
               </button>
-            </div>
+            </>
+          ) : (
+            <>
+              <div className="auth-card__actions">
+                {oauthProviders.map((provider) => (
+                  <OAuthProviderButton
+                    key={provider}
+                    provider={provider}
+                    disabled={isBusy || !providers.includes(provider)}
+                    isLoading={isBusy && selectedProvider === provider}
+                    onSelect={onProviderSelect}
+                    t={t}
+                  />
+                ))}
+              </div>
 
-            {brokerError ? <p className="auth-card__error">{t("auth.message.brokerFailed")}</p> : null}
-          </>
-        )}
+              <div className="auth-card__divider-container">
+                <p className="auth-card__divider">{t("auth.form.orEmail")}</p>
+              </div>
+
+              <div className="auth-card__actions">
+                <button
+                  type="button"
+                  className="auth-provider-button auth-provider-button--plain"
+                  disabled={isBusy || !providers.includes("email")}
+                  onClick={() => {
+                    setShowEmailForm(true);
+                    onProviderSelect("email");
+                  }}
+                >
+                  <span>{t("auth.provider.email")}</span>
+                </button>
+              </div>
+
+              {brokerError ? <p className="auth-card__error">{t("auth.message.brokerFailed")}</p> : null}
+            </>
+          )}
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

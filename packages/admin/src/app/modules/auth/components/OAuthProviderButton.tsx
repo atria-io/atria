@@ -65,9 +65,11 @@ export function OAuthProviderButton({
         <ProviderIcon provider={provider} />
       </span>
       <span className="auth-provider-button__label">{t(labelByProvider[provider])}</span>
-      <span className="auth-provider-button__spinner" aria-hidden="true">
-        <Spinner size={16} />
-      </span>
+      {isLoading ? (
+        <span className="auth-provider-button__spinner" aria-hidden="true">
+          <Spinner size={16} />
+        </span>
+      ) : null}
     </button>
   );
 }

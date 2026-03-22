@@ -15,10 +15,10 @@ import { useColorScheme } from "./kernel/layout/hooks/useColorScheme.js";
 
 const STUDIO_READY_EVENT = "atria:studio:ready";
 const COLOR_SCHEME_STORAGE_KEY = "atria:color-scheme";
-const CRITICAL_STYLE_FILES: string[] = [];
 const SERVER_HEARTBEAT_DELAY_MS = 2_000;
 const SERVER_HEARTBEAT_TIMEOUT_MS = 1_500;
 const SERVER_HEARTBEAT_PATH = "/api/setup/status";
+const RUNTIME_RECOVERY_FADE_MS = 180;
 
 export interface AdminAppProps {
   basePath: string;
@@ -66,6 +66,10 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
 
   const needsAuthentication = setupStatus.pending || !session.authenticated;
   const authMode = setupStatus.pending ? "create" : "login";
+  const nonCriticalStyleFiles = needsAuthentication ? AUTH_ROUTE_STYLE_FILES : route.styleFiles;
+  const previousNonCriticalStyleFilesRef = React.useRef<string[]>(nonCriticalStyleFiles);
+  const [isRecoveringFromRuntimeCritical, setIsRecoveringFromRuntimeCritical] = React.useState(false);
+  const hadRuntimeCriticalRef = React.useRef(false);
   const hasPendingBrokerConsent =
     authMode === "create" &&
     queryState.brokerConsentToken !== null &&
@@ -88,14 +92,42 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     setIsAuthSubmitting
   });
 
+  React.useEffect(() => {
+    if (runtimeFlagReason !== null || fatalError !== null) {
+      return;
+    }
+
+    previousNonCriticalStyleFilesRef.current = nonCriticalStyleFiles;
+  }, [fatalError, nonCriticalStyleFiles, runtimeFlagReason]);
+
+  React.useEffect(() => {
+    if (runtimeFlagReason !== null) {
+      hadRuntimeCriticalRef.current = true;
+      setIsRecoveringFromRuntimeCritical(false);
+      return;
+    }
+
+    if (!hadRuntimeCriticalRef.current) {
+      return;
+    }
+
+    hadRuntimeCriticalRef.current = false;
+    setIsRecoveringFromRuntimeCritical(true);
+
+    const timeoutId = window.setTimeout(() => {
+      setIsRecoveringFromRuntimeCritical(false);
+    }, RUNTIME_RECOVERY_FADE_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [runtimeFlagReason]);
+
   const activeStyleFiles = React.useMemo(
-    () =>
-      runtimeFlagReason || fatalError
-        ? CRITICAL_STYLE_FILES
-        : needsAuthentication
-          ? AUTH_ROUTE_STYLE_FILES
-          : route.styleFiles,
-    [fatalError, needsAuthentication, route.styleFiles, runtimeFlagReason]
+    () => (runtimeFlagReason || fatalError
+      ? previousNonCriticalStyleFilesRef.current
+      : nonCriticalStyleFiles),
+    [fatalError, nonCriticalStyleFiles, runtimeFlagReason]
   );
 
   useStudioReady({
@@ -192,7 +224,15 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
       showHeader={showHeader}
       onLogout={onLogout}
     >
-      {content}
+      <div
+        className={
+          isRecoveringFromRuntimeCritical
+            ? "admin-shell__content admin-shell__content--recovering"
+            : "admin-shell__content"
+        }
+      >
+        {content}
+      </div>
     </StudioShell>
   );
 }

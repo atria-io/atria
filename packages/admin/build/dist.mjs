@@ -22,6 +22,7 @@ await appBundle.write(appOutputOptions);
 await appBundle.close();
 
 await syncStaticStyles(staticStylesSourceRoot, staticStylesDistRoot);
+await syncDirectory(path.join(packageRoot, "src", "app", "static", "fonts"), path.join(packageRoot, "dist", "fonts"));
 await syncDirectory(path.join(packageRoot, "src", "i18n", "locales"), path.join(packageRoot, "dist", "locales"));
 await syncFile(path.join(packageRoot, "src", "app", "static", "favicon.ico"), path.join(packageRoot, "dist", "favicon.ico"));
 await syncFile(path.join(packageRoot, "src", "app", "static", "favicon.svg"), path.join(packageRoot, "dist", "favicon.svg"));

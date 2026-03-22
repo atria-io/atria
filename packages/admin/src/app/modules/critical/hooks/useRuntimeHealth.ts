@@ -91,13 +91,35 @@ export const useRuntimeHealth = (options: UseRuntimeHealthOptions): CriticalStat
       setRuntimeFlagReason("network_offline");
     };
 
-    const handleOnline = (): void => {
+    const triggerImmediateCheck = (): void => {
       clearTimers();
       void checkServerHeartbeat();
     };
 
+    const handleOnline = (): void => {
+      triggerImmediateCheck();
+    };
+
+    const handleFocus = (): void => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+
+      triggerImmediateCheck();
+    };
+
+    const handleVisibilityChange = (): void => {
+      if (document.visibilityState !== "visible") {
+        return;
+      }
+
+      triggerImmediateCheck();
+    };
+
     window.addEventListener("offline", handleOffline);
     window.addEventListener("online", handleOnline);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     void checkServerHeartbeat();
 
@@ -109,6 +131,8 @@ export const useRuntimeHealth = (options: UseRuntimeHealthOptions): CriticalStat
       }
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [basePath, heartbeatDelayMs, heartbeatTimeoutMs, serverHeartbeatPath]);
 
