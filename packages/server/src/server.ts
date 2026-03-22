@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import type { IncomingMessage, Server, ServerResponse } from "node:http";
+import { randomBytes } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { resolveDatabaseConnection } from "@atria/db";
@@ -57,7 +58,12 @@ export interface StartDevServerOptions {
   host?: string;
 }
 
-const readProjectId = async (projectRoot: string): Promise<string> => {
+const createProjectIdentifier = (): string => {
+  const raw = randomBytes(6).toString("base64url").replace(/[^a-z0-9]/gi, "").toLowerCase();
+  return (raw + "00000000").slice(0, 8);
+};
+
+const readOrCreateProjectId = async (projectRoot: string): Promise<string> => {
   const configPath = path.join(projectRoot, ATRIA_CONFIG_FILE);
   const rawConfig = await fs.readFile(configPath, "utf-8");
 
@@ -75,13 +81,18 @@ const readProjectId = async (projectRoot: string): Promise<string> => {
 
   const projectId =
     typeof parsedConfig.projectId === "string" ? parsedConfig.projectId.trim() : "";
-  if (!projectId) {
-    throw new Error(
-      `Missing projectId in ${ATRIA_CONFIG_FILE}. Run "atria setup" to initialize.`
-    );
+  if (projectId) {
+    return projectId;
   }
 
-  return projectId;
+  const generatedProjectId = createProjectIdentifier();
+  await fs.writeFile(
+    configPath,
+    `${JSON.stringify({ ...parsedConfig, projectId: generatedProjectId }, null, 2)}\n`,
+    "utf-8"
+  );
+
+  return generatedProjectId;
 };
 
 /**
@@ -114,7 +125,7 @@ export const startDevServer = async (
     throw new Error("Admin and public ports must be different.");
   }
 
-  const projectId = await readProjectId(projectRoot);
+  const projectId = await readOrCreateProjectId(projectRoot);
   const runtimeDir = path.join(projectRoot, ATRIA_RUNTIME_DIR);
   const publicDir = path.join(projectRoot, PUBLIC_OUTPUT_DIR);
   const adminDistDir = resolveAdminDistDir();

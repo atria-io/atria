@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { AtriaConfig } from "./config/shared.config.js";
+import type { AtriaConfig } from "./setup/shared.config.js";
 
 export const ATRIA_CONFIG_FILE = "atria.config.json";
 export const ATRIA_INTERNAL_DIR = ".atria";
@@ -42,7 +42,5 @@ export {
   runtimeIndexHtml
 } from "./runtime/shared.runtime.js";
 export { type OwnerSetupState } from "./setup/shared.setup.js";
-export { terminal } from "./terminal/shared.terminal.js";
-export { createProjectIdentifier } from "./identifier/shared.identifier.js";
 
 export type { AtriaConfig };
