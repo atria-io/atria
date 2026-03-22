@@ -1,5 +1,5 @@
 .critical-section {
-  min-height: calc(100vh - 68px);
+  min-height: 100vh;
   display: grid;
   place-items: center;
   padding: 16px;

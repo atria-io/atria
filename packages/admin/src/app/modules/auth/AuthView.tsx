@@ -50,12 +50,13 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
   return (
     <section className="auth-screen">
       <div className="auth-card">
-        <h1 className="auth-card__title">
-          {showEmailForm
-            ? t(isLogin ? "auth.title.login" : "auth.title.create")
-            : t(isLogin ? "auth.title.chooseProvider" : "auth.title.create")}
-        </h1>
-
+        <div className="auth-card__header">
+          <h1 className="auth-card__title">
+            {showEmailForm
+              ? t(isLogin ? "auth.title.login" : "auth.title.create")
+              : t(isLogin ? "auth.title.chooseProvider" : "auth.title.create")}
+          </h1>
+        </div>
         {showEmailForm ? (
           <>
             <p className="auth-card__text">
@@ -97,19 +98,23 @@ export function AuthView(props: AuthViewProps): React.JSX.Element {
               ))}
             </div>
 
-            <p className="auth-card__divider">{t("auth.form.orEmail")}</p>
+            <div className="auth-card__divider-container">
+              <p className="auth-card__divider">{t("auth.form.orEmail")}</p>
+            </div>
 
-            <button
-              type="button"
-              className="auth-provider-button auth-provider-button--plain"
-              disabled={isBusy || !providers.includes("email")}
-              onClick={() => {
-                setShowEmailForm(true);
-                onProviderSelect("email");
-              }}
-            >
-              <span>{t("auth.provider.email")}</span>
-            </button>
+            <div className="auth-card__actions">
+              <button
+                type="button"
+                className="auth-provider-button auth-provider-button--plain"
+                disabled={isBusy || !providers.includes("email")}
+                onClick={() => {
+                  setShowEmailForm(true);
+                  onProviderSelect("email");
+                }}
+              >
+                <span>{t("auth.provider.email")}</span>
+              </button>
+            </div>
 
             {brokerError ? <p className="auth-card__error">{t("auth.message.brokerFailed")}</p> : null}
           </>
