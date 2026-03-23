@@ -1,71 +1,89 @@
 import React from "react";
-import type { TranslateFn } from "../../../../i18n/client.js";
 import type { ProviderId } from "../../../../types/auth.js";
 import type { LoginValues } from "../forms/Login.js";
 import type { RegisterValues } from "../forms/Register.js";
-import { AuthViewCreateLogin } from "./AuthViewCreateLogin.js";
-import { AuthViewEmailForm } from "./AuthViewEmailForm.js";
-import { AuthViewNeedHelp } from "./AuthViewNeedHelp.js";
-import { AuthViewPrivacy } from "./AuthViewPrivacy.js";
+import { AuthViewCreateLogin } from "../views/AuthViewCreateLogin.js";
+import { AuthViewEmailForm } from "../views/AuthViewEmailForm.js";
+import { AuthViewNeedHelp } from "../views/AuthViewNeedHelp.js";
+import { AuthViewPrivacy } from "../views/AuthViewPrivacy.js";
+import { AuthViewBrokerConsent } from "../views/AuthViewBrokerConsent.js";
+import type { AuthScreen } from "../core/reducer.js";
 
-type AuthMainScreen = "provider" | "email" | "privacy" | "help";
-
-interface AuthMainViewProps {
-  mode: "login" | "create";
-  title: string;
-  screen: AuthMainScreen;
-  showBackFooter: boolean;
-  contentClassName: string;
-  footerTransitionClassName: string;
+interface AuthRootProps {
+  screen: AuthScreen;
   providers: ProviderId[];
   selectedProvider: ProviderId | null;
   isBusy: boolean;
   brokerError: boolean;
   formError: string | null;
+  isPendingSetup: boolean;
+  showBackButton: boolean;
+  hasPendingBrokerConsent: boolean;
+  brokerProvider: ProviderId | null;
+  brokerProjectId: string | null;
   onProviderSelect: (provider: ProviderId) => void;
   onLogin: (values: LoginValues) => Promise<void> | void;
   onRegister: (values: RegisterValues) => Promise<void> | void;
   onOpenEmailForm: () => void;
-  onOpenPrivacyRoute: () => void;
-  onOpenNeedHelpRoute: () => void;
-  onBackFromRoutePage: () => void;
-  t: TranslateFn;
+  onBack: () => void;
+  onOpenPrivacy: () => void;
+  onOpenHelp: () => void;
+  onBrokerConsentConfirm: () => Promise<void>;
+  t: (key: string) => string;
 }
 
-export function AuthMainView(props: AuthMainViewProps): React.JSX.Element {
+/**
+ * Pure auth UI shell. Renders screen based on state.
+ * Zero URL handling, zero fetch, zero complex logic.
+ */
+export function AuthRoot(props: AuthRootProps): React.JSX.Element {
   const {
-    mode,
-    title,
     screen,
-    showBackFooter,
-    contentClassName,
-    footerTransitionClassName,
     providers,
     selectedProvider,
     isBusy,
     brokerError,
     formError,
+    isPendingSetup,
+    showBackButton,
+    hasPendingBrokerConsent,
+    brokerProvider,
+    brokerProjectId,
     onProviderSelect,
     onLogin,
     onRegister,
     onOpenEmailForm,
-    onOpenPrivacyRoute,
-    onOpenNeedHelpRoute,
-    onBackFromRoutePage,
+    onBack,
+    onOpenPrivacy,
+    onOpenHelp,
+    onBrokerConsentConfirm,
     t
   } = props;
-  const footerLinkClassName = [
-    "auth-card__footer-link",
-    footerTransitionClassName
-  ]
-    .filter(Boolean)
-    .join(" ");
-  const footerLinksClassName = [
-    "auth-card__footer-links",
-    footerTransitionClassName
-  ]
-    .filter(Boolean)
-    .join(" ");
+
+  const title = screen === "email"
+    ? t(isPendingSetup ? "auth.title.create" : "auth.title.login")
+    : t(isPendingSetup ? "auth.title.create" : "auth.title.chooseProvider");
+
+  const footerLinkClassName = "auth-card__footer-link";
+  const footerLinksClassName = "auth-card__footer-links";
+
+  // If broker consent is pending, render that view instead
+  if (hasPendingBrokerConsent) {
+    return (
+      <div className="auth-screen">
+        <div className="auth-card">
+          <AuthViewBrokerConsent
+            provider={brokerProvider}
+            projectId={brokerProjectId}
+            errorMessage={formError}
+            isSubmitting={isBusy}
+            onConfirm={onBrokerConsentConfirm}
+            t={t}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-screen">
@@ -80,10 +98,10 @@ export function AuthMainView(props: AuthMainViewProps): React.JSX.Element {
             </span>
           </div>
         </div>
-        <div className={contentClassName}>
+        <div className="auth-card__content">
           {screen === "email" ? (
             <AuthViewEmailForm
-              mode={mode}
+              mode={isPendingSetup ? "create" : "login"}
               isBusy={isBusy}
               formError={formError}
               onLogin={onLogin}
@@ -107,13 +125,13 @@ export function AuthMainView(props: AuthMainViewProps): React.JSX.Element {
           )}
         </div>
         <div className="auth-card__footer">
-          {showBackFooter ? (
+          {showBackButton ? (
             <>
               <button
                 type="button"
                 className={footerLinkClassName}
                 disabled={isBusy}
-                onClick={onBackFromRoutePage}
+                onClick={onBack}
               >
                 <span>
                   ← {screen === "email" ? t("auth.form.otherOptions") : t("auth.footer.back")}
@@ -123,7 +141,7 @@ export function AuthMainView(props: AuthMainViewProps): React.JSX.Element {
                 <button
                   type="button"
                   className={footerLinkClassName}
-                  onClick={onOpenNeedHelpRoute}
+                  onClick={onOpenHelp}
                 >
                   <span>{t("auth.footer.needHelpArrow")}</span>
                 </button>
@@ -131,7 +149,7 @@ export function AuthMainView(props: AuthMainViewProps): React.JSX.Element {
                 <button
                   type="button"
                   className={footerLinkClassName}
-                  onClick={onOpenPrivacyRoute}
+                  onClick={onOpenPrivacy}
                 >
                   <span>{t("auth.footer.privacy")}</span>
                 </button>
@@ -140,7 +158,7 @@ export function AuthMainView(props: AuthMainViewProps): React.JSX.Element {
                   <button
                     type="button"
                     className={footerLinkClassName}
-                    onClick={onOpenPrivacyRoute}
+                    onClick={onOpenPrivacy}
                   >
                     <span>{t("auth.footer.privacy")}</span>
                   </button>
@@ -148,7 +166,7 @@ export function AuthMainView(props: AuthMainViewProps): React.JSX.Element {
                   <button
                     type="button"
                     className={footerLinkClassName}
-                    onClick={onOpenNeedHelpRoute}
+                    onClick={onOpenHelp}
                   >
                     <span>{t("auth.footer.needHelp")}</span>
                   </button>
@@ -160,14 +178,14 @@ export function AuthMainView(props: AuthMainViewProps): React.JSX.Element {
               <button
                 type="button"
                 className={footerLinkClassName}
-                onClick={onOpenPrivacyRoute}
+                onClick={onOpenPrivacy}
               >
                 <span>{t("auth.footer.privacy")}</span>
               </button>
               <button
                 type="button"
                 className={footerLinkClassName}
-                onClick={onOpenNeedHelpRoute}
+                onClick={onOpenHelp}
               >
                 <span>{t("auth.footer.needHelpArrow")}</span>
               </button>

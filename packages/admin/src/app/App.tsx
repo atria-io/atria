@@ -1,9 +1,6 @@
 import React from "react";
-import { readAuthQueryState } from "./modules/auth/http/auth.query.js";
-import { Auth } from "./modules/auth/Auth.js";
-import { useAuthActions } from "./modules/auth/hooks/useAuthActions.js";
-import { useAuthBootstrap } from "./modules/auth/hooks/useAuthBootstrap.js";
-import { useOAuthRedirect } from "./modules/auth/hooks/useOAuthRedirect.js";
+import { useAuthFeature } from "./modules/auth/index.js";
+import { AuthRoot } from "./modules/auth/ui/AuthRoot.js";
 import { DashboardScreen } from "./modules/dashboard/DashboardScreen.js";
 import { CriticalStatusView } from "./modules/critical/CriticalStatusView.js";
 import { useRuntimeHealth } from "./modules/critical/hooks/useRuntimeHealth.js";
@@ -26,34 +23,9 @@ export interface AdminAppProps {
   basePath: string;
 }
 
-/**
- * Orchestrates admin bootstrap, auth gating, and shell rendering.
- * This is the only place where setup/session/provider state is synchronized from API responses.
- */
 export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   const route = resolveAdminRoute(window.location.pathname);
-  const queryState = readAuthQueryState(window.location.search);
-
-  const {
-    setupStatus,
-    providers,
-    session,
-    activeProvider,
-    isLoading,
-    isFinalizing,
-    isAuthSubmitting,
-    authError,
-    brokerError,
-    fatalError,
-    localeBundle,
-    setActiveProvider,
-    setIsAuthSubmitting,
-    setAuthError,
-    setBrokerError
-  } = useAuthBootstrap({
-    basePath,
-    queryState
-  });
+  const authFeature = useAuthFeature({ basePath });
 
   const runtimeFlagReason = useRuntimeHealth({
     basePath,
@@ -66,44 +38,23 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     storageKey: COLOR_SCHEME_STORAGE_KEY
   });
 
-  const needsAuthentication = setupStatus.pending || !session.authenticated;
-  const authMode = setupStatus.pending ? "create" : "login";
-  const flowRouteId = needsAuthentication ? authMode : route.id;
-  const nonCriticalStyleFiles = needsAuthentication ? AUTH_ROUTE_STYLE_FILES : route.styleFiles;
+  const flowRouteId = authFeature.needsAuthentication ? authFeature.authMode : route.id;
+  const nonCriticalStyleFiles = authFeature.needsAuthentication
+    ? AUTH_ROUTE_STYLE_FILES
+    : route.styleFiles;
   const previousNonCriticalStyleFilesRef = React.useRef<string[]>(nonCriticalStyleFiles);
   const [isRecoveringFromRuntimeCritical, setIsRecoveringFromRuntimeCritical] = React.useState(false);
   const [isRouteTransitioning, setIsRouteTransitioning] = React.useState(false);
   const hadRuntimeCriticalRef = React.useRef(false);
   const previousFlowRouteIdRef = React.useRef(flowRouteId);
-  const hasPendingBrokerConsent =
-    authMode === "create" &&
-    queryState.brokerConsentToken !== null &&
-    queryState.brokerCode === null;
-  const selectedProvider = activeProvider ?? setupStatus.preferredAuthMethod;
-
-  const { isOAuthRedirecting, startOAuthRedirect } = useOAuthRedirect({
-    basePath,
-    authMode,
-    nextPath: queryState.nextPath,
-    needsAuthentication,
-    hasPendingBrokerConsent,
-    isLoading,
-    isFinalizing,
-    selectedProvider,
-    providers,
-    setActiveProvider,
-    setAuthError,
-    setBrokerError,
-    setIsAuthSubmitting
-  });
 
   React.useEffect(() => {
-    if (runtimeFlagReason !== null || fatalError !== null) {
+    if (runtimeFlagReason !== null || authFeature.fatalError !== null) {
       return;
     }
 
     previousNonCriticalStyleFilesRef.current = nonCriticalStyleFiles;
-  }, [fatalError, nonCriticalStyleFiles, runtimeFlagReason]);
+  }, [authFeature.fatalError, nonCriticalStyleFiles, runtimeFlagReason]);
 
   React.useEffect(() => {
     if (runtimeFlagReason !== null) {
@@ -129,7 +80,7 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
   }, [runtimeFlagReason]);
 
   React.useEffect(() => {
-    if (runtimeFlagReason !== null || fatalError !== null) {
+    if (runtimeFlagReason !== null || authFeature.fatalError !== null) {
       previousFlowRouteIdRef.current = flowRouteId;
       return;
     }
@@ -148,66 +99,44 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     return () => {
       window.cancelAnimationFrame(frameId);
     };
-  }, [fatalError, flowRouteId, runtimeFlagReason]);
+  }, [authFeature.fatalError, flowRouteId, runtimeFlagReason]);
 
   const activeStyleFiles = React.useMemo(
-    () => (runtimeFlagReason || fatalError
+    () => (runtimeFlagReason || authFeature.fatalError
       ? previousNonCriticalStyleFilesRef.current
       : nonCriticalStyleFiles),
-    [fatalError, nonCriticalStyleFiles, runtimeFlagReason]
+    [authFeature.fatalError, nonCriticalStyleFiles, runtimeFlagReason]
   );
 
   useStudioReady({
     basePath,
     styleFiles: activeStyleFiles,
-    isLoading,
-    isFinalizing,
+    isLoading: authFeature.isLoading,
+    isFinalizing: authFeature.isFinalizing,
     readyEventName: STUDIO_READY_EVENT
   });
 
-  const locale = localeBundle ? createTranslator(localeBundle) : null;
-  const translate = (key: string): string => {
-    if (!locale) {
-      throw new Error("Translator is unavailable.");
-    }
+  const translate = authFeature.translator
+    ? authFeature.translator
+    : (key: string) => key;
 
-    return locale(key);
-  };
-
-  const {
-    handleProviderSelect,
-    handleRegister,
-    handleLogin,
-    handleBrokerConsentConfirm,
-    handleLogout
-  } = useAuthActions({
-    basePath,
-    nextPath: queryState.nextPath,
-    brokerConsentToken: queryState.brokerConsentToken,
-    t: translate,
-    setActiveProvider,
-    setAuthError,
-    setIsAuthSubmitting,
-    startOAuthRedirect
-  });
-
-  const isCritical = runtimeFlagReason !== null || fatalError !== null;
+  const isCritical = runtimeFlagReason !== null || authFeature.fatalError !== null;
 
   React.useEffect(() => {
-    document.title =
-      needsAuthentication && authMode === "create"
-        ? CREATE_DOCUMENT_TITLE
-        : DEFAULT_DOCUMENT_TITLE;
-  }, [authMode, needsAuthentication]);
+    document.title = authFeature.needsAuthentication && authFeature.authMode === "create"
+      ? CREATE_DOCUMENT_TITLE
+      : DEFAULT_DOCUMENT_TITLE;
+  }, [authFeature.authMode, authFeature.needsAuthentication]);
 
-  if (!localeBundle || !locale) {
+  if (!authFeature.localeBundle || !authFeature.translator) {
     return <section className="auth-screen" aria-hidden="true" />;
   }
 
-  const routeId = isCritical ? "critical" : needsAuthentication ? authMode : route.id;
-  const showHeader = isCritical || !needsAuthentication;
-  const onLogout =
-    session.authenticated && (isCritical || !needsAuthentication) ? handleLogout : undefined;
+  const routeId = isCritical ? "critical" : authFeature.needsAuthentication ? authFeature.authMode : route.id;
+  const showHeader = isCritical || !authFeature.needsAuthentication;
+  const onLogout = authFeature.session.authenticated && (isCritical || !authFeature.needsAuthentication)
+    ? authFeature.onLogout
+    : undefined;
   const contentClassName = [
     "admin-shell__content",
     isRecoveringFromRuntimeCritical ? "admin-shell__content--recovering" : "",
@@ -221,33 +150,36 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
     content = (
       <CriticalStatusView
         reason={runtimeFlagReason}
-        fatalError={fatalError}
-        t={locale}
+        fatalError={authFeature.fatalError}
+        t={translate}
         onRetry={() => {
           window.location.reload();
         }}
       />
     );
-  } else if (needsAuthentication) {
+  } else if (authFeature.needsAuthentication) {
     content = (
-      <Auth
-        isLoading={isLoading}
-        isFinalizing={isFinalizing}
-        hasPendingBrokerConsent={hasPendingBrokerConsent}
-        provider={queryState.provider}
-        projectId={queryState.brokerProjectId}
-        mode={authMode}
-        providers={providers}
-        selectedProvider={selectedProvider}
-        isSubmitting={isAuthSubmitting}
-        isOAuthRedirecting={isOAuthRedirecting}
-        brokerError={brokerError}
-        formError={authError}
-        onProviderSelect={handleProviderSelect}
-        onLogin={handleLogin}
-        onRegister={handleRegister}
-        onBrokerConsentConfirm={handleBrokerConsentConfirm}
-        t={locale}
+      <AuthRoot
+        screen={authFeature.screen}
+        providers={authFeature.providers}
+        selectedProvider={authFeature.selectedProvider}
+        isBusy={authFeature.isBusy}
+        brokerError={authFeature.brokerError}
+        formError={authFeature.formError}
+        isPendingSetup={authFeature.setupStatus.pending}
+        showBackButton={authFeature.shouldShowBack}
+        hasPendingBrokerConsent={authFeature.hasPendingBrokerConsent}
+        brokerProvider={authFeature.brokerProvider}
+        brokerProjectId={authFeature.brokerProjectId}
+        onProviderSelect={authFeature.onProviderSelect}
+        onLogin={authFeature.onLogin}
+        onRegister={authFeature.onRegister}
+        onBrokerConsentConfirm={authFeature.onBrokerConsentConfirm}
+        onOpenEmailForm={authFeature.onOpenEmailForm}
+        onBack={authFeature.onBack}
+        onOpenPrivacy={authFeature.onOpenPrivacy}
+        onOpenHelp={authFeature.onOpenHelp}
+        t={translate}
       />
     );
   } else {
@@ -260,8 +192,8 @@ export function AdminApp({ basePath }: AdminAppProps): React.JSX.Element {
       colorScheme={colorScheme}
       colorSchemePreference={colorSchemePreference}
       onColorSchemeChange={setColorSchemePreference}
-      locale={locale}
-      user={session.user}
+      locale={translate}
+      user={authFeature.session.user}
       showHeader={showHeader}
       onLogout={onLogout}
     >

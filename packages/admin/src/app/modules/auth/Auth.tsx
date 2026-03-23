@@ -31,9 +31,8 @@ interface AuthProps {
   t: TranslateFn;
 }
 
-type FooterView = "auth" | "privacy" | "help";
+type AuthScreen = "provider" | "email" | "privacy" | "help";
 
-const ROOT_LOGIN_PATHNAME = "/";
 const LOGIN_PATHNAME = "/login";
 const CREATE_PATHNAME = "/create";
 const ROUTE_TRANSITION_DURATION_MS = 180;
@@ -61,6 +60,41 @@ const buildPathWithRouteQuery = (
 const currentPathWithRouteQuery = (): string =>
   `${normalizePathname(window.location.pathname)}${window.location.search}${window.location.hash}`;
 
+const routeQueryToScreen = (routeQuery: AuthRouteView | null): AuthScreen | null => {
+  if (routeQuery === "privacy") {
+    return "privacy";
+  }
+
+  if (routeQuery === "need-help") {
+    return "help";
+  }
+
+  if (routeQuery === "email") {
+    return "email";
+  }
+
+  return null;
+};
+
+const screenToRouteQuery = (
+  screen: AuthScreen,
+  isCreate: boolean
+): AuthRouteView | null => {
+  if (screen === "privacy") {
+    return "privacy";
+  }
+
+  if (screen === "help") {
+    return "need-help";
+  }
+
+  if (screen === "email" && isCreate) {
+    return "email";
+  }
+
+  return null;
+};
+
 export function Auth(props: AuthProps): React.JSX.Element {
   const {
     isLoading,
@@ -84,62 +118,29 @@ export function Auth(props: AuthProps): React.JSX.Element {
   const isCreate = mode === "create";
   const isLogin = !isCreate;
   const isBusy = isSubmitting || isOAuthRedirecting;
-  const [showEmailForm, setShowEmailForm] = useState(selectedProvider === "email");
-  const [footerView, setFooterView] = useState<FooterView>("auth");
+  const [screen, setScreen] = useState<AuthScreen>(
+    selectedProvider === "email" ? "email" : "provider"
+  );
   const [isRouteTransitioning, setIsRouteTransitioning] = useState(false);
-  const routeViewKey = footerView === "auth" ? (showEmailForm ? "email" : "create") : footerView;
-  const previousRouteViewKeyRef = useRef(routeViewKey);
-
-  useEffect(() => {
-    if (!isCreate && selectedProvider === "email") {
-      setShowEmailForm(true);
-    }
-  }, [isCreate, selectedProvider]);
+  const previousScreenRef = useRef(screen);
 
   useEffect(() => {
     const syncRouteToAuthState = (): void => {
       const normalizedPath = normalizePathname(window.location.pathname);
       const routeQuery = readAuthRouteQuery();
-      let effectivePath = normalizedPath;
+      const targetPath = isCreate ? CREATE_PATHNAME : LOGIN_PATHNAME;
 
-      if (isCreate && normalizedPath !== CREATE_PATHNAME) {
-        window.history.replaceState({}, "", buildPathWithRouteQuery(CREATE_PATHNAME, routeQuery));
-        effectivePath = CREATE_PATHNAME;
+      if (normalizedPath !== targetPath) {
+        window.history.replaceState({}, "", buildPathWithRouteQuery(targetPath, routeQuery));
       }
 
-      const isCreateQueryRoute = isCreate && effectivePath === CREATE_PATHNAME;
-      const isLoginQueryRoute = !isCreate && effectivePath === LOGIN_PATHNAME;
-
-      if (routeQuery === "privacy" && (isCreateQueryRoute || isLoginQueryRoute)) {
-        setShowEmailForm(false);
-        setFooterView("privacy");
+      const routeScreen = routeQueryToScreen(routeQuery);
+      if (routeScreen) {
+        setScreen(routeScreen);
         return;
       }
 
-      if (routeQuery === "need-help" && (isCreateQueryRoute || isLoginQueryRoute)) {
-        setShowEmailForm(false);
-        setFooterView("help");
-        return;
-      }
-
-      if (routeQuery === "email" && isCreateQueryRoute) {
-        setShowEmailForm(true);
-        setFooterView("auth");
-        return;
-      }
-
-      if (
-        !isCreate &&
-        effectivePath !== ROOT_LOGIN_PATHNAME &&
-        effectivePath !== LOGIN_PATHNAME
-      ) {
-        setShowEmailForm(selectedProvider === "email");
-        setFooterView("auth");
-        return;
-      }
-
-      setShowEmailForm(isCreate ? false : selectedProvider === "email");
-      setFooterView("auth");
+      setScreen(isCreate ? "provider" : selectedProvider === "email" ? "email" : "provider");
     };
 
     syncRouteToAuthState();
@@ -155,11 +156,11 @@ export function Auth(props: AuthProps): React.JSX.Element {
   }, [isCreate, selectedProvider]);
 
   useEffect(() => {
-    if (previousRouteViewKeyRef.current === routeViewKey) {
+    if (previousScreenRef.current === screen) {
       return;
     }
 
-    previousRouteViewKeyRef.current = routeViewKey;
+    previousScreenRef.current = screen;
     setIsRouteTransitioning(true);
 
     const timeoutId = window.setTimeout(() => {
@@ -169,7 +170,7 @@ export function Auth(props: AuthProps): React.JSX.Element {
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [routeViewKey]);
+  }, [screen]);
 
   if (isLoading || isFinalizing) {
     return <div className="auth-screen" aria-hidden="true" />;
@@ -196,71 +197,52 @@ export function Auth(props: AuthProps): React.JSX.Element {
     );
   };
 
-  const openPrivacyRoute = (): void => {
+  const navigateToScreen = (nextScreen: AuthScreen): void => {
     const targetPath = isCreate ? CREATE_PATHNAME : LOGIN_PATHNAME;
-    const targetPathWithQuery = buildPathWithRouteQuery(targetPath, "privacy");
+    const routeQuery = screenToRouteQuery(nextScreen, isCreate);
+    const targetPathWithQuery = buildPathWithRouteQuery(targetPath, routeQuery);
+
     if (currentPathWithRouteQuery() !== targetPathWithQuery) {
       pushAuthRoute(targetPathWithQuery);
     }
 
-    setShowEmailForm(false);
-    setFooterView("privacy");
+    setScreen(nextScreen);
+  };
+
+  const openPrivacyRoute = (): void => {
+    navigateToScreen("privacy");
   };
 
   const openNeedHelpRoute = (): void => {
-    const targetPath = isCreate ? CREATE_PATHNAME : LOGIN_PATHNAME;
-    const targetPathWithQuery = buildPathWithRouteQuery(targetPath, "need-help");
-    if (currentPathWithRouteQuery() !== targetPathWithQuery) {
-      pushAuthRoute(targetPathWithQuery);
-    }
-
-    setShowEmailForm(false);
-    setFooterView("help");
+    navigateToScreen("help");
   };
 
   const openEmailForm = (): void => {
-    if (isCreate) {
-      const targetPathWithQuery = buildPathWithRouteQuery(CREATE_PATHNAME, "email");
-      if (currentPathWithRouteQuery() !== targetPathWithQuery) {
-        pushAuthRoute(targetPathWithQuery);
-      }
-    }
-
-    setShowEmailForm(true);
-    setFooterView("auth");
+    navigateToScreen("email");
     onProviderSelect("email");
   };
 
   const goBackFromRoutePage = (): void => {
-    const fallbackPath = isCreate ? CREATE_PATHNAME : ROOT_LOGIN_PATHNAME;
-    window.history.replaceState({}, "", buildPathWithRouteQuery(fallbackPath, null));
-
-    const routeQuery = readAuthRouteQuery();
-    if (isCreate && routeQuery === "email") {
-      setShowEmailForm(true);
-      setFooterView("auth");
+    if (screen === "email") {
+      if (isCreate) {
+        navigateToScreen("provider");
+      }
       return;
     }
 
-    if (routeQuery === "privacy") {
-      setShowEmailForm(false);
-      setFooterView("privacy");
+    if (screen === "privacy" || screen === "help") {
+      if (isCreate) {
+        navigateToScreen("provider");
+      } else {
+        navigateToScreen(selectedProvider === "email" ? "email" : "provider");
+      }
       return;
     }
-
-    if (routeQuery === "need-help") {
-      setShowEmailForm(false);
-      setFooterView("help");
-      return;
-    }
-
-    setShowEmailForm(isCreate ? false : selectedProvider === "email");
-    setFooterView("auth");
   };
 
-  const showCreateRouteFooter = isCreate
-    ? showEmailForm || footerView !== "auth"
-    : footerView !== "auth";
+  const showBackFooter = isCreate
+    ? screen !== "provider"
+    : screen === "privacy" || screen === "help";
   const contentClassName = [
     "auth-card__content",
     isRouteTransitioning ? "auth-card__content--route-transition" : ""
@@ -272,7 +254,7 @@ export function Auth(props: AuthProps): React.JSX.Element {
   ]
     .filter(Boolean)
     .join(" ");
-  const title = showEmailForm
+  const title = screen === "email"
     ? t(isLogin ? "auth.title.login" : "auth.title.create")
     : t(isLogin ? "auth.title.chooseProvider" : "auth.title.create");
 
@@ -280,9 +262,8 @@ export function Auth(props: AuthProps): React.JSX.Element {
     <AuthMainView
       mode={mode}
       title={title}
-      footerView={footerView}
-      showEmailForm={showEmailForm}
-      showCreateRouteFooter={showCreateRouteFooter}
+      screen={screen}
+      showBackFooter={showBackFooter}
       contentClassName={contentClassName}
       footerTransitionClassName={footerTransitionClassName}
       providers={providers}
