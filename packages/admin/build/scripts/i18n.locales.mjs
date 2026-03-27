@@ -1,3 +1,4 @@
+/*!packages/admin/build/scripts/i18n.locales.mjs*/
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
@@ -34,6 +35,7 @@ const composeLocales = async (sourceRoots, distRoot) => {
 
   for (const sourceRoot of sourceRoots) {
     const entries = await fs.readdir(sourceRoot, { withFileTypes: true });
+
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith(".json")) {
         continue;
@@ -44,6 +46,7 @@ const composeLocales = async (sourceRoots, distRoot) => {
       const raw = await fs.readFile(filePath, "utf8");
       const parsed = JSON.parse(raw);
       const dictionary = dictionariesByLocale.get(localeId) ?? {};
+
       dictionariesByLocale.set(localeId, dictionary);
       flattenLocaleTree(parsed, dictionary, filePath);
     }
@@ -66,6 +69,26 @@ const composeLocales = async (sourceRoots, distRoot) => {
   }
 };
 
+const getModuleLocaleRoots = async (modulesRoot) => {
+  const entries = await fs.readdir(modulesRoot, { withFileTypes: true });
+  const localeRoots = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    const localeRoot = path.join(modulesRoot, entry.name, "i18n", "locales");
+
+    try {
+      await fs.access(localeRoot);
+      localeRoots.push(localeRoot);
+    } catch {}
+  }
+
+  return localeRoots;
+};
+
 /**
  * Builds flattened i18n dictionaries into `dist/locales`.
  *
@@ -74,16 +97,12 @@ const composeLocales = async (sourceRoots, distRoot) => {
  */
 export const syncI18nLocales = async (packageRoot) => {
   const appLocalesSourceRoot = path.join(packageRoot, "src", "i18n", "locales");
-  const authLocalesSourceRoot = path.join(
-    packageRoot,
-    "src",
-    "app",
-    "modules",
-    "auth",
-    "i18n",
-    "locales"
-  );
+  const modulesRoot = path.join(packageRoot, "src", "app", "shell", "modules");
+  const moduleLocaleRoots = await getModuleLocaleRoots(modulesRoot);
   const localesDistRoot = path.join(packageRoot, "dist", "locales");
 
-  await composeLocales([appLocalesSourceRoot, authLocalesSourceRoot], localesDistRoot);
+  await composeLocales(
+    [appLocalesSourceRoot, ...moduleLocaleRoots],
+    localesDistRoot
+  );
 };
