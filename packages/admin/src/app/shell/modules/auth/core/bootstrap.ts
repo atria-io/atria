@@ -15,8 +15,8 @@ import {
 import {
   loadLocaleBundle,
   readPreferredLocale
-} from "../../../../i18n/client.js";
-import { createApiClient } from "../../../../state/api.client.js";
+} from "../../../../../i18n/client.js";
+import { createApiClient } from "../../../../../state/api.client.js";
 
 interface UseAuthBootstrapOptions {
   basePath: string;

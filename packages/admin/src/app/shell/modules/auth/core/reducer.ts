@@ -1,5 +1,5 @@
-import type { ProviderId, SessionPayload, SetupStatus } from "../../../../types/auth.js";
-import type { LocaleBundle } from "../../../../i18n/client.js";
+import type { ProviderId, SessionPayload, SetupStatus } from "../../../../../types/auth.js";
+import type { LocaleBundle } from "../../../../../i18n/client.js";
 
 export type AuthScreen = "provider" | "email" | "privacy" | "help" | "broker-consent";
 

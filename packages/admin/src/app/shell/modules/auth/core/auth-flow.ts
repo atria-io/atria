@@ -1,5 +1,5 @@
 import type { AuthScreen } from "./reducer.js";
-import type { ProviderId } from "../../../../types/auth.js";
+import type { ProviderId } from "../../../../../types/auth.js";
 import {
   buildPathWithRouteQuery,
   currentPathWithRouteQuery,

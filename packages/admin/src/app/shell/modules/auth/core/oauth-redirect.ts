@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, Dispatch } from "react";
 import type { AuthAction, AuthState } from "./reducer.js";
 import { buildOAuthStartUrl } from "../http/auth.api.js";
-import type { ProviderId } from "../../../../types/auth.js";
+import type { ProviderId } from "../../../../../types/auth.js";
 
 const OAUTH_REDIRECT_DELAY_MS = 220;
 

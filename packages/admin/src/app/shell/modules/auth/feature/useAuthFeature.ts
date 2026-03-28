@@ -12,8 +12,8 @@ import {
   type AuthQueryState
 } from "../core/api.js";
 import type { RegisterValues } from "../forms/Register.js";
-import { resolveBasePathUrl } from "../../../../state/api.client.js";
-import type { ProviderId } from "../../../../types/auth.js";
+import { resolveBasePathUrl } from "../../../../../state/api.client.js";
+import type { ProviderId } from "../../../../../types/auth.js";
 import type { AuthState } from "../core/reducer.js";
 import type { AuthScreen } from "../core/reducer.js";
 

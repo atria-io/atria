@@ -1,14 +1,14 @@
 import React from "react";
-import { useAuthFeature } from "./modules/auth/index.js";
-import { AuthRoot } from "./modules/auth/ui/AuthRoot.js";
-import { DashboardScreen } from "./modules/dashboard/DashboardScreen.js";
-import { CriticalStatusView } from "./modules/critical/CriticalStatusView.js";
-import { useRuntimeHealth } from "./modules/critical/hooks/useRuntimeHealth.js";
+import { useAuthFeature } from "./shell/modules/auth/index.js";
+import { AuthRoot } from "./shell/modules/auth/ui/AuthRoot.js";
+import { DashboardScreen } from "./shell/modules/dashboard/DashboardScreen.js";
+import { CriticalStatusView } from "./shell/modules/critical/CriticalStatusView.js";
+import { useRuntimeHealth } from "./shell/modules/critical/hooks/useRuntimeHealth.js";
 import { createTranslator } from "../i18n/client.js";
-import { AUTH_ROUTE_STYLE_FILES, resolveAdminRoute } from "./kernel/routing/Routes.js";
-import { useStudioReady } from "./kernel/runtime/useStudioReady.js";
-import { StudioShell } from "./kernel/layout/StudioShell.js";
-import { useColorScheme } from "./kernel/layout/hooks/useColorScheme.js";
+import { AUTH_ROUTE_STYLE_FILES, resolveAdminRoute } from "./routing/Routes.js";
+import { useStudioReady } from "./shell/runtime/useStudioReady.js";
+import { StudioShell } from "./shell/layout/ui/StudioShell.js";
+import { useColorScheme } from "./shell/layout/model/useColorScheme.js";
 
 const STUDIO_READY_EVENT = "atria:studio:ready";
 const COLOR_SCHEME_STORAGE_KEY = "atria:color-scheme";

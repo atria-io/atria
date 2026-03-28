@@ -1,4 +1,4 @@
-import type { ProviderId } from "../../../../types/auth.js";
+import type { ProviderId } from "../../../../../types/auth.js";
 import {
   AUTH_ROUTE_QUERY_KEY,
   parseAuthRouteView,
