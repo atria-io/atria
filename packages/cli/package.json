@@ -12,15 +12,12 @@
   ],
   "license": "MIT",
   "type": "module",
-  "bin": {
-    "atria": "dist/bin.js"
-  },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/runCli.js",
+  "types": "dist/runCli.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist/runCli.d.ts",
+      "default": "./dist/runCli.js"
     }
   },
   "files": [
@@ -30,11 +27,6 @@
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
     "prepublishOnly": "tsc -p tsconfig.json"
-  },
-  "dependencies": {
-    "@atria/db": "workspace:*",
-    "@atria/server": "workspace:*",
-    "@atria/shared": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

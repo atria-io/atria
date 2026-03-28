@@ -6,7 +6,6 @@ import path from "node:path";
 import readline from "node:readline/promises";
 
 const ATRIA_CONFIG_FILE = "atria.config.json";
-const ATRIA_RUNTIME_DIR = path.join(".atria", "runtime");
 const PUBLIC_OUTPUT_DIR = path.join("production", "public");
 const STUDIO_CONTENT_DIR = path.join("production", "studio", "content");
 const STUDIO_THEME_DIR = path.join("production", "studio", "theme");
@@ -27,30 +26,6 @@ interface WriteTarget {
   path: string;
   content: string;
 }
-
-const runtimeIndexHtml = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex" />
-  <title>Atria</title>
-</head>
-<body>
-  <div id="atria"></div>
-  <script type="module" src="app.js"></script>
-</body>
-</html>
-`;
-
-const runtimeAppJs = `import { mountAdminApp } from "/static/app.js";
-
-mountAdminApp({
-  mountElement: document.getElementById("atria"),
-  basePath: "/",
-  reactStrictMode: false
-});
-`;
 
 const createEnvExampleFile = (): string =>
   [
@@ -152,7 +127,6 @@ const createConfigJson = (projectName: string, projectId: string): string =>
   `${JSON.stringify(
     {
       name: projectName,
-      runtimeDir: ATRIA_RUNTIME_DIR,
       projectId
     },
     null,
@@ -294,7 +268,6 @@ const run = async (): Promise<void> => {
   await Promise.all([
     ensureDirectory(path.join(projectRoot, STUDIO_CONTENT_DIR)),
     ensureDirectory(path.join(projectRoot, STUDIO_THEME_DIR)),
-    ensureDirectory(path.join(projectRoot, ATRIA_RUNTIME_DIR)),
     ensureDirectory(path.join(projectRoot, PUBLIC_OUTPUT_DIR))
   ]);
 
@@ -318,14 +291,6 @@ const run = async (): Promise<void> => {
     {
       path: path.join(projectRoot, STUDIO_THEME_DIR, ".gitkeep"),
       content: ""
-    },
-    {
-      path: path.join(projectRoot, ATRIA_RUNTIME_DIR, "index.html"),
-      content: runtimeIndexHtml
-    },
-    {
-      path: path.join(projectRoot, ATRIA_RUNTIME_DIR, "app.js"),
-      content: runtimeAppJs
     }
   ];
 
