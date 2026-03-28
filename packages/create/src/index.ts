@@ -13,7 +13,7 @@ const STUDIO_CONTENT_DIR = path.join("production", "studio", "content");
 const STUDIO_THEME_DIR = path.join("production", "studio", "theme");
 const ADMIN_RUNTIME_SOURCE_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../../admin/runtime"
+  "../../admin/studio"
 );
 
 const DEFAULT_PROJECT_LABEL = "My Studio Project";
@@ -117,12 +117,11 @@ const createProjectPackageJson = (cliVersion: string): string =>
       private: true,
       version: "0.1.0",
       scripts: {
-        install: 'npm run "dev install"',
-        "dev install": "atria setup --database-only",
+        install: "atria setup --database-only",
         dev: "atria dev"
       },
       devDependencies: {
-        "@atria/cli": cliVersion
+        atria: cliVersion
       }
     },
     null,
@@ -173,6 +172,7 @@ const writeTargets = async (targets: WriteTarget[]): Promise<void> => {
 
 const copyAdminRuntime = async (projectRoot: string, force: boolean): Promise<void> => {
   const runtimeTargetDir = path.join(projectRoot, ATRIA_RUNTIME_DIR);
+  const runtimeTargetStaticDir = path.join(runtimeTargetDir, "static");
 
   if (!(await fileExists(ADMIN_RUNTIME_SOURCE_DIR))) {
     throw new Error(`Admin runtime source not found: ${ADMIN_RUNTIME_SOURCE_DIR}`);
@@ -188,6 +188,7 @@ const copyAdminRuntime = async (projectRoot: string, force: boolean): Promise<vo
 
   await ensureDirectory(path.dirname(runtimeTargetDir));
   await fs.cp(ADMIN_RUNTIME_SOURCE_DIR, runtimeTargetDir, { recursive: true });
+  await fs.rm(runtimeTargetStaticDir, { recursive: true, force: true });
 };
 
 const getPackageManager = (flags: Record<string, string | boolean>): PackageManager => {
@@ -250,7 +251,7 @@ const printHelp = (): void => {
   console.log("Options:");
   console.log("  --skip-install        Skip dependency installation");
   console.log("  --force               Overwrite existing project files");
-  console.log("  --cli-version <ver>   Version/range for @atria/cli (default: latest)");
+  console.log("  --cli-version <ver>   Version/range for atria (default: latest)");
   console.log("  --pnpm                Use pnpm for dependency install");
   console.log("  --yarn                Use yarn for dependency install");
   console.log("  --npm                 Use npm for dependency install (default)");

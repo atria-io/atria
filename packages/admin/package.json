@@ -1,19 +1,30 @@
 {
   "name": "@atria/admin",
-  "version": "0.0.1",
-  "private": false,
-  "description": "Admin runtime package",
+  "version": "0.1.20",
+  "description": "Modular admin runtime UI for atria",
+  "keywords": [
+    "atria",
+    "cms",
+    "admin",
+    "back-office",
+    "runtime",
+    "react"
+  ],
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "runtime"
+    "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node build/dist.mjs",
     "clean": "rm -rf dist",
-    "prepublishOnly": "tsc -p tsconfig.json"
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atria-io/atria.git",
+    "directory": "packages/admin"
   }
 }

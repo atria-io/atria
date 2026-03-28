@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { createRequire } from "node:module";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "../../parseArgs.js";
@@ -29,6 +30,7 @@ const parsePort = (
 };
 
 const mimeTypeByExtension: Record<string, string> = {
+  ".htm": "text/html; charset=utf-8",
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -37,9 +39,13 @@ const mimeTypeByExtension: Record<string, string> = {
   ".woff2": "font/woff2"
 };
 
-const resolveRuntimeFilePath = (runtimeRoot: string, urlPath: string): string | null => {
+const resolveRuntimeFilePath = (
+  runtimeRoot: string,
+  adminStaticRoot: string,
+  urlPath: string
+): string | null => {
   if (urlPath === "/" || urlPath === "/index.html") {
-    return path.join(runtimeRoot, "index.html");
+    return path.join(runtimeRoot, "index.htm");
   }
 
   if (urlPath === "/app.js") {
@@ -47,11 +53,11 @@ const resolveRuntimeFilePath = (runtimeRoot: string, urlPath: string): string | 
   }
 
   if (urlPath.startsWith("/static/")) {
-    const candidatePath = path.resolve(runtimeRoot, `.${urlPath}`);
-    const runtimeRootPath = path.resolve(runtimeRoot);
+    const candidatePath = path.resolve(adminStaticRoot, `.${urlPath.slice("/static".length)}`);
+    const adminStaticRootPath = path.resolve(adminStaticRoot);
     if (
-      candidatePath === runtimeRootPath ||
-      candidatePath.startsWith(`${runtimeRootPath}${path.sep}`)
+      candidatePath === adminStaticRootPath ||
+      candidatePath.startsWith(`${adminStaticRootPath}${path.sep}`)
     ) {
       return candidatePath;
     }
@@ -73,13 +79,14 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const adminPort = parsePort(parsedArgs.flags["admin-port"], DEFAULT_ADMIN_PORT, "admin-port");
   const publicPort = parsePort(parsedArgs.flags["public-port"], DEFAULT_PUBLIC_PORT, "public-port");
   const runtimeRoot = path.join(projectRoot, ".atria", "runtime");
+  const adminStaticRoot = resolveAdminStaticRoot();
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
 
   const server = createServer(async (request, response) => {
     const requestUrl = request.url ?? "/";
     const pathname = new URL(requestUrl, "http://localhost").pathname;
-    const runtimeFilePath = resolveRuntimeFilePath(runtimeRoot, pathname);
+    const runtimeFilePath = resolveRuntimeFilePath(runtimeRoot, adminStaticRoot, pathname);
 
     if (!runtimeFilePath) {
       response.statusCode = 404;
@@ -135,4 +142,10 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
+};
+
+const resolveAdminStaticRoot = (): string => {
+  const require = createRequire(import.meta.url);
+  const adminPackageJson = require.resolve("@atria/admin/package.json");
+  return path.join(path.dirname(adminPackageJson), "dist", "runtime", "static");
 };

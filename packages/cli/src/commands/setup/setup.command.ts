@@ -73,14 +73,18 @@ const updateEnvFile = async (
   envPath: string,
   updates: Record<string, string>,
   force: boolean
-): Promise<void> => {
+): Promise<boolean> => {
   const content = await fs.readFile(envPath, "utf-8").catch((error: NodeJS.ErrnoException) => {
     if (error.code === "ENOENT") {
-      return "";
+      return null;
     }
 
     throw error;
   });
+
+  if (content === null) {
+    return false;
+  }
 
   const lines = content ? content.split(/\r?\n/g) : [];
   const nextLines: string[] = [];
@@ -122,6 +126,7 @@ const updateEnvFile = async (
   const output = `${nextLines.join("\n").trim()}\n`;
   await fs.mkdir(path.dirname(envPath), { recursive: true });
   await fs.writeFile(envPath, output, "utf-8");
+  return true;
 };
 
 export const runSetupCommand = async (args: string[]): Promise<void> => {
@@ -158,7 +163,7 @@ export const runSetupCommand = async (args: string[]): Promise<void> => {
   }
 
   const envPath = path.join(projectRoot, ".env");
-  await updateEnvFile(
+  const didUpdateEnv = await updateEnvFile(
     envPath,
     {
       ATRIA_DATABASE_URL: databaseUrl
@@ -169,7 +174,9 @@ export const runSetupCommand = async (args: string[]): Promise<void> => {
   console.log(`[atria] setup`);
   console.log(`[atria] project: ${projectRoot}`);
   console.log(`[atria] database: ${databaseMode}`);
-  console.log(`[atria] .env updated: ${envPath}`);
+  console.log(
+    didUpdateEnv ? `[atria] .env updated: ${envPath}` : `[atria] .env not found, skipped update`
+  );
 
   if (parsedArgs.flags["database-only"] === true) {
     console.log("[atria] Setup finished in database-only mode.");

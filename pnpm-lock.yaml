@@ -23,7 +23,11 @@ importers:
         specifier: workspace:*
         version: link:../cli
 
-  packages/cli: {}
+  packages/cli:
+    dependencies:
+      '@atria/admin':
+        specifier: workspace:*
+        version: link:../admin
 
   packages/core: {}
 
