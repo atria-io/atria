@@ -1,55 +1,19 @@
 {
   "name": "@atria/admin",
-  "version": "0.1.20",
-  "description": "Modular admin runtime UI for atria",
-  "keywords": [
-    "atria",
-    "cms",
-    "admin",
-    "back-office",
-    "runtime",
-    "react"
-  ],
+  "version": "0.0.1",
+  "private": false,
+  "description": "Admin runtime package",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./app.js": "./dist/app.js"
-  },
   "files": [
-    "dist"
+    "dist",
+    "runtime"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json && node build/dist.mjs",
+    "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run build"
-  },
-  "dependencies": {
-    "@atria/shared": "workspace:*",
-    "lucide-react": "^0.577.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.9",
-    "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-terser": "^1.0.0",
-    "@types/react": "^18.3.26",
-    "@types/react-dom": "^18.3.7",
-    "rollup": "^4.52.4",
-    "tslib": "^2.8.1"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/atria-io/atria.git",
-    "directory": "packages/admin"
+    "prepublishOnly": "tsc -p tsconfig.json"
   }
 }
