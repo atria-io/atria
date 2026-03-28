@@ -1,9 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@atria/cli": ["../cli/dist/runCli.d.ts"]
+    },
     "rootDir": "src",
     "outDir": "dist"
   },
   "include": ["src/**/*"]
 }
-
