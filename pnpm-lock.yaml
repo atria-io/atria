@@ -58,28 +58,11 @@ importers:
         specifier: workspace:*
         version: link:../cli
 
-  packages/cli:
-    dependencies:
-      '@atria/db':
-        specifier: workspace:*
-        version: link:../db
-      '@atria/server':
-        specifier: workspace:*
-        version: link:../server
-      '@atria/shared':
-        specifier: workspace:*
-        version: link:../shared
+  packages/cli: {}
 
   packages/core: {}
 
-  packages/create:
-    dependencies:
-      '@atria/db':
-        specifier: workspace:*
-        version: link:../db
-      '@atria/shared':
-        specifier: workspace:*
-        version: link:../shared
+  packages/create: {}
 
   packages/db:
     dependencies:
@@ -107,6 +90,12 @@ importers:
         version: link:../shared
 
   packages/shared: {}
+
+  workspace:
+    devDependencies:
+      atria:
+        specifier: workspace:*
+        version: link:../packages/atria
 
 packages:
 

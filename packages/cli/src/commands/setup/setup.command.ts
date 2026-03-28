@@ -106,7 +106,8 @@ const updateEnvFile = async (
     seen.add(key);
 
     if (!force) {
-      throw new Error(`Env key already exists: ${key}. Re-run with --force to overwrite.`);
+      nextLines.push(line);
+      continue;
     }
 
     nextLines.push(`${key}=${updates[key]}`);

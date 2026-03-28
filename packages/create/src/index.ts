@@ -4,11 +4,17 @@ import { randomBytes } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
+import { fileURLToPath } from "node:url";
 
 const ATRIA_CONFIG_FILE = "atria.config.json";
+const ATRIA_RUNTIME_DIR = path.join(".atria", "runtime");
 const PUBLIC_OUTPUT_DIR = path.join("production", "public");
 const STUDIO_CONTENT_DIR = path.join("production", "studio", "content");
 const STUDIO_THEME_DIR = path.join("production", "studio", "theme");
+const ADMIN_RUNTIME_SOURCE_DIR = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../admin/runtime"
+);
 
 const DEFAULT_PROJECT_LABEL = "My Studio Project";
 const DEFAULT_PROJECT_DIR = "my-project";
@@ -165,6 +171,25 @@ const writeTargets = async (targets: WriteTarget[]): Promise<void> => {
   }
 };
 
+const copyAdminRuntime = async (projectRoot: string, force: boolean): Promise<void> => {
+  const runtimeTargetDir = path.join(projectRoot, ATRIA_RUNTIME_DIR);
+
+  if (!(await fileExists(ADMIN_RUNTIME_SOURCE_DIR))) {
+    throw new Error(`Admin runtime source not found: ${ADMIN_RUNTIME_SOURCE_DIR}`);
+  }
+
+  if (await fileExists(runtimeTargetDir)) {
+    if (!force) {
+      throw new Error(`File already exists: ${runtimeTargetDir}. Use --force to overwrite.`);
+    }
+
+    await fs.rm(runtimeTargetDir, { recursive: true, force: true });
+  }
+
+  await ensureDirectory(path.dirname(runtimeTargetDir));
+  await fs.cp(ADMIN_RUNTIME_SOURCE_DIR, runtimeTargetDir, { recursive: true });
+};
+
 const getPackageManager = (flags: Record<string, string | boolean>): PackageManager => {
   if (flags.pnpm === true || flags["use-pnpm"] === true) {
     return "pnpm";
@@ -296,6 +321,7 @@ const run = async (): Promise<void> => {
 
   await assertWritableTargets(targets, force);
   await writeTargets(targets);
+  await copyAdminRuntime(projectRoot, force);
 
   console.log(`[create] Project scaffolded at ${projectRoot}`);
 
