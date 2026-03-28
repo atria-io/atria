@@ -32,9 +32,5 @@
     "type": "git",
     "url": "git+https://github.com/atria-io/atria.git",
     "directory": "packages/create"
-  },
-  "dependencies": {
-    "@atria/db": "workspace:*",
-    "@atria/shared": "workspace:*"
   }
 }
