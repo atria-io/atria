@@ -1,6 +1,6 @@
-import { runBuildCommand } from "./commands/build.command.js";
-import { runDevCommand } from "./commands/dev.command.js";
-import { runSetupCommand } from "./commands/setup.command.js";
+import { runBuildCommand } from "./commands/build/build.command.js";
+import { runDevCommand } from "./commands/dev/dev.command.js";
+import { runSetupCommand } from "./commands/setup/setup.command.js";
 import type { CliCommand } from "./types.js";
 
 const commands: Record<string, CliCommand> = {
