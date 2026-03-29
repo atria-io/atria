@@ -6,7 +6,7 @@ export interface AuthShellProps {
 }
 
 export const AuthShell = ({ route, children }: AuthShellProps) => (
-  <div className="admin-auth" data-route={route} data-scheme="light">
-    <main className="admin-auth__main">{children}</main>
+  <div className="admin-shell" data-route={route} data-scheme="light">
+    <main className="admin-shell__main">{children}</main>
   </div>
 );
