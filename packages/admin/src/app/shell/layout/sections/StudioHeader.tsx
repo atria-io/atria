@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import type { BootstrapUserSummary } from "../../../bootstrap/getBootstrapState.js";
+import { useRuntimeScheme } from "../../../runtime/useRuntimeScheme.js";
 
 type SchemeMode = "system" | "light" | "dark";
-type ResolvedScheme = "light" | "dark";
 
 interface RuntimeScheme {
   mode: SchemeMode;
-  resolved: ResolvedScheme;
   setMode: (mode: SchemeMode) => void;
 }
 
@@ -18,7 +17,6 @@ const getRuntimeScheme = (): RuntimeScheme | null => {
 
   if (
     (runtimeScheme.mode !== "system" && runtimeScheme.mode !== "light" && runtimeScheme.mode !== "dark") ||
-    (runtimeScheme.resolved !== "light" && runtimeScheme.resolved !== "dark") ||
     typeof runtimeScheme.setMode !== "function"
   ) {
     return null;
@@ -32,69 +30,32 @@ export interface StudioHeaderProps {
   onLogout: () => void;
 }
 
-const readRuntimeScheme = (): { mode: SchemeMode; resolved: ResolvedScheme } => {
-  const runtimeScheme = getRuntimeScheme();
-  if (!runtimeScheme) {
-    return { mode: "system", resolved: "light" };
-  }
-
-  return {
-    mode: runtimeScheme.mode,
-    resolved: runtimeScheme.resolved,
-  };
-};
+const readRuntimeMode = (): SchemeMode => getRuntimeScheme()?.mode ?? "system";
 
 export const StudioHeader = ({ user, onLogout }: StudioHeaderProps) => {
-  const [scheme, setScheme] = useState<{ mode: SchemeMode; resolved: ResolvedScheme }>({
-    mode: "system",
-    resolved: "light",
-  });
+  const resolved = useRuntimeScheme();
+  const [mode, setMode] = useState<SchemeMode>(() => readRuntimeMode());
 
   useEffect(() => {
-    const syncScheme = (): void => {
-      setScheme(readRuntimeScheme());
-    };
+    setMode(readRuntimeMode());
+  }, [resolved]);
 
-    syncScheme();
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleMediaChange = (): void => {
-      if (getRuntimeScheme()?.mode === "system") {
-        syncScheme();
-      }
-    };
-
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", handleMediaChange);
-    } else if (typeof mediaQuery.addListener === "function") {
-      mediaQuery.addListener(handleMediaChange);
-    }
-
-    return () => {
-      if (typeof mediaQuery.removeEventListener === "function") {
-        mediaQuery.removeEventListener("change", handleMediaChange);
-      } else if (typeof mediaQuery.removeListener === "function") {
-        mediaQuery.removeListener(handleMediaChange);
-      }
-    };
-  }, []);
-
-  const setMode = (mode: SchemeMode): void => {
-    getRuntimeScheme()?.setMode(mode);
-    setScheme(readRuntimeScheme());
+  const handleSetMode = (nextMode: SchemeMode): void => {
+    getRuntimeScheme()?.setMode(nextMode);
+    setMode(readRuntimeMode());
   };
 
   return (
     <header className="admin-shell__header">
       <div>Studio</div>
       <div style={{ marginLeft: "auto", display: "flex", gap: "8px", alignItems: "center" }}>
-        <button type="button" onClick={() => setMode("system")}>
+        <button type="button" data-active={mode === "system"} onClick={() => handleSetMode("system")}>
           System
         </button>
-        <button type="button" onClick={() => setMode("light")}>
+        <button type="button" data-active={mode === "light"} onClick={() => handleSetMode("light")}>
           Light
         </button>
-        <button type="button" onClick={() => setMode("dark")}>
+        <button type="button" data-active={mode === "dark"} onClick={() => handleSetMode("dark")}>
           Dark
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -107,7 +68,7 @@ export const StudioHeader = ({ user, onLogout }: StudioHeaderProps) => {
             />
           )}
           <span>{user.name}</span>
-          <span style={{ opacity: 0.7 }}>{scheme.mode}/{scheme.resolved}</span>
+          <span style={{ opacity: 0.7 }}>{mode}/{resolved}</span>
         </div>
         <button type="button" onClick={onLogout}>
           Logout
