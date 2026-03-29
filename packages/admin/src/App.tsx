@@ -12,6 +12,11 @@ export interface AdminAppProps {
 export const AdminApp = ({ basePath }: AdminAppProps) => {
   const [state, setState] = useState<BootstrapState>("setup");
 
+  const handleLogout = async (): Promise<void> => {
+    await fetch("/admin/logout", { method: "POST", credentials: "include" });
+    window.location.reload();
+  };
+
   useEffect(() => {
     let isActive = true;
 
@@ -30,7 +35,12 @@ export const AdminApp = ({ basePath }: AdminAppProps) => {
   if (state === "authenticated") {
     return (
       <StudioShell route="dashboard">
-        <div>Dashboard</div>
+        <div>
+          <div>Dashboard</div>
+          <button type="button" onClick={() => void handleLogout()}>
+            Logout
+          </button>
+        </div>
       </StudioShell>
     );
   }

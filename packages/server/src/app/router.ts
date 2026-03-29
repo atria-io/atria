@@ -8,14 +8,21 @@ const handleAuthRoutes = (request: IncomingMessage, response: ServerResponse): b
   }
 
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
-  if (pathname !== "/admin/login") {
-    return false;
+  if (pathname === "/admin/login") {
+    response.statusCode = 204;
+    response.setHeader("Set-Cookie", "session=valid; Path=/; HttpOnly");
+    response.end();
+    return true;
   }
 
-  response.statusCode = 204;
-  response.setHeader("Set-Cookie", "session=valid; Path=/; HttpOnly");
-  response.end();
-  return true;
+  if (pathname === "/admin/logout") {
+    response.statusCode = 204;
+    response.setHeader("Set-Cookie", "session=; Path=/; HttpOnly; Max-Age=0");
+    response.end();
+    return true;
+  }
+
+  return false;
 };
 
 export const routeRequest = async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
