@@ -1,6 +1,6 @@
 import { StudioShell } from "./app/shell/StudioShell.js";
 import { AuthShell } from "./app/shell/AuthShell.js";
-import { useBootstrapState } from "./app/bootstrap/useBootstrapState.js";
+import { useAppState } from "./app/state/useAppState.js";
 import { CriticalShell } from "./app/shell/CriticalShell.js";
 
 export interface AdminAppProps {
@@ -8,7 +8,7 @@ export interface AdminAppProps {
 }
 
 export const AdminApp = ({ basePath }: AdminAppProps) => {
-  const appState = useBootstrapState(basePath);
+  const appState = useAppState(basePath);
 
   if (appState.realm === "critical") {
     return <CriticalShell screen={appState.screen} />;

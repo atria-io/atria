@@ -1,4 +1,4 @@
-import type { BootstrapUserSummary } from "../bootstrap/getBootstrapState.js";
+import type { AppUser } from "../state/getAppState.js";
 import type { StudioScreen } from "../runtime/runtimeTypes.js";
 import { useRuntimeScheme } from "../runtime/runtimeScheme.js";
 import { StudioAccountPanel } from "./components/StudioAccountPanel.js";
@@ -7,7 +7,7 @@ import { StudioMain } from "./layout/StudioMain.js";
 
 export interface StudioShellProps {
   screen: StudioScreen;
-  user: BootstrapUserSummary;
+  user: AppUser;
 }
 
 export const StudioShell = ({ screen, user }: StudioShellProps) => {

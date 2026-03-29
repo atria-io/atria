@@ -1,4 +1,4 @@
-import type { BootstrapUserSummary } from "../bootstrap/getBootstrapState.js";
+import type { AppUser } from "../state/getAppState.js";
 import type { AuthState } from "../../modules/auth/auth.types.js";
 
 export type StudioScreen = "dashboard";
@@ -21,7 +21,7 @@ export interface AuthAppState {
 export interface StudioAppState {
   realm: "studio";
   screen: StudioScreen;
-  user: BootstrapUserSummary;
+  user: AppUser;
 }
 
 export type AppState = CriticalAppState | AuthAppState | StudioAppState;

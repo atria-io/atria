@@ -1,24 +1,24 @@
-export type BootstrapState = "setup" | "create" | "login" | "broker-consent" | "authenticated";
+export type AppState = "setup" | "create" | "login" | "broker-consent" | "authenticated";
 
-export interface BootstrapUserSummary {
+export interface AppUser {
   name: string;
   email: string;
   avatarUrl: string;
   role: string;
 }
 
-export interface BootstrapPayload {
-  state: BootstrapState;
-  user?: BootstrapUserSummary;
+export interface AppStatePayload {
+  state: AppState;
+  user?: AppUser;
 }
 
-export const getBootstrapState = async (_basePath: string): Promise<BootstrapPayload> => {
+export const getAppState = async (_basePath: string): Promise<AppStatePayload> => {
   const response = await fetch("/admin/bootstrap", { method: "GET" });
   if (!response.ok) {
     throw new Error(`Bootstrap request failed with status ${response.status}`);
   }
 
-  const payload = (await response.json()) as Partial<BootstrapPayload>;
+  const payload = (await response.json()) as Partial<AppStatePayload>;
   if (
     payload.state === "setup" ||
     payload.state === "create" ||

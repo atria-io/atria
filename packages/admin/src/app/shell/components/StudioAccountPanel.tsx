@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { BootstrapUserSummary } from "../../bootstrap/getBootstrapState.js";
+import type { AppUser } from "../../state/getAppState.js";
 import { useRuntimeScheme } from "../../runtime/runtimeScheme.js";
 
 type SchemeMode = "system" | "light" | "dark";
@@ -28,7 +28,7 @@ const getRuntimeScheme = (): RuntimeScheme | null => {
 const readRuntimeMode = (): SchemeMode => getRuntimeScheme()?.mode ?? "system";
 
 export interface StudioAccountPanelProps {
-  user: BootstrapUserSummary;
+  user: AppUser;
   onLogout: () => void;
 }
 

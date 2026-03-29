@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { getBootstrapState } from "./getBootstrapState.js";
+import { getAppState } from "./getAppState.js";
 import { getRuntimeFatalState, RUNTIME_FATAL_EVENT } from "../runtime/runtimeFatal.js";
 import type { AppState, CriticalScreen } from "../runtime/runtimeTypes.js";
 
-export const useBootstrapState = (basePath: string): AppState => {
+export const useAppState = (basePath: string): AppState => {
   const [appState, setAppState] = useState<AppState>({ realm: "auth", screen: "setup" });
 
   useEffect(() => {
@@ -23,19 +23,19 @@ export const useBootstrapState = (basePath: string): AppState => {
 
     void (async () => {
       try {
-        const bootstrapState = await getBootstrapState(basePath);
+        const nextAppState = await getAppState(basePath);
         if (isActive) {
-          if (bootstrapState.state === "authenticated") {
-            if (!bootstrapState.user) {
+          if (nextAppState.state === "authenticated") {
+            if (!nextAppState.user) {
               setAppState({ realm: "auth", screen: "login" });
               return;
             }
 
-            setAppState({ realm: "studio", screen: "dashboard", user: bootstrapState.user });
+            setAppState({ realm: "studio", screen: "dashboard", user: nextAppState.user });
             return;
           }
 
-          setAppState({ realm: "auth", screen: bootstrapState.state });
+          setAppState({ realm: "auth", screen: nextAppState.state });
         }
       } catch {
         if (!window.navigator.onLine) {
