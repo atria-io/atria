@@ -1,10 +1,18 @@
+import { LockedScreen } from "../../modules/auth/LockedScreen.js";
+
 export interface MountAdminOptions {
   mountElement?: Element | null;
   basePath?: string;
   reactStrictMode?: boolean;
 }
 
-const hasSession = (): boolean => false;
+type AccessState = "unauthenticated" | "authenticated";
+
+const getAccessState = (): AccessState => "unauthenticated";
+
+const renderLockedScreen = (): void => {
+  document.body.textContent = LockedScreen();
+};
 
 const bootstrapStudioApp = (mountElement: Element): void => {
   if (!mountElement.hasChildNodes()) {
@@ -19,12 +27,15 @@ export const mountAdminApp = (options: MountAdminOptions = {}): void => {
     return;
   }
 
-  if (!hasSession()) {
-    document.body.textContent = "Studio locked";
-    return;
+  const accessState = getAccessState();
+  switch (accessState) {
+    case "unauthenticated":
+      renderLockedScreen();
+      return;
+    case "authenticated":
+      bootstrapStudioApp(mountElement);
+      return;
   }
-
-  bootstrapStudioApp(mountElement);
 };
 
 export const mountStudioApp = mountAdminApp;
