@@ -141,7 +141,15 @@ export const sendAuthCreateOwner = async (
     return;
   }
 
+  const session = await createSession(ownerId);
+  if (!session) {
+    response.statusCode = 400;
+    response.end();
+    return;
+  }
+
   response.statusCode = 204;
+  response.setHeader("Set-Cookie", `session=${session.id}; Path=/; HttpOnly`);
   response.end();
 };
 
