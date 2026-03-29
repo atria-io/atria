@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { ServerResponse } from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AdminBootstrapResponse } from "./admin.types.js";
 
 const parseEnvFile = (source: string): Record<string, string> => {
@@ -124,7 +124,35 @@ const isSqliteOwnerPresent = async (sqliteFilePath: string): Promise<"available"
   }
 };
 
-const getAdminBootstrapState = async (): Promise<AdminBootstrapResponse> => {
+const hasSessionCookie = (request: IncomingMessage): boolean => {
+  const rawCookie = request.headers.cookie;
+  if (typeof rawCookie !== "string" || rawCookie.trim() === "") {
+    return false;
+  }
+
+  const parts = rawCookie.split(";");
+  for (const part of parts) {
+    const cookie = part.trim();
+    if (cookie === "") {
+      continue;
+    }
+
+    const separatorIndex = cookie.indexOf("=");
+    if (separatorIndex <= 0) {
+      continue;
+    }
+
+    const name = cookie.slice(0, separatorIndex).trim();
+    const value = cookie.slice(separatorIndex + 1).trim();
+    if (name === "session" && value !== "") {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const getAdminBootstrapState = async (request: IncomingMessage): Promise<AdminBootstrapResponse> => {
   const databaseUrl = await resolveDatabaseUrl();
   if (databaseUrl === "") {
     return { state: "setup" };
@@ -140,11 +168,15 @@ const getAdminBootstrapState = async (): Promise<AdminBootstrapResponse> => {
   }
 
   const ownerState = await isSqliteOwnerPresent(sqlitePath);
-  if (ownerState === "available") {
+  if (ownerState === "missing") {
+    return { state: "create" };
+  }
+
+  if (!hasSessionCookie(request)) {
     return { state: "login" };
   }
 
-  return { state: "create" };
+  return { state: "authenticated" };
 };
 
 const writeJson = (response: ServerResponse, statusCode: number, payload: unknown): void => {
@@ -153,8 +185,11 @@ const writeJson = (response: ServerResponse, statusCode: number, payload: unknow
   response.end(JSON.stringify(payload));
 };
 
-export const sendAdminBootstrap = async (response: ServerResponse): Promise<void> => {
-  writeJson(response, 200, await getAdminBootstrapState());
+export const sendAdminBootstrap = async (
+  request: IncomingMessage,
+  response: ServerResponse
+): Promise<void> => {
+  writeJson(response, 200, await getAdminBootstrapState(request));
 };
 
 export const sendNotFound = (response: ServerResponse): void => {

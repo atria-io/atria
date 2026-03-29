@@ -14,6 +14,6 @@ export const handleAdminRoutes = async (
     return false;
   }
 
-  await sendAdminBootstrap(response);
+  await sendAdminBootstrap(request, response);
   return true;
 };
