@@ -8,13 +8,12 @@ const handleAuthRoutes = (request: IncomingMessage, response: ServerResponse): b
   }
 
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
-  if (pathname !== "/auth/login") {
+  if (pathname !== "/admin/login") {
     return false;
   }
 
-  response.statusCode = 303;
+  response.statusCode = 204;
   response.setHeader("Set-Cookie", "session=valid; Path=/; HttpOnly");
-  response.setHeader("Location", "/");
   response.end();
   return true;
 };

@@ -1,5 +1,5 @@
 const handleLogin = async (): Promise<void> => {
-  await fetch("/auth/login", { method: "POST", credentials: "include" });
+  await fetch("/admin/login", { method: "POST", credentials: "include" });
   window.location.reload();
 };
 
