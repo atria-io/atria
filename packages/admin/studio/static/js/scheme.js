@@ -42,8 +42,8 @@
   let mode = readStoredMode();
   let resolved = resolveMode(mode);
 
-  const apply = () => {
-    resolved = resolveMode(mode);
+  const applyScheme = (nextScheme) => {
+    resolved = nextScheme;
     const styleElement = ensureStyleElement();
     styleElement.textContent = toCss(TOKENS[resolved]);
 
@@ -70,14 +70,14 @@
       localStorage.setItem(STORAGE_KEY, nextMode);
     } catch {}
 
-    apply();
+    applyScheme(resolveMode(mode));
   }
 
   if (typeof window.matchMedia === "function") {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => {
       if (mode === "system") {
-        apply();
+        applyScheme(resolveMode(mode));
       }
     };
 
@@ -88,5 +88,29 @@
     }
   }
 
-  apply();
+  const schemeObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type !== "attributes" || mutation.attributeName !== "data-scheme") {
+        continue;
+      }
+
+      const target = mutation.target;
+      if (!(target instanceof Element)) {
+        continue;
+      }
+
+      const nextScheme = target.getAttribute("data-scheme");
+      if (nextScheme === "light" || nextScheme === "dark") {
+        applyScheme(nextScheme);
+      }
+    }
+  });
+
+  schemeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-scheme"],
+    subtree: true,
+  });
+
+  applyScheme(resolveMode(mode));
 })();
