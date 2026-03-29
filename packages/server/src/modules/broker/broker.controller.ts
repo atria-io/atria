@@ -76,6 +76,48 @@ const getBrokerUserId = async (): Promise<string | null> => {
   }
 };
 
+const confirmBrokerConsent = async (payload: {
+  provider: BrokerProvider;
+  project_id: string;
+  broker_consent_token: string;
+  broker_code: string;
+}): Promise<"ok" | "rejected" | "failed"> => {
+  try {
+    const brokerConfirmUrl = new URL("/api/auth/broker/confirm", resolveBrokerOrigin());
+    const brokerResponse = await fetch(brokerConfirmUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!brokerResponse.ok) {
+      return brokerResponse.status >= 400 && brokerResponse.status < 500 ? "rejected" : "failed";
+    }
+
+    const contentType = toStringValue(brokerResponse.headers.get("content-type")).toLowerCase();
+    if (!contentType.includes("application/json")) {
+      return "ok";
+    }
+
+    const rawPayload = (await brokerResponse.json()) as unknown;
+    if (!rawPayload || typeof rawPayload !== "object") {
+      return "ok";
+    }
+
+    const root = rawPayload as Record<string, unknown>;
+    const nested =
+      root.data && typeof root.data === "object" ? (root.data as Record<string, unknown>) : null;
+    const source = nested ?? root;
+    const explicitFailure = source.ok === false || source.success === false || root.ok === false;
+    return explicitFailure ? "rejected" : "ok";
+  } catch {
+    return "failed";
+  }
+};
+
 export const sendBrokerConfirm = async (
   request: IncomingMessage,
   response: ServerResponse
@@ -87,22 +129,35 @@ export const sendBrokerConfirm = async (
   const brokerCode = toStringValue(payload?.broker_code);
 
   if (!isSupportedProvider(provider) || projectId === "" || (brokerConsentToken === "" && brokerCode === "")) {
-    response.statusCode = 400;
-    response.end();
+    writeJson(response, 400, { error: "Invalid broker consent payload" });
+    return;
+  }
+
+  const confirmResult = await confirmBrokerConsent({
+    provider,
+    project_id: projectId,
+    broker_consent_token: brokerConsentToken,
+    broker_code: brokerCode,
+  });
+  if (confirmResult !== "ok") {
+    if (confirmResult === "rejected") {
+      writeJson(response, 401, { error: "Broker consent rejected" });
+      return;
+    }
+
+    writeJson(response, 502, { error: "Broker confirm failed" });
     return;
   }
 
   const userId = await getBrokerUserId();
   if (!userId) {
-    response.statusCode = 401;
-    response.end();
+    writeJson(response, 401, { error: "No user available for session" });
     return;
   }
 
   const session = await createSession(userId);
   if (!session) {
-    response.statusCode = 401;
-    response.end();
+    writeJson(response, 401, { error: "Session creation failed" });
     return;
   }
 
