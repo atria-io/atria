@@ -22,7 +22,13 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
+  "dependencies": {
+    "react": "latest",
+    "react-dom": "latest"
+  },
   "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
     "rollup": "latest",
     "@rollup/plugin-commonjs": "latest",
     "@rollup/plugin-node-resolve": "latest",

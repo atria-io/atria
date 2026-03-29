@@ -1,24 +1,12 @@
-import { LockedScreen } from "../../modules/auth/LockedScreen.js";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { AdminApp } from "../../App.js";
 
 export interface MountAdminOptions {
   mountElement?: Element | null;
   basePath?: string;
   reactStrictMode?: boolean;
 }
-
-type AccessState = "unauthenticated" | "authenticated";
-
-const getAccessState = (): AccessState => "unauthenticated";
-
-const renderLockedScreen = (): void => {
-  document.body.textContent = LockedScreen();
-};
-
-const bootstrapStudioApp = (mountElement: Element): void => {
-  if (!mountElement.hasChildNodes()) {
-    mountElement.textContent = "";
-  }
-};
 
 export const mountAdminApp = (options: MountAdminOptions = {}): void => {
   const mountElement = options.mountElement ?? document.getElementById("atria");
@@ -27,15 +15,16 @@ export const mountAdminApp = (options: MountAdminOptions = {}): void => {
     return;
   }
 
-  const accessState = getAccessState();
-  switch (accessState) {
-    case "unauthenticated":
-      renderLockedScreen();
-      return;
-    case "authenticated":
-      bootstrapStudioApp(mountElement);
-      return;
+  const basePath = options.basePath ?? "/";
+  const root = createRoot(mountElement);
+  const app = <AdminApp basePath={basePath} />;
+
+  if (options.reactStrictMode === true) {
+    root.render(<StrictMode>{app}</StrictMode>);
+    return;
   }
+
+  root.render(app);
 };
 
 export const mountStudioApp = mountAdminApp;
