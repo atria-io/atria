@@ -1,4 +1,8 @@
-export const CriticalScreen = () => {
+export interface CriticalScreenProps {
+  message: string;
+}
+
+export const CriticalScreen = ({ message }: CriticalScreenProps) => {
   const handleRetry = (): void => {
     window.location.reload();
   };
@@ -6,7 +10,7 @@ export const CriticalScreen = () => {
   return (
     <section>
       <h1>Critical Error</h1>
-      <p>Bootstrap request failed. Retry to continue.</p>
+      <p>{message}</p>
       <button type="button" onClick={handleRetry}>
         Retry
       </button>

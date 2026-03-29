@@ -22,7 +22,7 @@ export const AdminApp = ({ basePath }: AdminAppProps) => {
   if (state === "critical") {
     return (
       <CriticalShell>
-        <CriticalScreen />
+        <CriticalScreen message={bootstrap.message} />
       </CriticalShell>
     );
   }
