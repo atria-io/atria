@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { sendAuthLogin, sendAuthLogout } from "./auth.controller.js";
+import { sendAuthCreateOwner, sendAuthLogin, sendAuthLogout } from "./auth.controller.js";
 
 export const handleAuthRoutes = async (
   request: IncomingMessage,
@@ -13,6 +13,11 @@ export const handleAuthRoutes = async (
 
   if (pathname === "/auth/login") {
     await sendAuthLogin(request, response);
+    return true;
+  }
+
+  if (pathname === "/auth/create-owner") {
+    await sendAuthCreateOwner(request, response);
     return true;
   }
 

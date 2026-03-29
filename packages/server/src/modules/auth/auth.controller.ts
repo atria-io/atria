@@ -1,5 +1,11 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createSession, deleteSessionById, getUserByEmail } from "@atria/db";
+import {
+  createOwner,
+  createSession,
+  deleteSessionById,
+  getOwnerSetupState,
+  getUserByEmail,
+} from "@atria/db";
 import type { LoginPayload } from "./auth.types.js";
 
 const readJsonBody = async (request: IncomingMessage): Promise<LoginPayload | null> => {
@@ -75,6 +81,38 @@ export const sendAuthLogin = async (
   response.end();
 };
 
+export const sendAuthCreateOwner = async (
+  request: IncomingMessage,
+  response: ServerResponse
+): Promise<void> => {
+  const payload = await readJsonBody(request);
+  const email = typeof payload?.email === "string" ? payload.email : "";
+  const password = typeof payload?.password === "string" ? payload.password : "";
+
+  const ownerState = await getOwnerSetupState();
+  if (ownerState === "ready") {
+    response.statusCode = 409;
+    response.end();
+    return;
+  }
+
+  if (ownerState === "setup") {
+    response.statusCode = 400;
+    response.end();
+    return;
+  }
+
+  const ownerId = await createOwner({ email, password });
+  if (!ownerId) {
+    response.statusCode = 400;
+    response.end();
+    return;
+  }
+
+  response.statusCode = 204;
+  response.end();
+};
+
 export const sendAuthLogout = async (
   request: IncomingMessage,
   response: ServerResponse
@@ -88,4 +126,3 @@ export const sendAuthLogout = async (
   response.setHeader("Set-Cookie", "session=; Path=/; HttpOnly; Max-Age=0");
   response.end();
 };
-
