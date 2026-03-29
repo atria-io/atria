@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
+import { isInteractivePrompt } from "@atria/shared";
 import { parseArgs } from "../../parseArgs.js";
 
 type DatabaseMode = "sqlite" | "postgres";
@@ -21,10 +22,8 @@ const parseDatabaseMode = (value: string): DatabaseMode | null => {
   return null;
 };
 
-const isInteractive = (): boolean => Boolean(process.stdin.isTTY && process.stdout.isTTY);
-
 const promptDatabaseMode = async (): Promise<DatabaseMode> => {
-  if (!isInteractive()) {
+  if (!isInteractivePrompt()) {
     return "sqlite";
   }
 
@@ -48,7 +47,7 @@ const promptDatabaseMode = async (): Promise<DatabaseMode> => {
 };
 
 const promptPostgresUrl = async (): Promise<string> => {
-  if (!isInteractive()) {
+  if (!isInteractivePrompt()) {
     throw new Error("Missing --database-url for postgres in non-interactive mode.");
   }
 

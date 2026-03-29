@@ -28,10 +28,17 @@ importers:
       '@atria/admin':
         specifier: workspace:*
         version: link:../admin
+      '@atria/shared':
+        specifier: workspace:*
+        version: link:../shared
 
   packages/core: {}
 
-  packages/create: {}
+  packages/create:
+    dependencies:
+      '@atria/shared':
+        specifier: workspace:*
+        version: link:../shared
 
   packages/db: {}
 

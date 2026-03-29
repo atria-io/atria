@@ -3,8 +3,11 @@ import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import readline from "node:readline/promises";
 import { fileURLToPath } from "node:url";
+import { done, doneField, isInteractivePrompt, success, terminal } from "@atria/shared";
+import { promptInput, promptProjectModeSelection } from "./prompts.js";
+import { detectExistingProjectAt, discoverExistingProjects } from "./projects.js";
+import { formatScaffoldedAt, replacePreviousPromptLine } from "./render.js";
 
 const ATRIA_CONFIG_FILE = "atria.config.json";
 const ATRIA_RUNTIME_DIR = path.join(".atria", "runtime");
@@ -31,6 +34,13 @@ interface ParsedArgs {
 interface WriteTarget {
   path: string;
   content: string;
+}
+
+interface ProjectSelection {
+  targetArgument: string;
+  configProjectName: string;
+  projectId: string | null;
+  mode: "new" | "existing";
 }
 
 const createEnvExampleFile = (): string =>
@@ -96,13 +106,17 @@ const parseArgs = (argv: string[]): ParsedArgs => {
 };
 
 const normalizeProjectName = (value: string): string => {
-  const normalized = value
-    .trim()
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return DEFAULT_PROJECT_DIR;
+  }
+
+  const normalized = trimmed
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-  return normalized || DEFAULT_PROJECT_DIR;
+  return normalized.length > 0 ? normalized : DEFAULT_PROJECT_DIR;
 };
 
 const createProjectIdentifier = (): string => {
@@ -224,24 +238,90 @@ const installProjectDependencies = async (
     });
   });
 
-const isInteractivePrompt = (): boolean => Boolean(process.stdin.isTTY && process.stdout.isTTY);
+const resolveProjectSelection = async (parsedArgs: ParsedArgs): Promise<ProjectSelection> => {
+  const explicitTarget = parsedArgs.positionals[0];
 
-const promptInput = async (label: string, defaultValue: string): Promise<string> => {
-  if (!isInteractivePrompt()) {
-    return defaultValue;
+  if (explicitTarget) {
+    const label = path.basename(path.resolve(process.cwd(), explicitTarget));
+    const projectId = createProjectIdentifier();
+
+    return {
+      targetArgument: explicitTarget,
+      configProjectName: `${label} (${projectId})`,
+      projectId,
+      mode: "new"
+    };
   }
 
-  const interfaceHandle = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
+  const existingProjects = await discoverExistingProjects(process.cwd(), ATRIA_CONFIG_FILE);
+  if (existingProjects.length > 0) {
+    console.log(done("Fetching existing projects"));
+    console.log("");
+
+    const modeSelection = await promptProjectModeSelection(existingProjects);
+    if (modeSelection.kind === "existing") {
+      return {
+        targetArgument: modeSelection.project.projectRoot,
+        configProjectName: modeSelection.project.configProjectName,
+        projectId: null,
+        mode: "existing"
+      };
+    }
+  }
+
+  const requestedName = await promptInput("Create a new project:", {
+    defaultValue: DEFAULT_PROJECT_LABEL,
+    displayDefault: DEFAULT_PROJECT_LABEL
   });
 
-  try {
-    const answer = await interfaceHandle.question(`${label} (${defaultValue}): `);
-    const trimmed = answer.trim();
-    return trimmed || defaultValue;
-  } finally {
-    interfaceHandle.close();
+  const projectNameLabel = requestedName.trim() || DEFAULT_PROJECT_LABEL;
+  const normalizedName = normalizeProjectName(projectNameLabel);
+  const projectIdentifier = createProjectIdentifier();
+  const configProjectName = `${projectNameLabel} (${projectIdentifier})`;
+  replacePreviousPromptLine(doneField("Project name:", configProjectName));
+
+  const defaultOutputPath = path.join(process.cwd(), normalizedName);
+  let suggestedOutputPath = defaultOutputPath;
+  let hadPathConflict = false;
+
+  while (true) {
+    const outputPath = await promptInput("Project output path:", {
+      defaultValue: suggestedOutputPath,
+      displayDefault: suggestedOutputPath
+    });
+
+    const resolvedOutputRoot = path.resolve(process.cwd(), outputPath);
+    const conflictingProject = await detectExistingProjectAt(resolvedOutputRoot, ATRIA_CONFIG_FILE);
+
+    if (conflictingProject) {
+      if (!isInteractivePrompt()) {
+        throw new Error(`${conflictingProject.configProjectName} is already using path: ${resolvedOutputRoot}`);
+      }
+
+      replacePreviousPromptLine(
+        `${terminal.red("✖")} ${terminal.red(`${conflictingProject.configProjectName} is already using this path.`)}`
+      );
+
+      if (suggestedOutputPath === defaultOutputPath) {
+        suggestedOutputPath = path.join(process.cwd(), `${normalizedName}-${projectIdentifier}`);
+      }
+
+      hadPathConflict = true;
+      continue;
+    }
+
+    const scaffoldedAt = formatScaffoldedAt(process.cwd(), resolvedOutputRoot);
+    replacePreviousPromptLine(
+      doneField("Project scaffolded at:", scaffoldedAt),
+      hadPathConflict ? { linesUp: 2, clearDown: true } : {}
+    );
+
+    return {
+      targetArgument: outputPath,
+      configProjectName,
+      projectId: projectIdentifier,
+      mode: "new"
+    };
   }
 };
 
@@ -260,7 +340,6 @@ const printHelp = (): void => {
 
 const run = async (): Promise<void> => {
   const parsedArgs = parseArgs(process.argv.slice(2));
-
   if (parsedArgs.flags.help) {
     printHelp();
     return;
@@ -270,19 +349,10 @@ const run = async (): Promise<void> => {
     throw new Error('Option "--auth-method" was removed from create. Sign-in is selected in Studio.');
   }
 
-  const explicitTarget = parsedArgs.positionals[0];
-  const requestedProjectLabel = explicitTarget
-    ? path.basename(path.resolve(process.cwd(), explicitTarget))
-    : await promptInput("Create a new project", DEFAULT_PROJECT_LABEL);
-
-  const projectId = createProjectIdentifier();
-  const configProjectName = `${requestedProjectLabel} (${projectId})`;
-
-  const targetArgument = explicitTarget
-    ? explicitTarget
-    : await promptInput("Project output path", normalizeProjectName(requestedProjectLabel));
-
-  const projectRoot = path.resolve(process.cwd(), targetArgument);
+  const selection = await resolveProjectSelection(parsedArgs);
+  const projectRoot = path.resolve(process.cwd(), selection.targetArgument);
+  const configProjectName = selection.configProjectName;
+  const projectId = selection.projectId;
   const force = parsedArgs.flags.force === true;
   const skipInstall = parsedArgs.flags["skip-install"] === true;
   const cliVersion =
@@ -291,6 +361,22 @@ const run = async (): Promise<void> => {
       : "latest";
   const packageManager = getPackageManager(parsedArgs.flags);
 
+  if (selection.mode === "existing") {
+    const scaffoldedAt = formatScaffoldedAt(process.cwd(), projectRoot);
+    console.log("");
+    console.log(doneField("Using existing project", configProjectName));
+    console.log(done("No files were changed"));
+    console.log("");
+    console.log(`Run ${terminal.cyan(`${packageManager} run dev`)} in the scaffolded ${terminal.cyan(scaffoldedAt)}.`);
+    console.log("");
+    return;
+  }
+
+  if (!projectId) {
+    throw new Error("Project ID is required to scaffold a new project.");
+  }
+
+  await ensureDirectory(projectRoot);
   await Promise.all([
     ensureDirectory(path.join(projectRoot, STUDIO_CONTENT_DIR)),
     ensureDirectory(path.join(projectRoot, STUDIO_THEME_DIR)),
@@ -324,16 +410,40 @@ const run = async (): Promise<void> => {
   await writeTargets(targets);
   await copyAdminRuntime(projectRoot, force);
 
-  console.log(`[create] Project scaffolded at ${projectRoot}`);
+  const usedInteractiveSetupPrompts =
+    selection.mode === "new" && isInteractivePrompt() && parsedArgs.positionals[0] === undefined;
 
-  if (!skipInstall) {
-    await installProjectDependencies(projectRoot, packageManager);
-    console.log(`[create] Run ${packageManager} run dev inside ${targetArgument}.`);
-    return;
+  if (!usedInteractiveSetupPrompts) {
+    console.log(doneField("Project scaffolded at:", formatScaffoldedAt(process.cwd(), projectRoot)));
+    console.log(doneField("Project output path", projectRoot));
+    console.log(doneField("Project name:", configProjectName));
   }
 
-  console.log(`[create] Skipped dependency installation (--skip-install).`);
-  console.log(`[create] Run ${packageManager} install inside ${targetArgument}.`);
+  console.log("");
+  console.log(done("Bootstrapping files from template"));
+  console.log(done("Creating default project files"));
+
+  if (!skipInstall) {
+    console.log("");
+    await installProjectDependencies(projectRoot, packageManager);
+  } else {
+    console.log("");
+    console.log(done("[create] Skipped dependency installation (--skip-install)."));
+    console.log(done(`[create] Run ${packageManager} install inside ${selection.targetArgument}.`));
+  }
+
+  console.log("");
+  console.log(success("Success! Your Studio has been created."));
+  if (skipInstall) {
+    console.log(`Run ${terminal.cyan(`${packageManager} install`)} inside ${terminal.cyan(selection.targetArgument)}.`);
+  } else {
+    console.log(
+      `Get started by running ${terminal.cyan(
+        `${packageManager} run dev`
+      )} to launch your Studio's development server.`
+    );
+  }
+  console.log("");
 };
 
 run().catch((error) => {

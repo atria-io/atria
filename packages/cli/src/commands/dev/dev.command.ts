@@ -2,8 +2,8 @@ import { createServer } from "node:http";
 import { createRequire } from "node:module";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { terminal } from "@atria/shared";
 import { parseArgs } from "../../parseArgs.js";
-import { terminal } from "../../terminal.js";
 
 const DEFAULT_ADMIN_PORT = 3333;
 const DEFAULT_PUBLIC_PORT = 4444;

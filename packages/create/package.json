@@ -25,6 +25,9 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "tsc -p tsconfig.json"
   },
+  "dependencies": {
+    "@atria/shared": "workspace:*"
+  },
   "publishConfig": {
     "access": "public"
   },
