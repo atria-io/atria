@@ -1,8 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { createSession, deleteSessionById, getUserByEmail } from "@atria/db";
 import type { LoginPayload } from "./auth.types.js";
-
-const OWNER_EMAIL = "owner@atria.local";
-const OWNER_PASSWORD = "owner";
 
 const readJsonBody = async (request: IncomingMessage): Promise<LoginPayload | null> => {
   const chunks: Buffer[] = [];
@@ -23,7 +21,34 @@ const readJsonBody = async (request: IncomingMessage): Promise<LoginPayload | nu
   }
 };
 
-export const sendAdminLogin = async (
+const getSessionIdFromCookie = (request: IncomingMessage): string | null => {
+  const rawCookie = request.headers.cookie;
+  if (typeof rawCookie !== "string" || rawCookie.trim() === "") {
+    return null;
+  }
+
+  for (const part of rawCookie.split(";")) {
+    const cookie = part.trim();
+    if (cookie === "") {
+      continue;
+    }
+
+    const separatorIndex = cookie.indexOf("=");
+    if (separatorIndex <= 0) {
+      continue;
+    }
+
+    const name = cookie.slice(0, separatorIndex).trim();
+    const value = cookie.slice(separatorIndex + 1).trim();
+    if (name === "session" && value !== "") {
+      return value;
+    }
+  }
+
+  return null;
+};
+
+export const sendAuthLogin = async (
   request: IncomingMessage,
   response: ServerResponse
 ): Promise<void> => {
@@ -31,18 +56,34 @@ export const sendAdminLogin = async (
   const email = typeof payload?.email === "string" ? payload.email : "";
   const password = typeof payload?.password === "string" ? payload.password : "";
 
-  if (email !== OWNER_EMAIL || password !== OWNER_PASSWORD) {
+  const user = await getUserByEmail(email);
+  if (!user || user.password !== password) {
+    response.statusCode = 401;
+    response.end();
+    return;
+  }
+
+  const session = await createSession(user.id);
+  if (!session) {
     response.statusCode = 401;
     response.end();
     return;
   }
 
   response.statusCode = 204;
-  response.setHeader("Set-Cookie", "session=valid; Path=/; HttpOnly");
+  response.setHeader("Set-Cookie", `session=${session.id}; Path=/; HttpOnly`);
   response.end();
 };
 
-export const sendAdminLogout = (response: ServerResponse): void => {
+export const sendAuthLogout = async (
+  request: IncomingMessage,
+  response: ServerResponse
+): Promise<void> => {
+  const sessionId = getSessionIdFromCookie(request);
+  if (sessionId) {
+    await deleteSessionById(sessionId);
+  }
+
   response.statusCode = 204;
   response.setHeader("Set-Cookie", "session=; Path=/; HttpOnly; Max-Age=0");
   response.end();

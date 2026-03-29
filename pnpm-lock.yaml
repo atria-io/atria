@@ -68,7 +68,11 @@ importers:
 
   packages/db: {}
 
-  packages/server: {}
+  packages/server:
+    dependencies:
+      '@atria/db':
+        specifier: workspace:*
+        version: link:../db
 
   packages/shared: {}
 

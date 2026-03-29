@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { sendAdminLogin, sendAdminLogout } from "./auth.controller.js";
+import { sendAuthLogin, sendAuthLogout } from "./auth.controller.js";
 
 export const handleAuthRoutes = async (
   request: IncomingMessage,
@@ -11,16 +11,15 @@ export const handleAuthRoutes = async (
 
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
 
-  if (pathname === "/admin/login") {
-    await sendAdminLogin(request, response);
+  if (pathname === "/auth/login") {
+    await sendAuthLogin(request, response);
     return true;
   }
 
-  if (pathname === "/admin/logout") {
-    sendAdminLogout(response);
+  if (pathname === "/auth/logout") {
+    await sendAuthLogout(request, response);
     return true;
   }
 
   return false;
 };
-
