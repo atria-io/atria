@@ -8,3 +8,5 @@ export interface BrokerConfirmPayload {
   project_id?: string;
   broker_consent_token?: string;
 }
+
+export type BrokerProvider = "google" | "github";

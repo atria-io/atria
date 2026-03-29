@@ -1,6 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createSession, openDatabase } from "@atria/db";
-import type { BrokerConfirmPayload, BrokerConsentPlaceholderResponse } from "./broker.types.js";
+import type {
+  BrokerConfirmPayload,
+  BrokerConsentPlaceholderResponse,
+  BrokerProvider,
+} from "./broker.types.js";
 
 const writeJson = (response: ServerResponse, statusCode: number, payload: unknown): void => {
   response.statusCode = statusCode;
@@ -18,6 +22,8 @@ export const sendBrokerConsentPlaceholder = async (response: ServerResponse): Pr
 };
 
 const toStringValue = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+const isSupportedProvider = (provider: string): provider is BrokerProvider =>
+  provider === "google" || provider === "github";
 
 const readJsonBody = async (request: IncomingMessage): Promise<BrokerConfirmPayload | null> => {
   const chunks: Buffer[] = [];
@@ -68,8 +74,6 @@ const getBrokerUserId = async (): Promise<string | null> => {
   }
 };
 
-const isSupportedProvider = (provider: string): boolean => provider === "google" || provider === "github";
-
 export const sendBrokerConfirm = async (
   request: IncomingMessage,
   response: ServerResponse
@@ -101,5 +105,88 @@ export const sendBrokerConfirm = async (
 
   response.statusCode = 204;
   response.setHeader("Set-Cookie", `session=${session.id}; Path=/; HttpOnly`);
+  response.end();
+};
+
+const getRedirectUrl = (pathname: string, params: URLSearchParams): string => {
+  const query = params.toString();
+  return query === "" ? pathname : `${pathname}?${query}`;
+};
+
+const getNormalizedProviderParam = (requestUrl: URL, provider: BrokerProvider): BrokerProvider => {
+  const rawProvider = toStringValue(requestUrl.searchParams.get("provider")).toLowerCase();
+  if (isSupportedProvider(rawProvider)) {
+    return rawProvider;
+  }
+
+  return provider;
+};
+
+const getNormalizedProjectIdParam = (requestUrl: URL): string => {
+  const candidates = [
+    requestUrl.searchParams.get("project_id"),
+    requestUrl.searchParams.get("projectId"),
+    requestUrl.searchParams.get("project"),
+    requestUrl.searchParams.get("installation_id"),
+  ];
+
+  for (const value of candidates) {
+    const normalized = toStringValue(value);
+    if (normalized !== "") {
+      return normalized;
+    }
+  }
+
+  return "broker-project";
+};
+
+const getNormalizedConsentTokenParam = (requestUrl: URL): string => {
+  const candidates = [
+    requestUrl.searchParams.get("broker_consent_token"),
+    requestUrl.searchParams.get("brokerConsentToken"),
+    requestUrl.searchParams.get("code"),
+    requestUrl.searchParams.get("state"),
+    requestUrl.searchParams.get("token"),
+  ];
+
+  for (const value of candidates) {
+    const normalized = toStringValue(value);
+    if (normalized !== "") {
+      return normalized;
+    }
+  }
+
+  return "broker-consent-token";
+};
+
+export const sendBrokerProviderEntry = async (
+  request: IncomingMessage,
+  response: ServerResponse,
+  provider: BrokerProvider
+): Promise<void> => {
+  const requestUrl = new URL(request.url ?? "/", "http://localhost");
+  const callbackParams = new URLSearchParams(requestUrl.searchParams);
+  callbackParams.set("provider", provider);
+
+  response.statusCode = 302;
+  response.setHeader("Location", getRedirectUrl(`/broker/callback/${provider}`, callbackParams));
+  response.end();
+};
+
+export const sendBrokerProviderCallback = async (
+  request: IncomingMessage,
+  response: ServerResponse,
+  provider: BrokerProvider
+): Promise<void> => {
+  const requestUrl = new URL(request.url ?? "/", "http://localhost");
+  const redirectParams = new URLSearchParams();
+
+  redirectParams.set("broker-consent", "1");
+  redirectParams.set("provider", getNormalizedProviderParam(requestUrl, provider));
+  redirectParams.set("project_id", getNormalizedProjectIdParam(requestUrl));
+  redirectParams.set("broker_consent_token", getNormalizedConsentTokenParam(requestUrl));
+
+  response.statusCode = 302;
+  response.setHeader("Location", getRedirectUrl("/", redirectParams));
   response.end();
 };

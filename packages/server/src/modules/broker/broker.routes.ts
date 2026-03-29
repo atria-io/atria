@@ -1,5 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { sendBrokerConfirm, sendBrokerConsentPlaceholder } from "./broker.controller.js";
+import {
+  sendBrokerConfirm,
+  sendBrokerConsentPlaceholder,
+  sendBrokerProviderCallback,
+} from "./broker.controller.js";
 
 export const handleBrokerRoutes = async (
   request: IncomingMessage,
@@ -9,6 +13,16 @@ export const handleBrokerRoutes = async (
 
   if (request.method === "GET" && pathname === "/broker/consent") {
     await sendBrokerConsentPlaceholder(response);
+    return true;
+  }
+
+  if (request.method === "GET" && pathname === "/broker/callback/google") {
+    await sendBrokerProviderCallback(request, response, "google");
+    return true;
+  }
+
+  if (request.method === "GET" && pathname === "/broker/callback/github") {
+    await sendBrokerProviderCallback(request, response, "github");
     return true;
   }
 
