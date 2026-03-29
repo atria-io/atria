@@ -51,7 +51,7 @@ const extractTokens = (block, scheme) => {
 
 const buildRuntimeSource = (tokenMap) => `(() => {
   const TOKENS = ${JSON.stringify(tokenMap)};
-  const STORAGE_KEY = "atria.scheme";
+  const STORAGE_KEY = "atria:color-scheme";
   const STYLE_ID = "atria-scheme";
   const VALID_MODES = new Set(["system", "light", "dark"]);
 
@@ -90,24 +90,36 @@ const buildRuntimeSource = (tokenMap) => `(() => {
 
   const toCss = (tokens) => \`:root{--background:\${tokens.background};--boot-track:\${tokens.boot_track};--boot-spinner:\${tokens.boot_spinner};--text:\${tokens.text};--text-muted:\${tokens.text_muted};}html,body{background:var(--background);color:var(--text);}\`;
 
-  let mode = readStoredMode();
-  let resolved = resolveMode(mode);
+  let resolved = resolveMode(readStoredMode());
 
   const applyScheme = (nextScheme) => {
     resolved = nextScheme;
     const styleElement = ensureStyleElement();
     styleElement.textContent = toCss(TOKENS[resolved]);
+  };
 
-    const rootApi = window.__atria__ ?? (window.__atria__ = {});
-    rootApi.scheme = {
-      get mode() {
-        return mode;
-      },
-      get resolved() {
-        return resolved;
-      },
-      setMode,
-    };
+  const refreshFromStorage = () => {
+    applyScheme(resolveMode(readStoredMode()));
+  };
+
+  const rootApi = window.__atria__ ?? (window.__atria__ = {});
+  rootApi.scheme = {
+    get mode() {
+      return readStoredMode();
+    },
+    get resolved() {
+      refreshFromStorage();
+      return resolved;
+    },
+    setMode,
+  };
+
+  if (typeof window.addEventListener === "function") {
+    window.addEventListener("storage", (event) => {
+      if (event.key === STORAGE_KEY) {
+        refreshFromStorage();
+      }
+    });
   };
 
   function setMode(nextMode) {
@@ -115,20 +127,18 @@ const buildRuntimeSource = (tokenMap) => `(() => {
       return;
     }
 
-    mode = nextMode;
-
     try {
       localStorage.setItem(STORAGE_KEY, nextMode);
     } catch {}
 
-    applyScheme(resolveMode(mode));
+    refreshFromStorage();
   }
 
   if (typeof window.matchMedia === "function") {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => {
-      if (mode === "system") {
-        applyScheme(resolveMode(mode));
+      if (readStoredMode() === "system") {
+        refreshFromStorage();
       }
     };
 
@@ -163,7 +173,7 @@ const buildRuntimeSource = (tokenMap) => `(() => {
     subtree: true,
   });
 
-  applyScheme(resolveMode(mode));
+  refreshFromStorage();
 })();
 `;
 
