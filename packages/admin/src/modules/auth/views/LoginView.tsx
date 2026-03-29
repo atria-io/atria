@@ -1,3 +1,8 @@
+const handleLogin = async (): Promise<void> => {
+  await fetch("/auth/login", { method: "POST", credentials: "include" });
+  window.location.reload();
+};
+
 export const LoginView = () => (
   <section className="auth-screen">
     <div className="auth-card">
@@ -11,7 +16,9 @@ export const LoginView = () => (
       </div>
 
       <div className="auth-card__content">
-        <button type="button">Login</button>
+        <button type="button" onClick={() => void handleLogin()}>
+          Login
+        </button>
       </div>
 
       <div className="auth-card__footer">
