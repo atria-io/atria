@@ -1,6 +1,6 @@
+import { useAppState } from "./app/state/useAppState.js";
 import { StudioShell } from "./app/shell/StudioShell.js";
 import { AuthShell } from "./app/shell/AuthShell.js";
-import { useAppState } from "./app/state/useAppState.js";
 import { CriticalShell } from "./app/shell/CriticalShell.js";
 
 export interface AdminAppProps {
