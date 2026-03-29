@@ -2,6 +2,8 @@ import { randomBytes, randomUUID, scryptSync } from "node:crypto";
 import { openDatabase } from "../../client/openDatabase.js";
 import type { AuthOwnerInput, AuthSession, AuthUser, OwnerSetupState } from "./auth.types.js";
 
+const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 7;
+
 const hashPassword = (password: string): string => {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(password, salt, 64).toString("hex");
@@ -193,9 +195,34 @@ export const createSession = async (userId: string): Promise<AuthSession | null>
 
   const sessionId = randomUUID();
   const now = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS).toISOString();
 
   try {
     const statements: Array<{ sql: string; args: unknown[] }> = [
+      {
+        sql: "INSERT INTO atria_sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+        args: [sessionId, userId, now, expiresAt],
+      },
+      {
+        sql: "INSERT INTO atria_sessions (id, user_id, created_at, expiresAt) VALUES (?, ?, ?, ?)",
+        args: [sessionId, userId, now, expiresAt],
+      },
+      {
+        sql: "INSERT INTO atria_sessions (session_id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+        args: [sessionId, userId, now, expiresAt],
+      },
+      {
+        sql: "INSERT INTO atria_sessions (session_id, user_id, created_at, expiresAt) VALUES (?, ?, ?, ?)",
+        args: [sessionId, userId, now, expiresAt],
+      },
+      {
+        sql: "INSERT INTO atria_sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+        args: [sessionId, userId, now, expiresAt],
+      },
+      {
+        sql: "INSERT INTO atria_sessions (token, user_id, created_at, expiresAt) VALUES (?, ?, ?, ?)",
+        args: [sessionId, userId, now, expiresAt],
+      },
       {
         sql: "INSERT INTO atria_sessions (id, user_id, created_at) VALUES (?, ?, ?)",
         args: [sessionId, userId, now],
@@ -217,7 +244,7 @@ export const createSession = async (userId: string): Promise<AuthSession | null>
     for (const statement of statements) {
       try {
         database.prepare(statement.sql).run(...statement.args);
-        return { id: sessionId, userId };
+        return { id: sessionId, userId, expiresAt };
       } catch {
         continue;
       }
@@ -236,31 +263,80 @@ export const getSessionById = async (sessionId: string): Promise<AuthSession | n
   }
 
   try {
-    const statements: Array<{ sql: string; args: unknown[] }> = [
+    const statements: Array<{ sql: string; args: unknown[]; hasExpiry: boolean }> = [
+      {
+        sql: "SELECT id AS id, user_id AS userId, expires_at AS expiresAt FROM atria_sessions WHERE id = ? LIMIT 1",
+        args: [sessionId],
+        hasExpiry: true,
+      },
+      {
+        sql: "SELECT id AS id, user_id AS userId, expiresAt AS expiresAt FROM atria_sessions WHERE id = ? LIMIT 1",
+        args: [sessionId],
+        hasExpiry: true,
+      },
       {
         sql: "SELECT id AS id, user_id AS userId FROM atria_sessions WHERE id = ? LIMIT 1",
         args: [sessionId],
+        hasExpiry: false,
+      },
+      {
+        sql: "SELECT session_id AS id, user_id AS userId, expires_at AS expiresAt FROM atria_sessions WHERE session_id = ? LIMIT 1",
+        args: [sessionId],
+        hasExpiry: true,
+      },
+      {
+        sql: "SELECT session_id AS id, user_id AS userId, expiresAt AS expiresAt FROM atria_sessions WHERE session_id = ? LIMIT 1",
+        args: [sessionId],
+        hasExpiry: true,
       },
       {
         sql: "SELECT session_id AS id, user_id AS userId FROM atria_sessions WHERE session_id = ? LIMIT 1",
         args: [sessionId],
+        hasExpiry: false,
+      },
+      {
+        sql: "SELECT token AS id, user_id AS userId, expires_at AS expiresAt FROM atria_sessions WHERE token = ? LIMIT 1",
+        args: [sessionId],
+        hasExpiry: true,
+      },
+      {
+        sql: "SELECT token AS id, user_id AS userId, expiresAt AS expiresAt FROM atria_sessions WHERE token = ? LIMIT 1",
+        args: [sessionId],
+        hasExpiry: true,
       },
       {
         sql: "SELECT token AS id, user_id AS userId FROM atria_sessions WHERE token = ? LIMIT 1",
         args: [sessionId],
+        hasExpiry: false,
       },
     ];
 
     for (const statement of statements) {
       try {
         const row = database.prepare(statement.sql).get(...statement.args) as
-          | { id?: unknown; userId?: unknown }
+          | { id?: unknown; userId?: unknown; expiresAt?: unknown }
           | undefined;
         const id = toStringValue(row?.id);
         const userId = toStringValue(row?.userId);
-        if (id && userId) {
-          return { id, userId };
+        if (!id || !userId) {
+          continue;
         }
+
+        if (!statement.hasExpiry) {
+          return null;
+        }
+
+        const expiresAt = toStringValue(row?.expiresAt);
+        if (!expiresAt) {
+          return null;
+        }
+
+        const expiresAtMs = Date.parse(expiresAt);
+        if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
+          return null;
+        }
+
+        return { id, userId, expiresAt };
       } catch {
         continue;
       }
