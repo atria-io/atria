@@ -18,13 +18,8 @@ export const AdminApp = ({ basePath }: AdminAppProps) => {
 
   if (state === "authenticated") {
     return (
-      <StudioShell>
-        <div>
-          <div>Dashboard</div>
-          <button type="button" onClick={() => void handleLogout()}>
-            Logout
-          </button>
-        </div>
+      <StudioShell onLogout={() => void handleLogout()}>
+        <div>Dashboard</div>
       </StudioShell>
     );
   }
