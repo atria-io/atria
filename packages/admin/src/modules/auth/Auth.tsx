@@ -10,10 +10,22 @@ export interface AuthProps {
 export const Auth = ({ state }: AuthProps) => {
   switch (state) {
     case "setup":
-      return <SetupView />;
+      return (
+        <section className="auth-screen">
+          <SetupView />
+        </section>
+      );
     case "create":
-      return <CreateOwnerView />;
+      return (
+        <section className="auth-screen">
+          <CreateOwnerView />
+        </section>
+      );
     case "login":
-      return <LoginView />;
+      return (
+        <section className="auth-screen">
+          <LoginView />
+        </section>
+      );
   }
 };
