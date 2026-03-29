@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { scryptSync, timingSafeEqual } from "node:crypto";
 import {
   createOwner,
   createSession,
@@ -7,6 +8,37 @@ import {
   getUserByEmail,
 } from "@atria/db";
 import type { LoginPayload } from "./auth.types.js";
+
+const verifyPassword = (storedPassword: string, providedPassword: string): boolean => {
+  if (!storedPassword.startsWith("scrypt$")) {
+    return storedPassword === providedPassword;
+  }
+
+  const parts = storedPassword.split("$");
+  if (parts.length !== 3) {
+    return false;
+  }
+
+  const salt = parts[1];
+  const storedHashHex = parts[2];
+
+  if (salt === "" || storedHashHex === "") {
+    return false;
+  }
+
+  try {
+    const providedHash = scryptSync(providedPassword, salt, 64);
+    const storedHash = Buffer.from(storedHashHex, "hex");
+
+    if (providedHash.length !== storedHash.length) {
+      return false;
+    }
+
+    return timingSafeEqual(providedHash, storedHash);
+  } catch {
+    return false;
+  }
+};
 
 const readJsonBody = async (request: IncomingMessage): Promise<LoginPayload | null> => {
   const chunks: Buffer[] = [];
@@ -63,7 +95,7 @@ export const sendAuthLogin = async (
   const password = typeof payload?.password === "string" ? payload.password : "";
 
   const user = await getUserByEmail(email);
-  if (!user || user.password !== password) {
+  if (!user || !verifyPassword(user.password, password)) {
     response.statusCode = 401;
     response.end();
     return;

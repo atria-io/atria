@@ -1,6 +1,12 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID, scryptSync } from "node:crypto";
 import { openDatabase } from "../../client/openDatabase.js";
 import type { AuthOwnerInput, AuthSession, AuthUser, OwnerSetupState } from "./auth.types.js";
+
+const hashPassword = (password: string): string => {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+  return `scrypt$${salt}$${hash}`;
+};
 
 const toStringValue = (value: unknown): string | null => {
   if (typeof value === "string" && value !== "") {
@@ -68,6 +74,7 @@ export const createOwner = async (input: AuthOwnerInput): Promise<string | null>
   }
 
   const userId = randomUUID();
+  const hashedPassword = hashPassword(input.password);
 
   try {
     const userStatements: Array<{ sql: string; args: unknown[] }> = [
@@ -103,15 +110,15 @@ export const createOwner = async (input: AuthOwnerInput): Promise<string | null>
     const credentialStatements: Array<{ sql: string; args: unknown[] }> = [
       {
         sql: "INSERT INTO atria_user_credentials (user_id, password) VALUES (?, ?)",
-        args: [userId, input.password],
+        args: [userId, hashedPassword],
       },
       {
         sql: "INSERT INTO atria_user_credentials (user_id, secret) VALUES (?, ?)",
-        args: [userId, input.password],
+        args: [userId, hashedPassword],
       },
       {
         sql: "INSERT INTO atria_user_credentials (user_id, password_hash) VALUES (?, ?)",
-        args: [userId, input.password],
+        args: [userId, hashedPassword],
       },
     ];
 
