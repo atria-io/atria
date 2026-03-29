@@ -23,7 +23,7 @@ export const AdminApp = ({ basePath }: AdminAppProps) => {
     }
 
     return (
-      <StudioShell user={bootstrap.user} onLogout={() => void handleLogout()}>
+      <StudioShell route="dashboard" user={bootstrap.user} onLogout={() => void handleLogout()}>
         <div>Dashboard</div>
       </StudioShell>
     );
