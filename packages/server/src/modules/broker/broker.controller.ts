@@ -4,6 +4,7 @@ import { resolveBrokerOrigin } from "./broker.config.js";
 import type {
   BrokerConfirmPayload,
   BrokerConsentPlaceholderResponse,
+  BrokerConfirmErrorResponse,
   BrokerExchangeResult,
   BrokerProvider,
 } from "./broker.types.js";
@@ -12,6 +13,14 @@ const writeJson = (response: ServerResponse, statusCode: number, payload: unknow
   response.statusCode = statusCode;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.end(JSON.stringify(payload));
+};
+
+const writeBrokerConfirmError = (
+  response: ServerResponse,
+  statusCode: number,
+  error: BrokerConfirmErrorResponse["error"]
+): void => {
+  writeJson(response, statusCode, { ok: false, error } satisfies BrokerConfirmErrorResponse);
 };
 
 export const sendBrokerConsentPlaceholder = async (response: ServerResponse): Promise<void> => {
@@ -129,7 +138,13 @@ export const sendBrokerConfirm = async (
   const brokerCode = toStringValue(payload?.broker_code);
 
   if (!isSupportedProvider(provider) || projectId === "" || (brokerConsentToken === "" && brokerCode === "")) {
-    writeJson(response, 400, { error: "Invalid broker consent payload" });
+    writeBrokerConfirmError(response, 400, {
+      code: "invalid_payload",
+      title: "Invalid consent payload",
+      message: "Missing or invalid broker consent fields.",
+      retryable: false,
+      backToLogin: true,
+    });
     return;
   }
 
@@ -141,23 +156,47 @@ export const sendBrokerConfirm = async (
   });
   if (confirmResult !== "ok") {
     if (confirmResult === "rejected") {
-      writeJson(response, 401, { error: "Broker consent rejected" });
+      writeBrokerConfirmError(response, 401, {
+        code: "consent_rejected",
+        title: "Consent rejected",
+        message: "Broker did not accept this consent request.",
+        retryable: true,
+        backToLogin: true,
+      });
       return;
     }
 
-    writeJson(response, 502, { error: "Broker confirm failed" });
+    writeBrokerConfirmError(response, 502, {
+      code: "broker_confirm_failed",
+      title: "Broker unavailable",
+      message: "Could not confirm consent with broker.",
+      retryable: true,
+      backToLogin: false,
+    });
     return;
   }
 
   const userId = await getBrokerUserId();
   if (!userId) {
-    writeJson(response, 401, { error: "No user available for session" });
+    writeBrokerConfirmError(response, 401, {
+      code: "no_user_available",
+      title: "No eligible user",
+      message: "No local user is available for authenticated session.",
+      retryable: false,
+      backToLogin: true,
+    });
     return;
   }
 
   const session = await createSession(userId);
   if (!session) {
-    writeJson(response, 401, { error: "Session creation failed" });
+    writeBrokerConfirmError(response, 401, {
+      code: "session_creation_failed",
+      title: "Session failed",
+      message: "Could not create authenticated session.",
+      retryable: true,
+      backToLogin: true,
+    });
     return;
   }
 

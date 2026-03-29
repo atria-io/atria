@@ -1,8 +1,15 @@
 import { useMemo, useState, type FormEvent } from "react";
 
+interface BrokerConfirmErrorState {
+  title: string;
+  message: string;
+  retryable: boolean;
+  backToLogin: boolean;
+}
+
 export const BrokerConsentView = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [failure, setFailure] = useState<BrokerConfirmErrorState | null>(null);
 
   const brokerPayload = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -15,7 +22,7 @@ export const BrokerConsentView = () => {
 
   const handleConfirm = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
-    setHasError(false);
+    setFailure(null);
     setIsSubmitting(true);
 
     try {
@@ -33,12 +40,52 @@ export const BrokerConsentView = () => {
         return;
       }
 
-      setHasError(true);
+      const defaultFailure: BrokerConfirmErrorState = {
+        title: "Consent confirmation failed",
+        message: "Unable to confirm broker consent.",
+        retryable: true,
+        backToLogin: false,
+      };
+
+      try {
+        const payload = (await response.json()) as {
+          error?: {
+            title?: unknown;
+            message?: unknown;
+            retryable?: unknown;
+            backToLogin?: unknown;
+          };
+        };
+        const error = payload.error;
+        if (error) {
+          setFailure({
+            title: typeof error.title === "string" ? error.title : defaultFailure.title,
+            message: typeof error.message === "string" ? error.message : defaultFailure.message,
+            retryable: typeof error.retryable === "boolean" ? error.retryable : defaultFailure.retryable,
+            backToLogin:
+              typeof error.backToLogin === "boolean" ? error.backToLogin : defaultFailure.backToLogin,
+          });
+          return;
+        }
+      } catch {
+        // fall through to default failure
+      }
+
+      setFailure(defaultFailure);
     } catch {
-      setHasError(true);
+      setFailure({
+        title: "Connection error",
+        message: "Unable to reach broker confirmation endpoint.",
+        retryable: true,
+        backToLogin: false,
+      });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleBackToLogin = (): void => {
+    window.location.assign("/");
   };
 
   return (
@@ -54,13 +101,33 @@ export const BrokerConsentView = () => {
         </div>
 
         <div className="auth-card__content">
-          <p className="auth-card__text">Placeholder screen for broker consent confirmation.</p>
-          <form onSubmit={(event) => void handleConfirm(event)}>
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Confirming..." : "Confirm consent"}
-            </button>
-          </form>
-          {hasError ? <p className="auth-card__error">Unable to confirm broker consent.</p> : null}
+          {failure ? (
+            <>
+              <h2 className="auth-card__title">{failure.title}</h2>
+              <p className="auth-card__text">{failure.message}</p>
+              {failure.retryable ? (
+                <form onSubmit={(event) => void handleConfirm(event)}>
+                  <button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Retrying..." : "Retry"}
+                  </button>
+                </form>
+              ) : null}
+              {failure.backToLogin ? (
+                <button type="button" onClick={handleBackToLogin}>
+                  Back to login
+                </button>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <p className="auth-card__text">Placeholder screen for broker consent confirmation.</p>
+              <form onSubmit={(event) => void handleConfirm(event)}>
+                <button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Confirming..." : "Confirm consent"}
+                </button>
+              </form>
+            </>
+          )}
         </div>
 
         <div className="auth-card__footer">
