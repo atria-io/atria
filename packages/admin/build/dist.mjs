@@ -1,3 +1,3 @@
-import { runAdminBuild } from "./scripts/admin.url.mjs";
+import { runAdminBuild } from "./scripts/admin.mjs";
 
 await runAdminBuild(import.meta.url);

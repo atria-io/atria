@@ -1,7 +1,7 @@
-import { mkdir, rm, cp } from "node:fs/promises";
-import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawn } from "node:child_process";
+import { mkdir, rm, cp, readFile } from "node:fs/promises";
 import { writeMinifiedCss } from "./css.minify.mjs";
 
 export const runAdminBuild = async (entryUrl) => {
@@ -59,11 +59,29 @@ const copyRuntime = async (runtimeSourceDir, runtimeDistDir) => {
 };
 
 const minifyRuntimeStyles = async (runtimeDistDir) => {
-  const stylesDir = path.join(runtimeDistDir, "static", "styles");
-  const styleFiles = ["tokens.css", "scheme.css", "globals.css"];
+  const styleFiles = await getRuntimeStyleFiles(runtimeDistDir);
 
-  for (const filename of styleFiles) {
-    const targetFile = path.join(stylesDir, filename);
+  for (const targetFile of styleFiles) {
     await writeMinifiedCss(targetFile, targetFile);
   }
+};
+
+const getRuntimeStyleFiles = async (runtimeDistDir) => {
+  const indexFile = path.join(runtimeDistDir, "index.htm");
+  const html = await readFile(indexFile, "utf-8");
+  const files = new Set();
+  const linkCssPattern = /\bsrc\s*=\s*["']([^"']+\.css(?:\?[^"']*)?)["']/gi;
+  let match;
+
+  while ((match = linkCssPattern.exec(html)) !== null) {
+    const rawPath = match[1].split("?")[0];
+    const targetFile = path.resolve(runtimeDistDir, rawPath.replace(/^\/+/, ""));
+    const runtimeRoot = path.resolve(runtimeDistDir);
+
+    if (targetFile.startsWith(`${runtimeRoot}${path.sep}`)) {
+      files.add(targetFile);
+    }
+  }
+
+  return [...files];
 };
