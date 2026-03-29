@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@atria/admin": "workspace:*",
+    "@atria/server": "workspace:*",
     "@atria/shared": "workspace:*"
   },
   "publishConfig": {

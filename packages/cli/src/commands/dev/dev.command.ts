@@ -1,9 +1,16 @@
-import { createServer } from "node:http";
+import {
+  createServer,
+  request as httpRequest,
+  type IncomingMessage,
+  type Server,
+  type ServerResponse
+} from "node:http";
 import { createRequire } from "node:module";
 import { existsSync } from "node:fs";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { terminal } from "@atria/shared";
+import { startDevServer } from "@atria/server";
 import { parseArgs } from "../../parseArgs.js";
 
 const DEFAULT_ADMIN_PORT = 3333;
@@ -72,6 +79,63 @@ const resolveRuntimeFilePath = (
   return null;
 };
 
+const readRequestBody = async (request: IncomingMessage): Promise<Buffer | undefined> => {
+  if (request.method === "GET" || request.method === "HEAD") {
+    return undefined;
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of request) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+
+  return Buffer.concat(chunks);
+};
+
+const proxyToInternalApi = async (
+  request: IncomingMessage,
+  response: ServerResponse,
+  internalApiPort: number,
+  requestUrl: string
+): Promise<void> => {
+  const requestBody = await readRequestBody(request);
+
+  await new Promise<void>((resolve, reject) => {
+    const upstreamRequest = httpRequest(
+      {
+        hostname: "127.0.0.1",
+        port: internalApiPort,
+        path: requestUrl,
+        method: request.method ?? "GET",
+        headers: request.headers,
+      },
+      (upstreamResponse) => {
+        response.statusCode = upstreamResponse.statusCode ?? 500;
+        for (const [key, value] of Object.entries(upstreamResponse.headers)) {
+          if (value !== undefined) {
+            response.setHeader(key, value);
+          }
+        }
+
+        const chunks: Buffer[] = [];
+        upstreamResponse.on("data", (chunk) => {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        });
+        upstreamResponse.on("end", () => {
+          response.end(Buffer.concat(chunks));
+          resolve();
+        });
+      }
+    );
+
+    upstreamRequest.on("error", reject);
+    if (requestBody) {
+      upstreamRequest.write(requestBody);
+    }
+    upstreamRequest.end();
+  });
+};
+
 export const runDevCommand = async (args: string[]): Promise<void> => {
   const startTime = Date.now();
   const parsedArgs = parseArgs(args);
@@ -88,12 +152,27 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const adminPackagePaths = resolveAdminPackagePaths();
   const adminStaticRoot = adminPackagePaths.staticRoot;
   const adminBundleFile = adminPackagePaths.bundleFile;
+  const internalApiPort = adminPort + 1;
+  let internalApiServer: Server | null = null;
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
+  internalApiServer = await startDevServer({ host: "0.0.0.0", port: internalApiPort });
 
   const server = createServer(async (request, response) => {
     const requestUrl = request.url ?? "/";
     const pathname = new URL(requestUrl, "http://localhost").pathname;
+
+    if (pathname.startsWith("/admin/") || pathname.startsWith("/auth/")) {
+      try {
+        await proxyToInternalApi(request, response, internalApiPort, requestUrl);
+      } catch {
+        response.statusCode = 500;
+        response.end("Internal Server Error");
+      }
+
+      return;
+    }
+
     const runtimeFilePath = resolveRuntimeFilePath(
       runtimeRoot,
       adminStaticRoot,
@@ -149,7 +228,14 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   const shutdown = (): void => {
     server.close(() => {
-      process.exit(0);
+      if (!internalApiServer) {
+        process.exit(0);
+        return;
+      }
+
+      internalApiServer.close(() => {
+        process.exit(0);
+      });
     });
   };
 

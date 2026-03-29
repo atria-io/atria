@@ -18,11 +18,12 @@ export const AdminApp = ({ basePath }: AdminAppProps) => {
   };
 
   if (state === "authenticated") {
+    if (!bootstrap.user) {
+      return null;
+    }
+
     return (
-      <StudioShell
-        user={bootstrap.user ?? { name: "Owner", email: "", avatarUrl: "", role: "owner" }}
-        onLogout={() => void handleLogout()}
-      >
+      <StudioShell user={bootstrap.user} onLogout={() => void handleLogout()}>
         <div>Dashboard</div>
       </StudioShell>
     );

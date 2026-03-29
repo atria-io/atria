@@ -54,6 +54,9 @@ importers:
       '@atria/admin':
         specifier: workspace:*
         version: link:../admin
+      '@atria/server':
+        specifier: workspace:*
+        version: link:../server
       '@atria/shared':
         specifier: workspace:*
         version: link:../shared
