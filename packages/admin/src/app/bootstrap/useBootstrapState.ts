@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { getBootstrapState, type BootstrapPayload } from "./getBootstrapState.js";
-import { getRuntimeFatalMessage, RUNTIME_FATAL_EVENT } from "../runtime/runtimeFatal.js";
+import {
+  getRuntimeFatalState,
+  type RuntimeCriticalState,
+  RUNTIME_FATAL_EVENT,
+} from "../runtime/runtimeFatal.js";
 
-export type RuntimeBootstrapState = BootstrapPayload | { state: "critical"; message: string };
+export type RuntimeBootstrapState = BootstrapPayload | { state: "critical"; runtimeState: RuntimeCriticalState };
 
 export const useBootstrapState = (basePath: string): RuntimeBootstrapState => {
   const [bootstrap, setBootstrap] = useState<RuntimeBootstrapState>({ state: "setup" });
@@ -10,14 +14,14 @@ export const useBootstrapState = (basePath: string): RuntimeBootstrapState => {
   useEffect(() => {
     let isActive = true;
 
-    const setCritical = (message: string): void => {
+    const setCritical = (runtimeState: RuntimeCriticalState): void => {
       if (isActive) {
-        setBootstrap({ state: "critical", message });
+        setBootstrap({ state: "critical", runtimeState });
       }
     };
 
     const handleRuntimeFatal = (event: Event): void => {
-      setCritical(getRuntimeFatalMessage(event) ?? "Runtime failed. Retry to continue.");
+      setCritical(getRuntimeFatalState(event));
     };
 
     window.addEventListener(RUNTIME_FATAL_EVENT, handleRuntimeFatal);
@@ -29,7 +33,12 @@ export const useBootstrapState = (basePath: string): RuntimeBootstrapState => {
           setBootstrap(result);
         }
       } catch {
-        setCritical("Bootstrap request failed. Retry to continue.");
+        if (!window.navigator.onLine) {
+          setCritical({ kind: "offline" });
+          return;
+        }
+
+        setCritical({ kind: "server-down" });
       }
     })();
 
