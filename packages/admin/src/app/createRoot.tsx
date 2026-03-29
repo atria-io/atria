@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { AdminApp } from "../../App.js";
+import { AdminApp } from "../App.js";
 
 export interface MountAdminOptions {
   mountElement?: Element | null;
