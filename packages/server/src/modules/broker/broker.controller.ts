@@ -3,6 +3,7 @@ import { createSession, openDatabase } from "@atria/db";
 import type {
   BrokerConfirmPayload,
   BrokerConsentPlaceholderResponse,
+  BrokerExchangeResult,
   BrokerProvider,
 } from "./broker.types.js";
 
@@ -24,6 +25,7 @@ export const sendBrokerConsentPlaceholder = async (response: ServerResponse): Pr
 const toStringValue = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 const isSupportedProvider = (provider: string): provider is BrokerProvider =>
   provider === "google" || provider === "github";
+const DEFAULT_AUTH_BROKER_ORIGIN = "https://api.atrialabs.pt";
 
 const readJsonBody = async (request: IncomingMessage): Promise<BrokerConfirmPayload | null> => {
   const chunks: Buffer[] = [];
@@ -82,8 +84,9 @@ export const sendBrokerConfirm = async (
   const provider = toStringValue(payload?.provider).toLowerCase();
   const projectId = toStringValue(payload?.project_id);
   const brokerConsentToken = toStringValue(payload?.broker_consent_token);
+  const brokerCode = toStringValue(payload?.broker_code);
 
-  if (!isSupportedProvider(provider) || projectId === "" || brokerConsentToken === "") {
+  if (!isSupportedProvider(provider) || projectId === "" || (brokerConsentToken === "" && brokerCode === "")) {
     response.statusCode = 400;
     response.end();
     return;
@@ -113,50 +116,78 @@ const getRedirectUrl = (pathname: string, params: URLSearchParams): string => {
   return query === "" ? pathname : `${pathname}?${query}`;
 };
 
-const getNormalizedProviderParam = (requestUrl: URL, provider: BrokerProvider): BrokerProvider => {
-  const rawProvider = toStringValue(requestUrl.searchParams.get("provider")).toLowerCase();
-  if (isSupportedProvider(rawProvider)) {
-    return rawProvider;
-  }
-
-  return provider;
+const getNormalizedCodeParam = (value: unknown): string => {
+  return toStringValue(value);
 };
 
-const getNormalizedProjectIdParam = (requestUrl: URL): string => {
-  const candidates = [
-    requestUrl.searchParams.get("project_id"),
-    requestUrl.searchParams.get("projectId"),
-    requestUrl.searchParams.get("project"),
-    requestUrl.searchParams.get("installation_id"),
-  ];
-
-  for (const value of candidates) {
-    const normalized = toStringValue(value);
-    if (normalized !== "") {
-      return normalized;
-    }
-  }
-
-  return "broker-project";
+const resolveBrokerOrigin = (): string => {
+  const configured = toStringValue(process.env.ATRIA_AUTH_BROKER_ORIGIN);
+  return configured === "" ? DEFAULT_AUTH_BROKER_ORIGIN : configured;
 };
 
-const getNormalizedConsentTokenParam = (requestUrl: URL): string => {
-  const candidates = [
-    requestUrl.searchParams.get("broker_consent_token"),
-    requestUrl.searchParams.get("brokerConsentToken"),
-    requestUrl.searchParams.get("code"),
-    requestUrl.searchParams.get("state"),
-    requestUrl.searchParams.get("token"),
-  ];
-
-  for (const value of candidates) {
-    const normalized = toStringValue(value);
-    if (normalized !== "") {
-      return normalized;
-    }
+const readObject = (value: unknown): Record<string, unknown> | null => {
+  if (!value || typeof value !== "object") {
+    return null;
   }
 
-  return "broker-consent-token";
+  return value as Record<string, unknown>;
+};
+
+const normalizeBrokerExchangeResult = (
+  payload: unknown,
+  fallbackProvider: BrokerProvider
+): BrokerExchangeResult | null => {
+  const root = readObject(payload);
+  if (!root) {
+    return null;
+  }
+
+  const nested = readObject(root.data);
+  const source = nested ?? root;
+
+  const providerValue = toStringValue(source.provider ?? root.provider).toLowerCase();
+  const provider = isSupportedProvider(providerValue) ? providerValue : fallbackProvider;
+  const projectId = toStringValue(source.project_id ?? source.projectId ?? root.project_id ?? root.projectId);
+  const brokerConsentToken = toStringValue(
+    source.broker_consent_token ??
+      source.brokerConsentToken ??
+      root.broker_consent_token ??
+      root.brokerConsentToken
+  );
+  const brokerCode = getNormalizedCodeParam(
+    source.broker_code ?? source.brokerCode ?? root.broker_code ?? root.brokerCode
+  );
+
+  if (projectId === "" || (brokerConsentToken === "" && brokerCode === "")) {
+    return null;
+  }
+
+  return { provider, projectId, brokerConsentToken, brokerCode };
+};
+
+const exchangeBrokerCallback = async (
+  request: IncomingMessage,
+  provider: BrokerProvider
+): Promise<BrokerExchangeResult | null> => {
+  const requestUrl = new URL(request.url ?? "/", "http://localhost");
+  const brokerExchangeUrl = new URL("/api/auth/broker/exchange", resolveBrokerOrigin());
+  const exchangeParams = new URLSearchParams(requestUrl.searchParams);
+  exchangeParams.set("provider", provider);
+  brokerExchangeUrl.search = exchangeParams.toString();
+
+  const brokerResponse = await fetch(brokerExchangeUrl, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!brokerResponse.ok) {
+    return null;
+  }
+
+  const payload = (await brokerResponse.json()) as unknown;
+  return normalizeBrokerExchangeResult(payload, provider);
 };
 
 export const sendBrokerProviderEntry = async (
@@ -178,13 +209,24 @@ export const sendBrokerProviderCallback = async (
   response: ServerResponse,
   provider: BrokerProvider
 ): Promise<void> => {
-  const requestUrl = new URL(request.url ?? "/", "http://localhost");
+  const exchangeResult = await exchangeBrokerCallback(request, provider);
+  if (!exchangeResult) {
+    response.statusCode = 502;
+    response.end();
+    return;
+  }
+
   const redirectParams = new URLSearchParams();
 
   redirectParams.set("broker-consent", "1");
-  redirectParams.set("provider", getNormalizedProviderParam(requestUrl, provider));
-  redirectParams.set("project_id", getNormalizedProjectIdParam(requestUrl));
-  redirectParams.set("broker_consent_token", getNormalizedConsentTokenParam(requestUrl));
+  redirectParams.set("provider", exchangeResult.provider);
+  redirectParams.set("project_id", exchangeResult.projectId);
+  if (exchangeResult.brokerConsentToken !== "") {
+    redirectParams.set("broker_consent_token", exchangeResult.brokerConsentToken);
+  }
+  if (exchangeResult.brokerCode !== "") {
+    redirectParams.set("broker_code", exchangeResult.brokerCode);
+  }
 
   response.statusCode = 302;
   response.setHeader("Location", getRedirectUrl("/", redirectParams));
