@@ -1,14 +1,12 @@
 // This file is auto-generated from "atria dev".
 // Modifications to this file are automatically discarded.
 
-const hasSession = () => false;
+import { mountAdminApp } from "/static/app.js";
 
-const bootstrapStudio = () => {
-  // Minimal admin runtime entry placeholder.
-};
+const rootElement = document.getElementById("atria");
 
-if (!hasSession()) {
-  document.body.textContent = "Studio locked";
-} else {
-  bootstrapStudio();
-}
+mountAdminApp({
+  mountElement: rootElement,
+  basePath: "/",
+  reactStrictMode: false
+});

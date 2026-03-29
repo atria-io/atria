@@ -4,6 +4,14 @@ export interface MountAdminOptions {
   reactStrictMode?: boolean;
 }
 
+const hasSession = (): boolean => false;
+
+const bootstrapStudioApp = (mountElement: Element): void => {
+  if (!mountElement.hasChildNodes()) {
+    mountElement.textContent = "";
+  }
+};
+
 export const mountAdminApp = (options: MountAdminOptions = {}): void => {
   const mountElement = options.mountElement ?? document.getElementById("atria");
 
@@ -11,9 +19,12 @@ export const mountAdminApp = (options: MountAdminOptions = {}): void => {
     return;
   }
 
-  if (!mountElement.hasChildNodes()) {
-    mountElement.textContent = "";
+  if (!hasSession()) {
+    document.body.textContent = "Studio locked";
+    return;
   }
+
+  bootstrapStudioApp(mountElement);
 };
 
 export const mountStudioApp = mountAdminApp;
