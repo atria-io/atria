@@ -1,5 +1,6 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { BootstrapUserSummary } from "../bootstrap/getBootstrapState.js";
+import { useRuntimeScheme } from "../runtime/useRuntimeScheme.js";
 import { StudioMain } from "./layout/StudioMain.js";
 import { StudioHeader } from "./layout/sections/StudioHeader.js";
 
@@ -11,19 +12,10 @@ export interface StudioShellProps {
 }
 
 export const StudioShell = ({ route, user, onLogout, children }: StudioShellProps) => {
-  const rootRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const resolved = (window as Window & { __atria__?: { scheme?: { resolved?: string } } })
-      .__atria__?.scheme?.resolved;
-
-    if (resolved === "light" || resolved === "dark") {
-      rootRef.current?.setAttribute("data-scheme", resolved);
-    }
-  }, []);
+  const resolved = useRuntimeScheme();
 
   return (
-    <div ref={rootRef} className="admin-shell" data-route={route} data-scheme="light">
+    <div className="admin-shell" data-route={route} data-scheme={resolved}>
       <StudioHeader user={user} onLogout={onLogout} />
       <StudioMain>{children}</StudioMain>
     </div>

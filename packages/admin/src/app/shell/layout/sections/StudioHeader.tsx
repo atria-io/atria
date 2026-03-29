@@ -10,15 +10,22 @@ interface RuntimeScheme {
   setMode: (mode: SchemeMode) => void;
 }
 
-interface RuntimeAtria {
-  scheme?: RuntimeScheme;
-}
-
-declare global {
-  interface Window {
-    __atria__?: RuntimeAtria;
+const getRuntimeScheme = (): RuntimeScheme | null => {
+  const runtimeScheme = (window as { __atria__?: { scheme?: Partial<RuntimeScheme> } }).__atria__?.scheme;
+  if (!runtimeScheme) {
+    return null;
   }
-}
+
+  if (
+    (runtimeScheme.mode !== "system" && runtimeScheme.mode !== "light" && runtimeScheme.mode !== "dark") ||
+    (runtimeScheme.resolved !== "light" && runtimeScheme.resolved !== "dark") ||
+    typeof runtimeScheme.setMode !== "function"
+  ) {
+    return null;
+  }
+
+  return runtimeScheme as RuntimeScheme;
+};
 
 export interface StudioHeaderProps {
   user: BootstrapUserSummary;
@@ -26,7 +33,7 @@ export interface StudioHeaderProps {
 }
 
 const readRuntimeScheme = (): { mode: SchemeMode; resolved: ResolvedScheme } => {
-  const runtimeScheme = window.__atria__?.scheme;
+  const runtimeScheme = getRuntimeScheme();
   if (!runtimeScheme) {
     return { mode: "system", resolved: "light" };
   }
@@ -52,7 +59,7 @@ export const StudioHeader = ({ user, onLogout }: StudioHeaderProps) => {
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleMediaChange = (): void => {
-      if (window.__atria__?.scheme?.mode === "system") {
+      if (getRuntimeScheme()?.mode === "system") {
         syncScheme();
       }
     };
@@ -73,7 +80,7 @@ export const StudioHeader = ({ user, onLogout }: StudioHeaderProps) => {
   }, []);
 
   const setMode = (mode: SchemeMode): void => {
-    window.__atria__?.scheme?.setMode(mode);
+    getRuntimeScheme()?.setMode(mode);
     setScheme(readRuntimeScheme());
   };
 
