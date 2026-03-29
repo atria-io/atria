@@ -14,15 +14,7 @@ const hasBrokerConsentMarker = (): boolean => {
   }
 
   const url = new URL(window.location.href);
-  const markerKeys = ["broker-consent", "broker_consent", "brokerConsent", "consent"];
-
-  for (const key of markerKeys) {
-    if (url.searchParams.has(key)) {
-      return true;
-    }
-  }
-
-  return url.pathname.includes("broker-consent") || url.hash.includes("broker-consent");
+  return url.searchParams.get("screen") === "broker-consent";
 };
 
 export const Auth = ({ state }: AuthProps) => {

@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createSession, openDatabase } from "@atria/db";
+import { resolveBrokerOrigin } from "./broker.config.js";
 import type {
   BrokerConfirmPayload,
   BrokerConsentPlaceholderResponse,
@@ -25,7 +26,6 @@ export const sendBrokerConsentPlaceholder = async (response: ServerResponse): Pr
 const toStringValue = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 const isSupportedProvider = (provider: string): provider is BrokerProvider =>
   provider === "google" || provider === "github";
-const DEFAULT_AUTH_BROKER_ORIGIN = "https://api.atrialabs.pt";
 
 const readJsonBody = async (request: IncomingMessage): Promise<BrokerConfirmPayload | null> => {
   const chunks: Buffer[] = [];
@@ -118,11 +118,6 @@ const getRedirectUrl = (pathname: string, params: URLSearchParams): string => {
 
 const getNormalizedCodeParam = (value: unknown): string => {
   return toStringValue(value);
-};
-
-const resolveBrokerOrigin = (): string => {
-  const configured = toStringValue(process.env.ATRIA_AUTH_BROKER_ORIGIN);
-  return configured === "" ? DEFAULT_AUTH_BROKER_ORIGIN : configured;
 };
 
 const readObject = (value: unknown): Record<string, unknown> | null => {
@@ -218,7 +213,7 @@ export const sendBrokerProviderCallback = async (
 
   const redirectParams = new URLSearchParams();
 
-  redirectParams.set("broker-consent", "1");
+  redirectParams.set("screen", "broker-consent");
   redirectParams.set("provider", exchangeResult.provider);
   redirectParams.set("project_id", exchangeResult.projectId);
   if (exchangeResult.brokerConsentToken !== "") {
