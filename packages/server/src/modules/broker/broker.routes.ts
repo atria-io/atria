@@ -1,19 +1,21 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { sendBrokerConsentPlaceholder } from "./broker.controller.js";
+import { sendBrokerConfirm, sendBrokerConsentPlaceholder } from "./broker.controller.js";
 
 export const handleBrokerRoutes = async (
   request: IncomingMessage,
   response: ServerResponse
 ): Promise<boolean> => {
-  if (request.method !== "GET") {
-    return false;
-  }
-
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
-  if (pathname !== "/broker/consent") {
-    return false;
+
+  if (request.method === "GET" && pathname === "/broker/consent") {
+    await sendBrokerConsentPlaceholder(response);
+    return true;
   }
 
-  await sendBrokerConsentPlaceholder(response);
-  return true;
+  if (request.method === "POST" && pathname === "/broker/confirm") {
+    await sendBrokerConfirm(request, response);
+    return true;
+  }
+
+  return false;
 };
