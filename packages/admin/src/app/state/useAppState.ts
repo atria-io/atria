@@ -25,25 +25,15 @@ export const useAppState = (basePath: string): AppState => {
       try {
         const nextAppState = await getAppState(basePath);
         if (isActive) {
-          if (nextAppState.state === "authenticated") {
-            if (!nextAppState.user) {
-              setAppState({ realm: "auth", screen: "login" });
-              return;
-            }
-
-            setAppState({ realm: "studio", screen: "dashboard", user: nextAppState.user });
-            return;
-          }
-
-          setAppState({ realm: "auth", screen: nextAppState.state });
+          setAppState(nextAppState);
         }
       } catch {
         if (!window.navigator.onLine) {
-          setCritical({ kind: "offline" });
+          setCritical("offline");
           return;
         }
 
-        setCritical({ kind: "server-down" });
+        setCritical("server-down");
       }
     })();
 

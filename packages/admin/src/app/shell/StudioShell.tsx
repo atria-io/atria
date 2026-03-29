@@ -1,5 +1,4 @@
-import type { AppUser } from "../state/getAppState.js";
-import type { StudioScreen } from "../runtime/runtimeTypes.js";
+import type { AppUser, StudioScreen } from "../runtime/runtimeTypes.js";
 import { useRuntimeScheme } from "../runtime/runtimeScheme.js";
 import { StudioAccountPanel } from "./components/StudioAccountPanel.js";
 import { StudioHeader } from "./components/StudioHeader.js";

@@ -1,12 +1,13 @@
-import type { AppUser } from "../state/getAppState.js";
-import type { AuthState } from "../../modules/auth/auth.types.js";
-
+export type CriticalScreen = "critical" | "offline" | "server-down";
+export type AuthScreen = "setup" | "create" | "login" | "broker-consent";
 export type StudioScreen = "dashboard";
 
-export type CriticalScreen =
-  | { kind: "critical"; message: string }
-  | { kind: "offline" }
-  | { kind: "server-down" };
+export interface AppUser {
+  name: string;
+  email: string;
+  avatarUrl: string;
+  role: string;
+}
 
 export interface CriticalAppState {
   realm: "critical";
@@ -15,7 +16,7 @@ export interface CriticalAppState {
 
 export interface AuthAppState {
   realm: "auth";
-  screen: AuthState;
+  screen: AuthScreen;
 }
 
 export interface StudioAppState {

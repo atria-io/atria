@@ -1,18 +1,11 @@
-export type AppState = "setup" | "create" | "login" | "broker-consent" | "authenticated";
-
-export interface AppUser {
-  name: string;
-  email: string;
-  avatarUrl: string;
-  role: string;
-}
+import type { AppState, AppUser, AuthScreen } from "../runtime/runtimeTypes.js";
 
 export interface AppStatePayload {
-  state: AppState;
+  state: AuthScreen | "authenticated";
   user?: AppUser;
 }
 
-export const getAppState = async (_basePath: string): Promise<AppStatePayload> => {
+export const getAppState = async (_basePath: string): Promise<AppState> => {
   const response = await fetch("/admin/bootstrap", { method: "GET" });
   if (!response.ok) {
     throw new Error(`Bootstrap request failed with status ${response.status}`);
@@ -27,7 +20,7 @@ export const getAppState = async (_basePath: string): Promise<AppStatePayload> =
     payload.state === "authenticated"
   ) {
     if (payload.state !== "authenticated") {
-      return { state: payload.state };
+      return { realm: "auth", screen: payload.state };
     }
 
     const user = payload.user;
@@ -38,11 +31,15 @@ export const getAppState = async (_basePath: string): Promise<AppStatePayload> =
       typeof user.avatarUrl === "string" &&
       typeof user.role === "string"
     ) {
-      return { state: payload.state, user };
+      return {
+        realm: "studio",
+        screen: "dashboard",
+        user,
+      };
     }
 
-    return { state: "login" };
+    return { realm: "auth", screen: "login" };
   }
 
-  return { state: "setup" };
+  return { realm: "auth", screen: "setup" };
 };

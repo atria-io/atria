@@ -12,12 +12,12 @@ export const CriticalShell = ({ screen }: CriticalShellProps) => {
   const resolved = useRuntimeScheme();
 
   const content =
-    screen.kind === "offline" ? (
+    screen === "offline" ? (
       <OfflineScreen />
-    ) : screen.kind === "server-down" ? (
+    ) : screen === "server-down" ? (
       <ServerDownScreen />
     ) : (
-      <CriticalScreen message={screen.message} />
+      <CriticalScreen message="Runtime failed. Retry to continue." />
     );
 
   return (
