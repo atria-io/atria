@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import { createRequire } from "node:module";
+import { existsSync } from "node:fs";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { terminal } from "@atria/shared";
@@ -42,6 +43,7 @@ const mimeTypeByExtension: Record<string, string> = {
 const resolveRuntimeFilePath = (
   runtimeRoot: string,
   adminStaticRoot: string,
+  adminBundleFile: string,
   urlPath: string
 ): string | null => {
   if (urlPath === "/" || urlPath === "/index.html") {
@@ -50,6 +52,10 @@ const resolveRuntimeFilePath = (
 
   if (urlPath === "/app.js") {
     return path.join(runtimeRoot, "app.js");
+  }
+
+  if (urlPath === "/static/app.js") {
+    return adminBundleFile;
   }
 
   if (urlPath.startsWith("/static/")) {
@@ -79,14 +85,21 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const adminPort = parsePort(parsedArgs.flags["admin-port"], DEFAULT_ADMIN_PORT, "admin-port");
   const publicPort = parsePort(parsedArgs.flags["public-port"], DEFAULT_PUBLIC_PORT, "public-port");
   const runtimeRoot = path.join(projectRoot, ".atria", "runtime");
-  const adminStaticRoot = resolveAdminStaticRoot();
+  const adminPackagePaths = resolveAdminPackagePaths();
+  const adminStaticRoot = adminPackagePaths.staticRoot;
+  const adminBundleFile = adminPackagePaths.bundleFile;
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
 
   const server = createServer(async (request, response) => {
     const requestUrl = request.url ?? "/";
     const pathname = new URL(requestUrl, "http://localhost").pathname;
-    const runtimeFilePath = resolveRuntimeFilePath(runtimeRoot, adminStaticRoot, pathname);
+    const runtimeFilePath = resolveRuntimeFilePath(
+      runtimeRoot,
+      adminStaticRoot,
+      adminBundleFile,
+      pathname
+    );
 
     if (!runtimeFilePath) {
       response.statusCode = 404;
@@ -144,8 +157,28 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   process.on("SIGTERM", shutdown);
 };
 
-const resolveAdminStaticRoot = (): string => {
+const resolveAdminPackagePaths = (): { staticRoot: string; bundleFile: string } => {
   const require = createRequire(import.meta.url);
   const adminPackageJson = require.resolve("@atria/admin/package.json");
-  return path.join(path.dirname(adminPackageJson), "dist", "runtime", "static");
+  const adminRoot = path.dirname(adminPackageJson);
+  const buildCandidate = {
+    staticRoot: path.join(adminRoot, "dist", "runtime", "static"),
+    bundleFile: path.join(adminRoot, "dist", "app.js"),
+  };
+  const sourceCandidate = {
+    staticRoot: path.join(adminRoot, "studio", "static"),
+    bundleFile: path.join(adminRoot, "dist", "app.js"),
+  };
+
+  if (existsSync(buildCandidate.staticRoot) && existsSync(buildCandidate.bundleFile)) {
+    return buildCandidate;
+  }
+
+  if (existsSync(sourceCandidate.staticRoot) && existsSync(sourceCandidate.bundleFile)) {
+    return sourceCandidate;
+  }
+
+  throw new Error(
+    "Admin runtime not found in @atria/admin (expected static and dist/app.js)."
+  );
 };

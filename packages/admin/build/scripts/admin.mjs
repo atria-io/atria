@@ -98,7 +98,7 @@ const getRuntimeStyleFiles = async (runtimeDistDir) => {
   const indexFile = path.join(runtimeDistDir, "index.htm");
   const html = await readFile(indexFile, "utf-8");
   const files = new Set();
-  const linkCssPattern = /\bsrc\s*=\s*["']([^"']+\.css(?:\?[^"']*)?)["']/gi;
+  const linkCssPattern = /\b(?:href|src)\s*=\s*["']([^"']+\.css(?:\?[^"']*)?)["']/gi;
   let match;
 
   while ((match = linkCssPattern.exec(html)) !== null) {
