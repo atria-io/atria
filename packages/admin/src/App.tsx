@@ -1,6 +1,8 @@
 import { StudioShell } from "./app/shell/StudioShell.js";
 import { AuthShell } from "./app/shell/AuthShell.js";
 import { useBootstrapState } from "./app/bootstrap/useBootstrapState.js";
+import { CriticalShell } from "./app/shell/CriticalShell.js";
+import { CriticalScreen } from "./app/shell/layout/sections/CriticalScreen.js";
 import { Auth } from "./modules/auth/Auth.js";
 import type { AuthState } from "./modules/auth/auth.types.js";
 
@@ -16,6 +18,14 @@ export const AdminApp = ({ basePath }: AdminAppProps) => {
     await fetch("/auth/logout", { method: "POST", credentials: "include" });
     window.location.reload();
   };
+
+  if (state === "critical") {
+    return (
+      <CriticalShell>
+        <CriticalScreen />
+      </CriticalShell>
+    );
+  }
 
   if (state === "authenticated") {
     if (!bootstrap.user) {
