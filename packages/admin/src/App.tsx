@@ -1,6 +1,7 @@
+import { useEffect, useState } from "react";
 import { StudioShell } from "./app/shell/StudioShell.js";
 import { AuthShell } from "./app/shell/AuthShell.js";
-import { getBootstrapState } from "./app/runtime/bootstrapState.js";
+import { getBootstrapState, type BootstrapState } from "./app/bootstrap/getBootstrapState.js";
 import { Auth } from "./modules/auth/Auth.js";
 import type { AuthState } from "./modules/auth/auth.types.js";
 
@@ -9,7 +10,22 @@ export interface AdminAppProps {
 }
 
 export const AdminApp = ({ basePath }: AdminAppProps) => {
-  const state = getBootstrapState(basePath);
+  const [state, setState] = useState<BootstrapState>("setup");
+
+  useEffect(() => {
+    let isActive = true;
+
+    void (async () => {
+      const result = await getBootstrapState(basePath);
+      if (isActive) {
+        setState(result.state);
+      }
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, [basePath]);
 
   if (state === "authenticated") {
     return (
