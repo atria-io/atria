@@ -12,7 +12,15 @@ const DEFAULT_PORT = 3333;
 export const startDevServer = async (options: StartDevServerOptions = {}): Promise<Server> => {
   const host = options.host ?? DEFAULT_HOST;
   const port = options.port ?? DEFAULT_PORT;
-  const server = createServer(routeRequest);
+  const server = createServer((request, response) => {
+    void routeRequest(request, response).catch(() => {
+      if (!response.headersSent) {
+        response.statusCode = 500;
+        response.setHeader("Content-Type", "application/json; charset=utf-8");
+      }
+      response.end(JSON.stringify({ error: "Internal Server Error" }));
+    });
+  });
 
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);

@@ -1,7 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { sendAdminBootstrap } from "./admin.controller.js";
 
-export const handleAdminRoutes = (request: IncomingMessage, response: ServerResponse): boolean => {
+export const handleAdminRoutes = async (
+  request: IncomingMessage,
+  response: ServerResponse
+): Promise<boolean> => {
   if (request.method !== "GET") {
     return false;
   }
@@ -11,6 +14,6 @@ export const handleAdminRoutes = (request: IncomingMessage, response: ServerResp
     return false;
   }
 
-  sendAdminBootstrap(response);
+  await sendAdminBootstrap(response);
   return true;
 };
