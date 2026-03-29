@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { BootstrapUserSummary } from "../../../bootstrap/getBootstrapState.js";
-import { useRuntimeScheme } from "../../../runtime/useRuntimeScheme.js";
+import type { BootstrapUserSummary } from "../../bootstrap/getBootstrapState.js";
+import { useRuntimeScheme } from "../../runtime/useRuntimeScheme.js";
 
 type SchemeMode = "system" | "light" | "dark";
 
