@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
-import { isInteractivePrompt } from "@atria/shared";
+import { done, doneField, isInteractivePrompt, success, terminal } from "@atria/shared";
 import { parseArgs } from "../../parseArgs.js";
 
 type DatabaseMode = "sqlite" | "postgres";
@@ -17,6 +17,34 @@ const printSetupHelp = (): void => {
 const parseDatabaseMode = (value: string): DatabaseMode | null => {
   if (value === "sqlite" || value === "postgres") {
     return value;
+  }
+
+  return null;
+};
+
+const readEnvValue = async (envPath: string, key: string): Promise<string | null> => {
+  const content = await fs.readFile(envPath, "utf-8").catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT") {
+      return null;
+    }
+    throw error;
+  });
+
+  if (content === null) {
+    return null;
+  }
+
+  const lines = content.split(/\r?\n/g);
+  for (const line of lines) {
+    const separator = line.indexOf("=");
+    if (separator <= 0) {
+      continue;
+    }
+    const currentKey = line.slice(0, separator).trim();
+    if (currentKey !== key) {
+      continue;
+    }
+    return line.slice(separator + 1).trim();
   }
 
   return null;
@@ -72,7 +100,7 @@ const updateEnvFile = async (
   envPath: string,
   updates: Record<string, string>,
   force: boolean
-): Promise<boolean> => {
+): Promise<"updated" | "not-found"> => {
   const content = await fs.readFile(envPath, "utf-8").catch((error: NodeJS.ErrnoException) => {
     if (error.code === "ENOENT") {
       return null;
@@ -82,7 +110,7 @@ const updateEnvFile = async (
   });
 
   if (content === null) {
-    return false;
+    return "not-found";
   }
 
   const lines = content ? content.split(/\r?\n/g) : [];
@@ -125,7 +153,7 @@ const updateEnvFile = async (
   const output = `${nextLines.join("\n").trim()}\n`;
   await fs.mkdir(path.dirname(envPath), { recursive: true });
   await fs.writeFile(envPath, output, "utf-8");
-  return true;
+  return "updated";
 };
 
 export const runSetupCommand = async (args: string[]): Promise<void> => {
@@ -151,18 +179,19 @@ export const runSetupCommand = async (args: string[]): Promise<void> => {
     typeof parsedArgs.flags["database-url"] === "string"
       ? parsedArgs.flags["database-url"].trim()
       : "";
+  const envPath = path.join(projectRoot, ".env");
+  const existingDatabaseUrl = await readEnvValue(envPath, "ATRIA_DATABASE_URL");
 
   const databaseUrl =
     databaseMode === "sqlite"
       ? SQLITE_DATABASE_URL
-      : postgresUrlFromFlags || (await promptPostgresUrl());
+      : postgresUrlFromFlags || existingDatabaseUrl || (await promptPostgresUrl());
 
   if (databaseMode === "postgres" && !databaseUrl) {
     throw new Error("PostgreSQL URL cannot be empty.");
   }
 
-  const envPath = path.join(projectRoot, ".env");
-  const didUpdateEnv = await updateEnvFile(
+  const envUpdateResult = await updateEnvFile(
     envPath,
     {
       ATRIA_DATABASE_URL: databaseUrl
@@ -170,14 +199,17 @@ export const runSetupCommand = async (args: string[]): Promise<void> => {
     parsedArgs.flags.force === true
   );
 
-  console.log(`[atria] setup`);
-  console.log(`[atria] project: ${projectRoot}`);
-  console.log(`[atria] database: ${databaseMode}`);
+  console.log(done("Setup started"));
+  console.log(doneField("Project", projectRoot));
+  console.log(doneField("Database", databaseMode));
   console.log(
-    didUpdateEnv ? `[atria] .env updated: ${envPath}` : `[atria] .env not found, skipped update`
+    envUpdateResult === "updated"
+      ? doneField(".env", envPath)
+      : `${terminal.dim("•")} .env not found, skipped update`
   );
 
   if (parsedArgs.flags["database-only"] === true) {
-    console.log("[atria] Setup finished in database-only mode.");
+    console.log(done("Setup finished in database-only mode."));
   }
+  console.log(success("Setup completed."));
 };
