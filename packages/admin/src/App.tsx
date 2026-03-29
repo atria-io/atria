@@ -9,7 +9,8 @@ export interface AdminAppProps {
 }
 
 export const AdminApp = ({ basePath }: AdminAppProps) => {
-  const state = useBootstrapState(basePath);
+  const bootstrap = useBootstrapState(basePath);
+  const state = bootstrap.state;
 
   const handleLogout = async (): Promise<void> => {
     await fetch("/auth/logout", { method: "POST", credentials: "include" });
@@ -18,7 +19,10 @@ export const AdminApp = ({ basePath }: AdminAppProps) => {
 
   if (state === "authenticated") {
     return (
-      <StudioShell onLogout={() => void handleLogout()}>
+      <StudioShell
+        user={bootstrap.user ?? { name: "Owner", email: "", avatarUrl: "", role: "owner" }}
+        onLogout={() => void handleLogout()}
+      >
         <div>Dashboard</div>
       </StudioShell>
     );

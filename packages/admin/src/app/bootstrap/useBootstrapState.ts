@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { getBootstrapState, type BootstrapState } from "./getBootstrapState.js";
+import { getBootstrapState, type BootstrapPayload } from "./getBootstrapState.js";
 
-export const useBootstrapState = (basePath: string): BootstrapState => {
-  const [state, setState] = useState<BootstrapState>("setup");
+export const useBootstrapState = (basePath: string): BootstrapPayload => {
+  const [bootstrap, setBootstrap] = useState<BootstrapPayload>({ state: "setup" });
 
   useEffect(() => {
     let isActive = true;
@@ -10,7 +10,7 @@ export const useBootstrapState = (basePath: string): BootstrapState => {
     void (async () => {
       const result = await getBootstrapState(basePath);
       if (isActive) {
-        setState(result.state);
+        setBootstrap(result);
       }
     })();
 
@@ -19,6 +19,5 @@ export const useBootstrapState = (basePath: string): BootstrapState => {
     };
   }, [basePath]);
 
-  return state;
+  return bootstrap;
 };
-

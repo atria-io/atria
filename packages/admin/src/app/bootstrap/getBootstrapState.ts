@@ -1,7 +1,15 @@
 export type BootstrapState = "setup" | "create" | "login" | "authenticated";
 
-interface BootstrapPayload {
+export interface BootstrapUserSummary {
+  name: string;
+  email: string;
+  avatarUrl: string;
+  role: string;
+}
+
+export interface BootstrapPayload {
   state: BootstrapState;
+  user?: BootstrapUserSummary;
 }
 
 export const getBootstrapState = async (_basePath: string): Promise<BootstrapPayload> => {
@@ -19,7 +27,22 @@ export const getBootstrapState = async (_basePath: string): Promise<BootstrapPay
       payload.state === "login" ||
       payload.state === "authenticated"
     ) {
-      return { state: payload.state };
+      if (payload.state !== "authenticated") {
+        return { state: payload.state };
+      }
+
+      const user = payload.user;
+      if (
+        user &&
+        typeof user.name === "string" &&
+        typeof user.email === "string" &&
+        typeof user.avatarUrl === "string" &&
+        typeof user.role === "string"
+      ) {
+        return { state: payload.state, user };
+      }
+
+      return { state: "login" };
     }
 
     return { state: "setup" };
@@ -27,4 +50,3 @@ export const getBootstrapState = async (_basePath: string): Promise<BootstrapPay
     return { state: "setup" };
   }
 };
-
