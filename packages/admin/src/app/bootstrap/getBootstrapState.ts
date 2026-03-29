@@ -27,3 +27,4 @@ export const getBootstrapState = async (_basePath: string): Promise<BootstrapPay
     return { state: "setup" };
   }
 };
+
