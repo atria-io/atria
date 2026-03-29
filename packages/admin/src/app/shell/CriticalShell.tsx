@@ -1,28 +1,28 @@
-import { useRuntimeScheme } from "../runtime/useRuntimeScheme.js";
-import type { RuntimeCriticalState } from "../runtime/runtimeFatal.js";
+import type { CriticalScreen as CriticalRealmScreen } from "../runtime/runtimeTypes.js";
+import { useRuntimeScheme } from "../runtime/runtimeScheme.js";
 import { CriticalScreen } from "./screens/CriticalScreen.js";
 import { OfflineScreen } from "./screens/OfflineScreen.js";
 import { ServerDownScreen } from "./screens/ServerDownScreen.js";
 
 export interface CriticalShellProps {
-  runtimeState: RuntimeCriticalState;
+  screen: CriticalRealmScreen;
 }
 
-export const CriticalShell = ({ runtimeState }: CriticalShellProps) => {
+export const CriticalShell = ({ screen }: CriticalShellProps) => {
   const resolved = useRuntimeScheme();
 
-  const screen =
-    runtimeState.kind === "offline" ? (
+  const content =
+    screen.kind === "offline" ? (
       <OfflineScreen />
-    ) : runtimeState.kind === "server-down" ? (
+    ) : screen.kind === "server-down" ? (
       <ServerDownScreen />
     ) : (
-      <CriticalScreen message={runtimeState.message} />
+      <CriticalScreen message={screen.message} />
     );
 
   return (
     <div className="admin-shell" data-route="critical" data-scheme={resolved}>
-      <main className="admin-shell__main">{screen}</main>
+      <main className="admin-shell__main">{content}</main>
     </div>
   );
 };

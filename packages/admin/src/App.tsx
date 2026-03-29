@@ -2,41 +2,21 @@ import { StudioShell } from "./app/shell/StudioShell.js";
 import { AuthShell } from "./app/shell/AuthShell.js";
 import { useBootstrapState } from "./app/bootstrap/useBootstrapState.js";
 import { CriticalShell } from "./app/shell/CriticalShell.js";
-import { Auth } from "./modules/auth/Auth.js";
-import type { AuthState } from "./modules/auth/auth.types.js";
 
 export interface AdminAppProps {
   basePath: string;
 }
 
 export const AdminApp = ({ basePath }: AdminAppProps) => {
-  const bootstrap = useBootstrapState(basePath);
-  const state = bootstrap.state;
+  const appState = useBootstrapState(basePath);
 
-  const handleLogout = async (): Promise<void> => {
-    await fetch("/auth/logout", { method: "POST", credentials: "include" });
-    window.location.reload();
-  };
-
-  if (state === "critical") {
-    return <CriticalShell runtimeState={bootstrap.runtimeState} />;
+  if (appState.realm === "critical") {
+    return <CriticalShell screen={appState.screen} />;
   }
 
-  if (state === "authenticated") {
-    if (!bootstrap.user) {
-      return null;
-    }
-
-    return (
-      <StudioShell route="dashboard" user={bootstrap.user} onLogout={() => void handleLogout()}>
-        <div>Dashboard</div>
-      </StudioShell>
-    );
+  if (appState.realm === "studio") {
+    return <StudioShell screen={appState.screen} user={appState.user} />;
   }
 
-  return (
-    <AuthShell route={state as AuthState}>
-      <Auth state={state as AuthState} />
-    </AuthShell>
-  );
+  return <AuthShell screen={appState.screen} />;
 };

@@ -1,18 +1,20 @@
-import type { ReactNode } from "react";
-import { useRuntimeScheme } from "../runtime/useRuntimeScheme.js";
+import { Auth } from "../../modules/auth/Auth.js";
+import type { AuthState } from "../../modules/auth/auth.types.js";
+import { useRuntimeScheme } from "../runtime/runtimeScheme.js";
 
 export interface AuthShellProps {
-  route: "setup" | "create" | "login" | "broker-consent";
-  children: ReactNode;
+  screen: AuthState;
 }
 
-export const AuthShell = ({ route, children }: AuthShellProps) => {
+export const AuthShell = ({ screen }: AuthShellProps) => {
   const resolved = useRuntimeScheme();
 
   return (
-    <div className="admin-shell" data-route={route} data-scheme={resolved}>
+    <div className="admin-shell" data-route={screen} data-scheme={resolved}>
       <main className="admin-shell__main">
-        <section className="auth-screen">{children}</section>
+        <section className="auth-screen">
+          <Auth state={screen} />
+        </section>
       </main>
     </div>
   );

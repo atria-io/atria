@@ -1,16 +1,13 @@
+import type { CriticalScreen } from "./runtimeTypes.js";
+
 export const RUNTIME_FATAL_EVENT = "atria:runtime:fatal";
 
-export type RuntimeCriticalState =
-  | { kind: "critical"; message: string }
-  | { kind: "offline" }
-  | { kind: "server-down" };
-
 export interface RuntimeFatalDetail {
-  state?: RuntimeCriticalState["kind"];
+  state?: CriticalScreen["kind"];
   message?: string;
 }
 
-const readRuntimeFatalStateKind = (event: Event): RuntimeCriticalState["kind"] | null => {
+const readRuntimeFatalStateKind = (event: Event): CriticalScreen["kind"] | null => {
   const detail = (event as CustomEvent<RuntimeFatalDetail | undefined>).detail;
   if (!detail || typeof detail !== "object") {
     return null;
@@ -32,7 +29,7 @@ const readRuntimeFatalMessage = (event: Event): string | null => {
   return typeof detail.message === "string" && detail.message.trim() !== "" ? detail.message : null;
 };
 
-export const getRuntimeFatalState = (event: Event): RuntimeCriticalState => {
+export const getRuntimeFatalState = (event: Event): CriticalScreen => {
   const kind = readRuntimeFatalStateKind(event) ?? "critical";
   if (kind === "offline") {
     return { kind: "offline" };

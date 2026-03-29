@@ -1,22 +1,17 @@
 import { useEffect, useState } from "react";
-import { getBootstrapState, type BootstrapPayload } from "./getBootstrapState.js";
-import {
-  getRuntimeFatalState,
-  type RuntimeCriticalState,
-  RUNTIME_FATAL_EVENT,
-} from "../runtime/runtimeFatal.js";
+import { getBootstrapState } from "./getBootstrapState.js";
+import { getRuntimeFatalState, RUNTIME_FATAL_EVENT } from "../runtime/runtimeFatal.js";
+import type { AppState, CriticalScreen } from "../runtime/runtimeTypes.js";
 
-export type RuntimeBootstrapState = BootstrapPayload | { state: "critical"; runtimeState: RuntimeCriticalState };
-
-export const useBootstrapState = (basePath: string): RuntimeBootstrapState => {
-  const [bootstrap, setBootstrap] = useState<RuntimeBootstrapState>({ state: "setup" });
+export const useBootstrapState = (basePath: string): AppState => {
+  const [appState, setAppState] = useState<AppState>({ realm: "auth", screen: "setup" });
 
   useEffect(() => {
     let isActive = true;
 
-    const setCritical = (runtimeState: RuntimeCriticalState): void => {
+    const setCritical = (screen: CriticalScreen): void => {
       if (isActive) {
-        setBootstrap({ state: "critical", runtimeState });
+        setAppState({ realm: "critical", screen });
       }
     };
 
@@ -28,9 +23,19 @@ export const useBootstrapState = (basePath: string): RuntimeBootstrapState => {
 
     void (async () => {
       try {
-        const result = await getBootstrapState(basePath);
+        const bootstrapState = await getBootstrapState(basePath);
         if (isActive) {
-          setBootstrap(result);
+          if (bootstrapState.state === "authenticated") {
+            if (!bootstrapState.user) {
+              setAppState({ realm: "auth", screen: "login" });
+              return;
+            }
+
+            setAppState({ realm: "studio", screen: "dashboard", user: bootstrapState.user });
+            return;
+          }
+
+          setAppState({ realm: "auth", screen: bootstrapState.state });
         }
       } catch {
         if (!window.navigator.onLine) {
@@ -48,5 +53,5 @@ export const useBootstrapState = (basePath: string): RuntimeBootstrapState => {
     };
   }, [basePath]);
 
-  return bootstrap;
+  return appState;
 };
