@@ -106,7 +106,9 @@ const queryOwnerCount = (database: {
   return 0;
 };
 
-const isSqliteOwnerPresent = async (sqliteFilePath: string): Promise<"available" | "missing"> => {
+const isSqliteOwnerPresent = async (
+  sqliteFilePath: string
+): Promise<"available" | "missing" | "unavailable"> => {
   try {
     const sqlite = (await import("node:sqlite")) as {
       DatabaseSync: new (filename: string) => { prepare: (sql: string) => { get: (...args: unknown[]) => unknown }; close: () => void };
@@ -120,11 +122,11 @@ const isSqliteOwnerPresent = async (sqliteFilePath: string): Promise<"available"
       database.close();
     }
   } catch {
-    return "missing";
+    return "unavailable";
   }
 };
 
-const hasSessionCookie = (request: IncomingMessage): boolean => {
+const hasValidSessionCookie = (request: IncomingMessage): boolean => {
   const rawCookie = request.headers.cookie;
   if (typeof rawCookie !== "string" || rawCookie.trim() === "") {
     return false;
@@ -144,7 +146,7 @@ const hasSessionCookie = (request: IncomingMessage): boolean => {
 
     const name = cookie.slice(0, separatorIndex).trim();
     const value = cookie.slice(separatorIndex + 1).trim();
-    if (name === "session" && value !== "") {
+    if (name === "session" && value === "valid") {
       return true;
     }
   }
@@ -168,11 +170,15 @@ const getAdminBootstrapState = async (request: IncomingMessage): Promise<AdminBo
   }
 
   const ownerState = await isSqliteOwnerPresent(sqlitePath);
+  if (ownerState === "unavailable") {
+    return { state: "setup" };
+  }
+
   if (ownerState === "missing") {
     return { state: "create" };
   }
 
-  if (!hasSessionCookie(request)) {
+  if (!hasValidSessionCookie(request)) {
     return { state: "login" };
   }
 
