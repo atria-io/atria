@@ -1,4 +1,4 @@
-export type BootstrapState = "setup" | "create" | "login" | "authenticated";
+export type BootstrapState = "setup" | "create" | "login" | "broker-consent" | "authenticated";
 
 export interface BootstrapUserSummary {
   name: string;
@@ -23,6 +23,7 @@ export const getBootstrapState = async (_basePath: string): Promise<BootstrapPay
     payload.state === "setup" ||
     payload.state === "create" ||
     payload.state === "login" ||
+    payload.state === "broker-consent" ||
     payload.state === "authenticated"
   ) {
     if (payload.state !== "authenticated") {

@@ -1,1 +1,1 @@
-export type AuthState = "setup" | "create" | "login";
+export type AuthState = "setup" | "create" | "login" | "broker-consent";

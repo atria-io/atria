@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useRuntimeScheme } from "../runtime/useRuntimeScheme.js";
 
 export interface AuthShellProps {
-  route: "setup" | "create" | "login";
+  route: "setup" | "create" | "login" | "broker-consent";
   children: ReactNode;
 }
 
