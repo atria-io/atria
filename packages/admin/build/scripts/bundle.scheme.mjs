@@ -91,11 +91,45 @@ const buildRuntimeSource = (tokenMap) => `(() => {
   const toCss = (tokens) => \`:root{--background:\${tokens.background};--boot-track:\${tokens.boot_track};--boot-spinner:\${tokens.boot_spinner};--text:\${tokens.text};--text-muted:\${tokens.text_muted};}html,body{background:var(--background);color:var(--text);}\`;
 
   let resolved = resolveMode(readStoredMode());
+  const subscribers = new Set();
+
+  const notify = () => {
+    for (const subscriber of subscribers) {
+      try {
+        subscriber(resolved);
+      } catch {}
+    }
+  };
+
+  const persistMode = (nextMode) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, nextMode);
+    } catch {}
+  };
+
+  const syncDomScheme = (nextScheme) => {
+    if (document.documentElement.getAttribute("data-scheme") !== nextScheme) {
+      document.documentElement.setAttribute("data-scheme", nextScheme);
+    }
+
+    const shellNodes = document.querySelectorAll(".admin-shell[data-scheme]");
+    for (const shellNode of shellNodes) {
+      if (shellNode.getAttribute("data-scheme") !== nextScheme) {
+        shellNode.setAttribute("data-scheme", nextScheme);
+      }
+    }
+  };
 
   const applyScheme = (nextScheme) => {
+    if (nextScheme !== "light" && nextScheme !== "dark") {
+      return;
+    }
+
     resolved = nextScheme;
     const styleElement = ensureStyleElement();
     styleElement.textContent = toCss(TOKENS[resolved]);
+    syncDomScheme(resolved);
+    notify();
   };
 
   const refreshFromStorage = () => {
@@ -112,6 +146,16 @@ const buildRuntimeSource = (tokenMap) => `(() => {
       return resolved;
     },
     setMode,
+    subscribe(onChange) {
+      if (typeof onChange !== "function") {
+        return;
+      }
+
+      subscribers.add(onChange);
+      return () => {
+        subscribers.delete(onChange);
+      };
+    },
   };
 
   if (typeof window.addEventListener === "function") {
@@ -127,10 +171,7 @@ const buildRuntimeSource = (tokenMap) => `(() => {
       return;
     }
 
-    try {
-      localStorage.setItem(STORAGE_KEY, nextMode);
-    } catch {}
-
+    persistMode(nextMode);
     refreshFromStorage();
   }
 
@@ -162,6 +203,7 @@ const buildRuntimeSource = (tokenMap) => `(() => {
 
       const nextScheme = target.getAttribute("data-scheme");
       if (nextScheme === "light" || nextScheme === "dark") {
+        persistMode(nextScheme);
         applyScheme(nextScheme);
       }
     }
