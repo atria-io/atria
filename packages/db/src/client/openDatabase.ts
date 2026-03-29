@@ -6,6 +6,8 @@ export interface DatabaseLike {
   close: () => void;
 }
 
+const DEFAULT_DATABASE_URL = "file:./.atria/data/atria.db";
+
 const parseEnvFile = (source: string): Record<string, string> => {
   const entries: Record<string, string> = {};
 
@@ -48,7 +50,7 @@ const resolveDatabaseUrl = async (): Promise<string> => {
   }
 
   const envFile = await readProjectEnvFile();
-  const fromFile = envFile.ATRIA_DATABASE_URL ?? envFile.DATABASE_URL ?? "";
+  const fromFile = envFile.ATRIA_DATABASE_URL ?? envFile.DATABASE_URL ?? DEFAULT_DATABASE_URL;
   return fromFile.trim();
 };
 
@@ -99,3 +101,45 @@ export const openDatabase = async (): Promise<DatabaseLike | null> => {
   }
 };
 
+export const initializeDatabase = async (): Promise<boolean> => {
+  const databaseUrl = await resolveDatabaseUrl();
+  if (databaseUrl === "") {
+    return false;
+  }
+
+  const sqlitePath = resolveSqlitePath(databaseUrl);
+  if (!sqlitePath) {
+    return false;
+  }
+
+  try {
+    await fs.mkdir(path.dirname(sqlitePath), { recursive: true });
+  } catch {
+    return false;
+  }
+
+  try {
+    const sqlite = (await import("node:sqlite")) as {
+      DatabaseSync: new (filename: string) => DatabaseLike;
+    };
+    const database = new sqlite.DatabaseSync(sqlitePath);
+
+    try {
+      database.prepare(
+        "CREATE TABLE IF NOT EXISTS atria_users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, role TEXT, is_owner INTEGER DEFAULT 0, password TEXT)"
+      ).run();
+      database.prepare(
+        "CREATE TABLE IF NOT EXISTS atria_user_credentials (user_id TEXT PRIMARY KEY, password TEXT, password_hash TEXT, secret TEXT)"
+      ).run();
+      database.prepare(
+        "CREATE TABLE IF NOT EXISTS atria_sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, created_at TEXT, expires_at TEXT)"
+      ).run();
+    } finally {
+      database.close();
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+};

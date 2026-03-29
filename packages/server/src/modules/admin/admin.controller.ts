@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { getOwnerSetupState, getSessionById } from "@atria/db";
+import { getOwnerSetupState, getSessionById, initializeDatabase } from "@atria/db";
 import type { AdminBootstrapResponse } from "./admin.types.js";
 
 const getSessionIdFromCookie = (request: IncomingMessage): string | null => {
@@ -65,7 +65,18 @@ export const sendAdminBootstrap = async (
   writeJson(response, 200, await getAdminBootstrapState(request));
 };
 
+export const sendAdminSetup = async (response: ServerResponse): Promise<void> => {
+  const isInitialized = await initializeDatabase();
+  if (!isInitialized) {
+    response.statusCode = 400;
+    response.end();
+    return;
+  }
+
+  response.statusCode = 204;
+  response.end();
+};
+
 export const sendNotFound = (response: ServerResponse): void => {
   writeJson(response, 404, { error: "Not Found" });
 };
-

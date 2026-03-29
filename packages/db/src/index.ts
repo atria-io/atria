@@ -1,4 +1,4 @@
-export { openDatabase } from "./client/openDatabase.js";
+export { openDatabase, initializeDatabase } from "./client/openDatabase.js";
 export {
   getOwnerSetupState,
   createOwner,
