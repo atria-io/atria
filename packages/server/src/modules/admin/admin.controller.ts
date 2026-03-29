@@ -50,10 +50,98 @@ const resolveDatabaseUrl = async (): Promise<string> => {
   return fromFile.trim();
 };
 
+const resolveSqlitePath = (databaseUrl: string): string | null => {
+  if (!databaseUrl.startsWith("file:")) {
+    return null;
+  }
+
+  const rawPath = databaseUrl.slice("file:".length).trim();
+  if (rawPath === "") {
+    return null;
+  }
+
+  return path.resolve(process.cwd(), rawPath);
+};
+
+const fileExists = async (targetPath: string): Promise<boolean> => {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const queryOwnerCount = (database: {
+  prepare: (sql: string) => { get: (...args: unknown[]) => unknown };
+}): number => {
+  const statements: Array<{ sql: string; args: unknown[] }> = [
+    { sql: "SELECT COUNT(*) AS count FROM atria_users WHERE role = ?", args: ["owner"] },
+    { sql: "SELECT COUNT(*) AS count FROM atria_users WHERE is_owner = 1", args: [] },
+  ];
+
+  for (const statement of statements) {
+    try {
+      const row = database.prepare(statement.sql).get(...statement.args) as
+        | { count?: number | bigint | string }
+        | undefined;
+      const value = row?.count;
+      if (typeof value === "number") {
+        return value;
+      }
+      if (typeof value === "bigint") {
+        return Number(value);
+      }
+      if (typeof value === "string") {
+        const parsed = Number.parseInt(value, 10);
+        if (Number.isFinite(parsed)) {
+          return parsed;
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return 0;
+};
+
+const isSqliteOwnerPresent = async (sqliteFilePath: string): Promise<"available" | "missing"> => {
+  try {
+    const sqlite = (await import("node:sqlite")) as {
+      DatabaseSync: new (filename: string) => { prepare: (sql: string) => { get: (...args: unknown[]) => unknown }; close: () => void };
+    };
+    const database = new sqlite.DatabaseSync(sqliteFilePath);
+
+    try {
+      const ownerCount = queryOwnerCount(database);
+      return ownerCount > 0 ? "available" : "missing";
+    } finally {
+      database.close();
+    }
+  } catch {
+    return "missing";
+  }
+};
+
 const getAdminBootstrapState = async (): Promise<AdminBootstrapResponse> => {
   const databaseUrl = await resolveDatabaseUrl();
   if (databaseUrl === "") {
     return { state: "setup" };
+  }
+
+  const sqlitePath = resolveSqlitePath(databaseUrl);
+  if (!sqlitePath) {
+    return { state: "setup" };
+  }
+
+  if (!(await fileExists(sqlitePath))) {
+    return { state: "setup" };
+  }
+
+  const ownerState = await isSqliteOwnerPresent(sqlitePath);
+  if (ownerState === "available") {
+    return { state: "login" };
   }
 
   return { state: "create" };
