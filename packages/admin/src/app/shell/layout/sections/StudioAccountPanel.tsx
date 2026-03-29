@@ -32,6 +32,8 @@ export interface StudioAccountPanelProps {
   onLogout: () => void;
 }
 
+const schemeModes: SchemeMode[] = ["system", "light", "dark"];
+
 export const StudioAccountPanel = ({ user, onLogout }: StudioAccountPanelProps) => {
   const resolved = useRuntimeScheme();
   const [mode, setMode] = useState<SchemeMode>(() => readRuntimeMode());
@@ -46,17 +48,11 @@ export const StudioAccountPanel = ({ user, onLogout }: StudioAccountPanelProps) 
   };
 
   return (
-    <div style={{ marginLeft: "auto", display: "flex", gap: "8px", alignItems: "center" }}>
-      <button type="button" data-active={mode === "system"} onClick={() => handleSetMode("system")}>
-        System
-      </button>
-      <button type="button" data-active={mode === "light"} onClick={() => handleSetMode("light")}>
-        Light
-      </button>
-      <button type="button" data-active={mode === "dark"} onClick={() => handleSetMode("dark")}>
-        Dark
-      </button>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+    <div
+      style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}
+      aria-label="Account panel"
+    >
+      <section style={{ display: "flex", alignItems: "center", gap: "8px" }} aria-label="User info">
         {user.avatarUrl ? (
           <img src={user.avatarUrl} alt={user.name} width={24} height={24} />
         ) : (
@@ -66,12 +62,27 @@ export const StudioAccountPanel = ({ user, onLogout }: StudioAccountPanelProps) 
           />
         )}
         <span>{user.name}</span>
+      </section>
+
+      <section style={{ display: "flex", alignItems: "center", gap: "8px" }} aria-label="Scheme actions">
+        {schemeModes.map((schemeMode) => (
+          <button
+            key={schemeMode}
+            type="button"
+            data-active={mode === schemeMode}
+            onClick={() => handleSetMode(schemeMode)}
+          >
+            {schemeMode[0].toUpperCase() + schemeMode.slice(1)}
+          </button>
+        ))}
         <span style={{ opacity: 0.7 }}>{mode}/{resolved}</span>
-      </div>
-      <button type="button" onClick={onLogout}>
-        Logout
-      </button>
+      </section>
+
+      <section aria-label="Logout action">
+        <button type="button" onClick={onLogout}>
+          Logout
+        </button>
+      </section>
     </div>
   );
 };
-

@@ -1,14 +1,12 @@
-import type { BootstrapUserSummary } from "../../../bootstrap/getBootstrapState.js";
-import { StudioAccountPanel } from "./StudioAccountPanel.js";
+import type { ReactNode } from "react";
 
 export interface StudioHeaderProps {
-  user: BootstrapUserSummary;
-  onLogout: () => void;
+  accountPanel: ReactNode;
 }
 
-export const StudioHeader = ({ user, onLogout }: StudioHeaderProps) => (
+export const StudioHeader = ({ accountPanel }: StudioHeaderProps) => (
   <header className="admin-shell__header">
     <div>Studio</div>
-    <StudioAccountPanel user={user} onLogout={onLogout} />
+    {accountPanel}
   </header>
 );
