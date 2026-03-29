@@ -8,7 +8,28 @@ export interface AuthProps {
   state: AuthState;
 }
 
+const hasBrokerConsentMarker = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const url = new URL(window.location.href);
+  const markerKeys = ["broker-consent", "broker_consent", "brokerConsent", "consent"];
+
+  for (const key of markerKeys) {
+    if (url.searchParams.has(key)) {
+      return true;
+    }
+  }
+
+  return url.pathname.includes("broker-consent") || url.hash.includes("broker-consent");
+};
+
 export const Auth = ({ state }: AuthProps) => {
+  if (hasBrokerConsentMarker()) {
+    return <BrokerConsentView />;
+  }
+
   switch (state) {
     case "setup":
       return <SetupView />;
