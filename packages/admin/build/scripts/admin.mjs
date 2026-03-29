@@ -8,6 +8,7 @@ export const runAdminBuild = async (entryUrl) => {
   const paths = getBuildPaths(entryUrl);
   await prepareDistDirectory(paths.distDir);
   await buildSource(paths.packageRoot, paths.tscEntry);
+  await bundleApp(paths.packageRoot, paths.rollupEntry, paths.rollupConfig);
   await copyRuntime(paths.runtimeSourceDir, paths.runtimeDistDir);
   await minifyRuntimeStyles(paths.runtimeDistDir);
 };
@@ -27,8 +28,17 @@ const getBuildPaths = (entryUrl) => {
     "bin",
     "tsc"
   );
+  const rollupEntry = path.resolve(
+    packageRoot,
+    "node_modules",
+    "rollup",
+    "dist",
+    "bin",
+    "rollup"
+  );
+  const rollupConfig = path.join(packageRoot, "build", "scripts", "rollup.config.mjs");
 
-  return { packageRoot, distDir, runtimeSourceDir, runtimeDistDir, tscEntry };
+  return { packageRoot, distDir, runtimeSourceDir, runtimeDistDir, tscEntry, rollupEntry, rollupConfig };
 };
 
 const prepareDistDirectory = async (distDir) => {
@@ -49,6 +59,24 @@ const buildSource = async (packageRoot, tscEntry) =>
         return;
       }
       reject(new Error(`admin build failed with exit code ${code ?? 1}`));
+    });
+
+    child.on("error", reject);
+  });
+
+const bundleApp = async (packageRoot, rollupEntry, rollupConfig) =>
+  new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [rollupEntry, "--config", rollupConfig], {
+      cwd: packageRoot,
+      stdio: "inherit",
+    });
+
+    child.on("exit", (code) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+      reject(new Error(`admin rollup failed with exit code ${code ?? 1}`));
     });
 
     child.on("error", reject);
