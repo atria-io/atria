@@ -182,6 +182,35 @@ const createBrokerOwnerIfNeeded = async (email: string | null): Promise<string |
   return createOwner({ email, password });
 };
 
+interface SessionResult {
+  status: "ok" | "failed" | "no-user";
+  sessionId: string;
+}
+
+const createSessionFromBrokerExchange = async (email: string | null): Promise<SessionResult> => {
+  const userId = await getBrokerUserId();
+  if (!userId) {
+    const createdOwnerId = await createBrokerOwnerIfNeeded(email);
+    if (!createdOwnerId) {
+      return { status: "no-user", sessionId: "" };
+    }
+
+    const createdOwnerSession = await createSession(createdOwnerId);
+    if (!createdOwnerSession) {
+      return { status: "failed", sessionId: "" };
+    }
+
+    return { status: "ok", sessionId: createdOwnerSession.id };
+  }
+
+  const session = await createSession(userId);
+  if (!session) {
+    return { status: "failed", sessionId: "" };
+  }
+
+  return { status: "ok", sessionId: session.id };
+};
+
 export const sendBrokerConfirm = async (
   request: IncomingMessage,
   response: ServerResponse
@@ -242,28 +271,8 @@ export const sendBrokerConfirm = async (
     return;
   }
 
-  const userId = await getBrokerUserId();
-  if (!userId) {
-    const createdOwnerId = await createBrokerOwnerIfNeeded(exchangeResult.email);
-    if (createdOwnerId) {
-      const createdOwnerSession = await createSession(createdOwnerId);
-      if (!createdOwnerSession) {
-        writeBrokerConfirmError(response, 401, {
-          code: "session_creation_failed",
-          title: "Session failed",
-          message: "Could not create authenticated session.",
-          retryable: true,
-          backToLogin: true,
-        });
-        return;
-      }
-
-      response.statusCode = 204;
-      response.setHeader("Set-Cookie", `session=${createdOwnerSession.id}; Path=/; HttpOnly`);
-      response.end();
-      return;
-    }
-
+  const sessionResult = await createSessionFromBrokerExchange(exchangeResult.email);
+  if (sessionResult.status === "no-user") {
     writeBrokerConfirmError(response, 401, {
       code: "no_user_available",
       title: "No eligible user",
@@ -274,8 +283,7 @@ export const sendBrokerConfirm = async (
     return;
   }
 
-  const session = await createSession(userId);
-  if (!session) {
+  if (sessionResult.status !== "ok") {
     writeBrokerConfirmError(response, 401, {
       code: "session_creation_failed",
       title: "Session failed",
@@ -287,7 +295,7 @@ export const sendBrokerConfirm = async (
   }
 
   response.statusCode = 204;
-  response.setHeader("Set-Cookie", `session=${session.id}; Path=/; HttpOnly`);
+  response.setHeader("Set-Cookie", `session=${sessionResult.sessionId}; Path=/; HttpOnly`);
   response.end();
 };
 
@@ -324,6 +332,14 @@ const getReturnPath = (mode: "login" | "create"): string => {
   return mode === "create" ? "/create" : "/";
 };
 
+const getCleanTargetPath = (mode: "login" | "create", nextPath: string): string => {
+  if (nextPath !== "/") {
+    return nextPath;
+  }
+
+  return mode === "create" ? "/" : "/";
+};
+
 const parseConsentMode = (requestUrl: URL): "auto" | "required" => {
   const consentRaw =
     toStringValue(requestUrl.searchParams.get("consent")) ||
@@ -351,8 +367,8 @@ export const sendBrokerProviderEntry = async (
   const host = getRequestHost(request);
   const mode = getStartMode(requestUrl);
   const nextPath = getSafeNextPath(requestUrl);
-  const returnTo = new URL(getReturnPath(mode), `${protocol}://${host}`);
-  returnTo.searchParams.set("screen", "broker-consent");
+  const returnTo = new URL(`/api/auth/callback/${provider}`, `${protocol}://${host}`);
+  returnTo.searchParams.set("mode", mode);
   if (nextPath !== "/") {
     returnTo.searchParams.set("next", nextPath);
   }
@@ -383,5 +399,77 @@ export const sendBrokerProviderEntry = async (
 
   response.statusCode = 302;
   response.setHeader("Location", authorizationUrl.toString());
+  response.end();
+};
+
+export const sendBrokerProviderCallback = async (
+  request: IncomingMessage,
+  response: ServerResponse,
+  provider: BrokerProvider
+): Promise<void> => {
+  const requestUrl = new URL(request.url ?? "/", "http://localhost");
+  const mode = getStartMode(requestUrl);
+  const nextPath = getSafeNextPath(requestUrl);
+  const returnPath = getReturnPath(mode);
+
+  const callbackProviderRaw = toStringValue(requestUrl.searchParams.get("provider")).toLowerCase();
+  const callbackProvider = isSupportedProvider(callbackProviderRaw) ? callbackProviderRaw : provider;
+  const projectId = toStringValue(requestUrl.searchParams.get("project_id"));
+  const brokerConsentToken = toStringValue(requestUrl.searchParams.get("broker_consent_token"));
+  const brokerCode = toStringValue(
+    requestUrl.searchParams.get("broker_code") ?? requestUrl.searchParams.get("code")
+  );
+
+  if (projectId === "") {
+    response.statusCode = 400;
+    response.end("Missing project_id.");
+    return;
+  }
+
+  if (brokerConsentToken !== "") {
+    const redirectParams = new URLSearchParams();
+    redirectParams.set("screen", "broker-consent");
+    redirectParams.set("provider", callbackProvider);
+    redirectParams.set("project_id", projectId);
+    redirectParams.set("broker_consent_token", brokerConsentToken);
+    if (nextPath !== "/") {
+      redirectParams.set("next", nextPath);
+    }
+
+    response.statusCode = 302;
+    response.setHeader("Location", `${returnPath}?${redirectParams.toString()}`);
+    response.end();
+    return;
+  }
+
+  if (brokerCode === "") {
+    response.statusCode = 400;
+    response.end("Missing broker code.");
+    return;
+  }
+
+  const exchangeResult = await exchangeBrokerCode(brokerCode, projectId);
+  if (exchangeResult.status !== "ok") {
+    response.statusCode = 502;
+    response.end("Broker exchange failed.");
+    return;
+  }
+
+  const sessionResult = await createSessionFromBrokerExchange(exchangeResult.email);
+  if (sessionResult.status === "no-user") {
+    response.statusCode = 401;
+    response.end("No eligible user.");
+    return;
+  }
+
+  if (sessionResult.status !== "ok") {
+    response.statusCode = 401;
+    response.end("Session creation failed.");
+    return;
+  }
+
+  response.statusCode = 302;
+  response.setHeader("Set-Cookie", `session=${sessionResult.sessionId}; Path=/; HttpOnly`);
+  response.setHeader("Location", getCleanTargetPath(mode, nextPath));
   response.end();
 };
