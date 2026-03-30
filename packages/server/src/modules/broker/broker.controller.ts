@@ -396,7 +396,10 @@ const upsertIdentity = (
   }
 };
 
-const resolveOAuthUserId = async (profile: BrokerExchangeProfile): Promise<string | null> => {
+const resolveOAuthUserId = async (
+  profile: BrokerExchangeProfile,
+  mode: "login" | "create"
+): Promise<string | null> => {
   const database = await openDatabase();
   if (!database) {
     return null;
@@ -404,7 +407,16 @@ const resolveOAuthUserId = async (profile: BrokerExchangeProfile): Promise<strin
 
   try {
     const ownerUserId = await getBrokerUserId();
-    let userId = findLinkedUserId(database, profile);
+    const linkedUserId = findLinkedUserId(database, profile);
+    let userId = linkedUserId;
+
+    if (mode === "login") {
+      if (!userId) {
+        return null;
+      }
+      updateUserFromProfile(database, userId, profile);
+      return userId;
+    }
 
     if (!userId && profile.email) {
       userId = findUserIdByEmail(database, profile.email);
@@ -435,7 +447,7 @@ const createSessionFromBrokerExchange = async (profile: BrokerExchangeProfile | 
     return { status: "no-user", sessionId: "" };
   }
 
-  const userId = await resolveOAuthUserId(profile);
+  const userId = await resolveOAuthUserId(profile, "create");
   if (!userId) {
     return { status: "no-user", sessionId: "" };
   }
@@ -446,6 +458,38 @@ const createSessionFromBrokerExchange = async (profile: BrokerExchangeProfile | 
   }
 
   return { status: "ok", sessionId: session.id };
+};
+
+const createSessionFromLinkedProvider = async (provider: BrokerProvider): Promise<SessionResult> => {
+  const database = await openDatabase();
+  if (!database) {
+    return { status: "failed", sessionId: "" };
+  }
+
+  try {
+    let userId: string | null = null;
+    try {
+      const row = database
+        .prepare("SELECT user_id AS user_id FROM atria_identities WHERE provider = ? LIMIT 1")
+        .get(provider) as { user_id?: unknown } | undefined;
+      userId = toNullableString(row?.user_id);
+    } catch {
+      userId = null;
+    }
+
+    if (!userId) {
+      return { status: "no-user", sessionId: "" };
+    }
+
+    const session = await createSession(userId);
+    if (!session) {
+      return { status: "failed", sessionId: "" };
+    }
+
+    return { status: "ok", sessionId: session.id };
+  } finally {
+    database.close();
+  }
 };
 
 export const sendBrokerConfirm = async (
@@ -560,21 +604,12 @@ const getSafeNextPath = (requestUrl: URL): string => {
   return nextPath.startsWith("/") ? nextPath : "/";
 };
 
-const getStartMode = (requestUrl: URL): "login" | "create" => {
-  const mode = toStringValue(requestUrl.searchParams.get("mode"));
-  return mode === "create" ? "create" : "login";
-};
-
-const getReturnPath = (mode: "login" | "create"): string => {
-  return mode === "create" ? "/create" : "/";
-};
-
-const getCleanTargetPath = (mode: "login" | "create", nextPath: string): string => {
+const getCleanTargetPath = (nextPath: string): string => {
   if (nextPath !== "/") {
     return nextPath;
   }
 
-  return mode === "create" ? "/" : "/";
+  return "/";
 };
 
 const parseConsentMode = (requestUrl: URL): "auto" | "required" => {
@@ -602,10 +637,9 @@ export const sendBrokerProviderEntry = async (
   const requestUrl = new URL(request.url ?? "/", "http://localhost");
   const protocol = getRequestProtocol(request);
   const host = getRequestHost(request);
-  const mode = getStartMode(requestUrl);
   const nextPath = getSafeNextPath(requestUrl);
   const returnTo = new URL(`/api/auth/callback/${provider}`, `${protocol}://${host}`);
-  returnTo.searchParams.set("mode", mode);
+  returnTo.searchParams.set("mode", "create");
   if (nextPath !== "/") {
     returnTo.searchParams.set("next", nextPath);
   }
@@ -639,15 +673,48 @@ export const sendBrokerProviderEntry = async (
   response.end();
 };
 
+export const sendProviderLoginStart = async (
+  _request: IncomingMessage,
+  response: ServerResponse,
+  provider: BrokerProvider
+): Promise<void> => {
+  const sessionResult = await createSessionFromLinkedProvider(provider);
+  if (sessionResult.status === "no-user") {
+    writeJson(response, 401, {
+      ok: false,
+      error: "Could not complete browser sign-in. Please try again.",
+    });
+    return;
+  }
+
+  if (sessionResult.status !== "ok") {
+    writeJson(response, 401, {
+      ok: false,
+      error: "Could not complete browser sign-in. Please try again.",
+    });
+    return;
+  }
+
+  response.statusCode = 302;
+  response.setHeader("Set-Cookie", `session=${sessionResult.sessionId}; Path=/; HttpOnly`);
+  response.setHeader("Location", "/");
+  response.end();
+};
+
 export const sendBrokerProviderCallback = async (
   request: IncomingMessage,
   response: ServerResponse,
   provider: BrokerProvider
 ): Promise<void> => {
   const requestUrl = new URL(request.url ?? "/", "http://localhost");
-  const mode = getStartMode(requestUrl);
+  const mode = toStringValue(requestUrl.searchParams.get("mode"));
+  if (mode !== "create") {
+    writeJson(response, 400, { ok: false, error: "Invalid OAuth callback mode." });
+    return;
+  }
+
   const nextPath = getSafeNextPath(requestUrl);
-  const returnPath = getReturnPath(mode);
+  const returnPath = "/create";
 
   const callbackProviderRaw = toStringValue(requestUrl.searchParams.get("provider")).toLowerCase();
   const callbackProvider = isSupportedProvider(callbackProviderRaw) ? callbackProviderRaw : provider;
@@ -694,8 +761,9 @@ export const sendBrokerProviderCallback = async (
 
   const sessionResult = await createSessionFromBrokerExchange(exchangeResult.profile);
   if (sessionResult.status === "no-user") {
-    response.statusCode = 401;
-    response.end("No eligible user.");
+    response.statusCode = 302;
+    response.setHeader("Location", "/?oauth_error=broker-login-failed");
+    response.end();
     return;
   }
 
@@ -707,6 +775,6 @@ export const sendBrokerProviderCallback = async (
 
   response.statusCode = 302;
   response.setHeader("Set-Cookie", `session=${sessionResult.sessionId}; Path=/; HttpOnly`);
-  response.setHeader("Location", getCleanTargetPath(mode, nextPath));
+  response.setHeader("Location", getCleanTargetPath(nextPath));
   response.end();
 };

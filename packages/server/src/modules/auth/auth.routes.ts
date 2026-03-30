@@ -1,6 +1,12 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { sendAuthCreateOwner, sendAuthLogin, sendAuthLogout } from "./auth.controller.js";
-import { sendBrokerProviderEntry } from "../broker/broker.controller.js";
+import { sendBrokerProviderEntry, sendProviderLoginStart } from "../broker/broker.controller.js";
+
+const getStartMode = (request: IncomingMessage): "login" | "create" => {
+  const requestUrl = new URL(request.url ?? "/", "http://localhost");
+  const mode = requestUrl.searchParams.get("mode");
+  return mode === "create" ? "create" : "login";
+};
 
 export const handleAuthRoutes = async (
   request: IncomingMessage,
@@ -9,12 +15,20 @@ export const handleAuthRoutes = async (
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
 
   if (request.method === "GET" && pathname === "/api/auth/start/google") {
-    await sendBrokerProviderEntry(request, response, "google");
+    if (getStartMode(request) === "create") {
+      await sendBrokerProviderEntry(request, response, "google");
+    } else {
+      await sendProviderLoginStart(request, response, "google");
+    }
     return true;
   }
 
   if (request.method === "GET" && pathname === "/api/auth/start/github") {
-    await sendBrokerProviderEntry(request, response, "github");
+    if (getStartMode(request) === "create") {
+      await sendBrokerProviderEntry(request, response, "github");
+    } else {
+      await sendProviderLoginStart(request, response, "github");
+    }
     return true;
   }
 
