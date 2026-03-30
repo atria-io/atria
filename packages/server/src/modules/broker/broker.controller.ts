@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
-import { createOwner, createSession, getOwnerSetupState, openDatabase } from "@atria/db";
+import { createSession, openDatabase } from "@atria/db";
 import { resolveBrokerOrigin, resolveBrokerProjectId } from "./broker.config.js";
 import type { BrokerConfirmPayload, BrokerConfirmErrorResponse, BrokerProvider } from "./broker.types.js";
 
@@ -19,6 +19,10 @@ const writeBrokerConfirmError = (
 };
 
 const toStringValue = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
+const toNullableString = (value: unknown): string | null => {
+  const normalized = toStringValue(value);
+  return normalized === "" ? null : normalized;
+};
 const isSupportedProvider = (provider: string): provider is BrokerProvider =>
   provider === "google" || provider === "github";
 
@@ -76,6 +80,15 @@ interface BrokerConfirmResult {
   brokerCode: string;
 }
 
+interface BrokerExchangeProfile {
+  provider: BrokerProvider;
+  providerUserId: string;
+  projectId: string;
+  email: string | null;
+  name: string | null;
+  avatarUrl: string | null;
+}
+
 const confirmBrokerConsent = async (
   consentToken: string,
   projectId: string
@@ -123,28 +136,49 @@ const readObject = (value: unknown): Record<string, unknown> | null => {
   return value as Record<string, unknown>;
 };
 
-const getBrokerExchangeEmail = (payload: unknown): string | null => {
+const parseBrokerExchangeProfile = (
+  payload: unknown,
+  expectedProjectId: string
+): BrokerExchangeProfile | null => {
   const root = readObject(payload);
   if (!root) {
     return null;
   }
 
-  const user = readObject(root.user);
-  const nested = readObject(root.data);
-  const nestedUser = nested ? readObject(nested.user) : null;
-  const source = user ?? nestedUser;
-  if (!source) {
+  const providerRaw = toStringValue(root.provider).toLowerCase();
+  if (!isSupportedProvider(providerRaw)) {
     return null;
   }
 
-  const email = toStringValue(source.email ?? source.user_email ?? source.userEmail);
-  return email === "" ? null : email;
+  const projectId = toStringValue(root.project_id ?? root.projectId);
+  if (projectId === "" || projectId !== expectedProjectId) {
+    return null;
+  }
+
+  const user = readObject(root.user);
+  if (!user) {
+    return null;
+  }
+
+  const providerUserId = toStringValue(user.providerUserId ?? user.provider_user_id);
+  if (providerUserId === "") {
+    return null;
+  }
+
+  return {
+    provider: providerRaw,
+    providerUserId,
+    projectId,
+    email: toNullableString(user.email),
+    name: toNullableString(user.name),
+    avatarUrl: toNullableString(user.avatarUrl ?? user.avatar_url),
+  };
 };
 
 const exchangeBrokerCode = async (
   brokerCode: string,
   projectId: string
-): Promise<{ status: "ok" | "rejected" | "failed"; email: string | null }> => {
+): Promise<{ status: "ok" | "rejected" | "failed"; profile: BrokerExchangeProfile | null }> => {
   try {
     const brokerExchangeUrl = new URL("/oauth/exchange", resolveBrokerOrigin());
     brokerExchangeUrl.searchParams.set("code", brokerCode);
@@ -157,29 +191,16 @@ const exchangeBrokerCode = async (
     if (!brokerResponse.ok) {
       return {
         status: brokerResponse.status >= 400 && brokerResponse.status < 500 ? "rejected" : "failed",
-        email: null,
+        profile: null,
       };
     }
 
     const rawPayload = (await brokerResponse.json()) as unknown;
-    return { status: "ok", email: getBrokerExchangeEmail(rawPayload) };
+    const profile = parseBrokerExchangeProfile(rawPayload, projectId);
+    return profile ? { status: "ok", profile } : { status: "failed", profile: null };
   } catch {
-    return { status: "failed", email: null };
+    return { status: "failed", profile: null };
   }
-};
-
-const createBrokerOwnerIfNeeded = async (email: string | null): Promise<string | null> => {
-  if (!email) {
-    return null;
-  }
-
-  const ownerState = await getOwnerSetupState();
-  if (ownerState !== "create") {
-    return null;
-  }
-
-  const password = `broker-owner-${randomUUID()}`;
-  return createOwner({ email, password });
 };
 
 interface SessionResult {
@@ -187,20 +208,236 @@ interface SessionResult {
   sessionId: string;
 }
 
-const createSessionFromBrokerExchange = async (email: string | null): Promise<SessionResult> => {
-  const userId = await getBrokerUserId();
+const findUserIdByEmail = (database: Awaited<ReturnType<typeof openDatabase>>, email: string): string | null => {
+  if (!database) {
+    return null;
+  }
+
+  try {
+    const row = database.prepare("SELECT id AS id FROM atria_users WHERE email = ? LIMIT 1").get(email) as
+      | { id?: unknown }
+      | undefined;
+    const userId = toStringValue(row?.id);
+    return userId === "" ? null : userId;
+  } catch {
+    return null;
+  }
+};
+
+const findLinkedUserId = (
+  database: Awaited<ReturnType<typeof openDatabase>>,
+  profile: BrokerExchangeProfile
+): string | null => {
+  if (!database) {
+    return null;
+  }
+
+  try {
+    const row = database
+      .prepare("SELECT user_id AS user_id FROM atria_identities WHERE provider = ? AND provider_user_id = ? LIMIT 1")
+      .get(profile.provider, profile.providerUserId) as { user_id?: unknown } | undefined;
+    const userId = toStringValue(row?.user_id);
+    return userId === "" ? null : userId;
+  } catch {
+    return null;
+  }
+};
+
+const createOAuthOwnerUser = (
+  database: Awaited<ReturnType<typeof openDatabase>>,
+  profile: BrokerExchangeProfile
+): string | null => {
+  if (!database || !profile.email) {
+    return null;
+  }
+
+  const userId = randomUUID();
+  const now = new Date().toISOString();
+  const attempts: Array<{ sql: string; args: unknown[] }> = [
+    {
+      sql: "INSERT INTO atria_users (id, email, role, is_owner, name, avatar_url, created_at, updated_at) VALUES (?, ?, 'owner', 1, ?, ?, ?, ?)",
+      args: [userId, profile.email, profile.name, profile.avatarUrl, now, now],
+    },
+    {
+      sql: "INSERT INTO atria_users (id, email, role, is_owner, name, avatar_url) VALUES (?, ?, 'owner', 1, ?, ?)",
+      args: [userId, profile.email, profile.name, profile.avatarUrl],
+    },
+    {
+      sql: "INSERT INTO atria_users (id, email, role, is_owner) VALUES (?, ?, 'owner', 1)",
+      args: [userId, profile.email],
+    },
+    {
+      sql: "INSERT INTO atria_users (id, email, name, avatar_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+      args: [userId, profile.email, profile.name, profile.avatarUrl, now, now],
+    },
+    {
+      sql: "INSERT INTO atria_users (id, email, name, avatar_url) VALUES (?, ?, ?, ?)",
+      args: [userId, profile.email, profile.name, profile.avatarUrl],
+    },
+    {
+      sql: "INSERT INTO atria_users (id, email) VALUES (?, ?)",
+      args: [userId, profile.email],
+    },
+  ];
+
+  for (const attempt of attempts) {
+    try {
+      database.prepare(attempt.sql).run(...attempt.args);
+      return userId;
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+};
+
+const updateUserFromProfile = (
+  database: Awaited<ReturnType<typeof openDatabase>>,
+  userId: string,
+  profile: BrokerExchangeProfile
+): void => {
+  if (!database) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const attempts: Array<{ sql: string; args: unknown[] }> = [
+    {
+      sql: "UPDATE atria_users SET email = COALESCE(?, email), name = COALESCE(?, name), avatar_url = COALESCE(?, avatar_url), updated_at = ? WHERE id = ?",
+      args: [profile.email, profile.name, profile.avatarUrl, now, userId],
+    },
+    {
+      sql: "UPDATE atria_users SET email = COALESCE(?, email), name = COALESCE(?, name), avatar_url = COALESCE(?, avatar_url) WHERE id = ?",
+      args: [profile.email, profile.name, profile.avatarUrl, userId],
+    },
+    {
+      sql: "UPDATE atria_users SET email = COALESCE(?, email) WHERE id = ?",
+      args: [profile.email, userId],
+    },
+  ];
+
+  for (const attempt of attempts) {
+    try {
+      database.prepare(attempt.sql).run(...attempt.args);
+      return;
+    } catch {
+      continue;
+    }
+  }
+};
+
+const upsertIdentity = (
+  database: Awaited<ReturnType<typeof openDatabase>>,
+  userId: string,
+  profile: BrokerExchangeProfile
+): void => {
+  if (!database) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const updateAttempts: Array<{ sql: string; args: unknown[] }> = [
+    {
+      sql: "UPDATE atria_identities SET user_id = ?, email = ?, name = ?, avatar_url = ?, updated_at = ? WHERE provider = ? AND provider_user_id = ?",
+      args: [userId, profile.email, profile.name, profile.avatarUrl, now, profile.provider, profile.providerUserId],
+    },
+    {
+      sql: "UPDATE atria_identities SET user_id = ?, email = ?, name = ?, avatar_url = ? WHERE provider = ? AND provider_user_id = ?",
+      args: [userId, profile.email, profile.name, profile.avatarUrl, profile.provider, profile.providerUserId],
+    },
+  ];
+
+  for (const attempt of updateAttempts) {
+    try {
+      database.prepare(attempt.sql).run(...attempt.args);
+      break;
+    } catch {
+      continue;
+    }
+  }
+
+  const insertAttempts: Array<{ sql: string; args: unknown[] }> = [
+    {
+      sql: "INSERT INTO atria_identities (provider, provider_user_id, user_id, email, name, avatar_url, linked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      args: [
+        profile.provider,
+        profile.providerUserId,
+        userId,
+        profile.email,
+        profile.name,
+        profile.avatarUrl,
+        now,
+        now,
+      ],
+    },
+    {
+      sql: "INSERT OR REPLACE INTO atria_identities (provider, provider_user_id, user_id, email, name, avatar_url, linked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      args: [
+        profile.provider,
+        profile.providerUserId,
+        userId,
+        profile.email,
+        profile.name,
+        profile.avatarUrl,
+        now,
+        now,
+      ],
+    },
+  ];
+
+  for (const attempt of insertAttempts) {
+    try {
+      database.prepare(attempt.sql).run(...attempt.args);
+      return;
+    } catch {
+      continue;
+    }
+  }
+};
+
+const resolveOAuthUserId = async (profile: BrokerExchangeProfile): Promise<string | null> => {
+  const database = await openDatabase();
+  if (!database) {
+    return null;
+  }
+
+  try {
+    const ownerUserId = await getBrokerUserId();
+    let userId = findLinkedUserId(database, profile);
+
+    if (!userId && profile.email) {
+      userId = findUserIdByEmail(database, profile.email);
+    }
+
+    if (!userId) {
+      if (ownerUserId) {
+        return null;
+      }
+
+      userId = createOAuthOwnerUser(database, profile);
+    }
+
+    if (!userId) {
+      return null;
+    }
+
+    updateUserFromProfile(database, userId, profile);
+    upsertIdentity(database, userId, profile);
+    return userId;
+  } finally {
+    database.close();
+  }
+};
+
+const createSessionFromBrokerExchange = async (profile: BrokerExchangeProfile | null): Promise<SessionResult> => {
+  if (!profile) {
+    return { status: "no-user", sessionId: "" };
+  }
+
+  const userId = await resolveOAuthUserId(profile);
   if (!userId) {
-    const createdOwnerId = await createBrokerOwnerIfNeeded(email);
-    if (!createdOwnerId) {
-      return { status: "no-user", sessionId: "" };
-    }
-
-    const createdOwnerSession = await createSession(createdOwnerId);
-    if (!createdOwnerSession) {
-      return { status: "failed", sessionId: "" };
-    }
-
-    return { status: "ok", sessionId: createdOwnerSession.id };
+    return { status: "no-user", sessionId: "" };
   }
 
   const session = await createSession(userId);
@@ -271,7 +508,7 @@ export const sendBrokerConfirm = async (
     return;
   }
 
-  const sessionResult = await createSessionFromBrokerExchange(exchangeResult.email);
+  const sessionResult = await createSessionFromBrokerExchange(exchangeResult.profile);
   if (sessionResult.status === "no-user") {
     writeBrokerConfirmError(response, 401, {
       code: "no_user_available",
@@ -455,7 +692,7 @@ export const sendBrokerProviderCallback = async (
     return;
   }
 
-  const sessionResult = await createSessionFromBrokerExchange(exchangeResult.email);
+  const sessionResult = await createSessionFromBrokerExchange(exchangeResult.profile);
   if (sessionResult.status === "no-user") {
     response.statusCode = 401;
     response.end("No eligible user.");
