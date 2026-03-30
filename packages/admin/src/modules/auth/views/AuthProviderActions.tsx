@@ -15,7 +15,10 @@ const readSafeNextPath = (): string => {
 const buildProviderStartHref = (provider: "google" | "github", mode: "login" | "create"): string => {
   const params = new URLSearchParams();
   params.set("mode", mode);
-  params.set("next", readSafeNextPath());
+  const nextPath = readSafeNextPath();
+  if (nextPath !== "/") {
+    params.set("next", nextPath);
+  }
   return `/api/auth/start/${provider}?${params.toString()}`;
 };
 
