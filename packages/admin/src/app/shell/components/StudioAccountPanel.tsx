@@ -48,38 +48,39 @@ export const StudioAccountPanel = ({ user, onLogout }: StudioAccountPanelProps) 
   };
 
   return (
-    <div
-      style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "12px" }}
-      aria-label="Account panel"
-    >
-      <section style={{ display: "flex", alignItems: "center", gap: "8px" }} aria-label="User info">
+    <div className="studio-account studio-account--layout" aria-label="Account panel">
+      <section className="studio-account__user studio-account__group" aria-label="User info">
         {user.avatarUrl ? (
-          <img src={user.avatarUrl} alt={user.name} width={24} height={24} />
+          <img className="studio-account__avatar-image" src={user.avatarUrl} alt={user.name} width={24} height={24} />
         ) : (
-          <span
-            aria-label="Avatar"
-            style={{ width: "24px", height: "24px", borderRadius: "50%", background: "currentColor", opacity: 0.3 }}
-          />
+          <span className="studio-account__avatar" aria-label="Avatar" />
         )}
-        <span>{user.name}</span>
+        <span className="studio-account__name">{user.name}</span>
       </section>
 
-      <section style={{ display: "flex", alignItems: "center", gap: "8px" }} aria-label="Scheme actions">
+      <section className="studio-account__scheme studio-account__group" aria-label="Scheme actions">
         {schemeModes.map((schemeMode) => (
           <button
             key={schemeMode}
             type="button"
             data-active={mode === schemeMode}
+            className={
+              mode === schemeMode
+                ? "studio-account__scheme-button studio-account__scheme-button--active"
+                : "studio-account__scheme-button"
+            }
             onClick={() => handleSetMode(schemeMode)}
           >
             {schemeMode[0].toUpperCase() + schemeMode.slice(1)}
           </button>
         ))}
-        <span style={{ opacity: 0.7 }}>{mode}/{resolved}</span>
+        <span className="studio-account__scheme-label">
+          {mode}/{resolved}
+        </span>
       </section>
 
-      <section aria-label="Logout action">
-        <button type="button" onClick={onLogout}>
+      <section className="studio-account__logout" aria-label="Logout action">
+        <button className="studio-account__logout-button" type="button" onClick={onLogout}>
           Logout
         </button>
       </section>
