@@ -8,12 +8,12 @@ export const handleAuthRoutes = async (
 ): Promise<boolean> => {
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
 
-  if (request.method === "GET" && pathname === "/auth/google") {
+  if (request.method === "GET" && pathname === "/api/auth/start/google") {
     await sendBrokerProviderEntry(request, response, "google");
     return true;
   }
 
-  if (request.method === "GET" && pathname === "/auth/github") {
+  if (request.method === "GET" && pathname === "/api/auth/start/github") {
     await sendBrokerProviderEntry(request, response, "github");
     return true;
   }

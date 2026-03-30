@@ -306,7 +306,7 @@ const getRequestHost = (request: IncomingMessage): string => {
 const getServerCallbackUrl = (request: IncomingMessage, provider: BrokerProvider): string => {
   const protocol = getRequestProtocol(request);
   const host = getRequestHost(request);
-  return `${protocol}://${host}/broker/callback/${provider}`;
+  return `${protocol}://${host}/api/auth/callback/${provider}`;
 };
 
 const getProviderClientId = (provider: BrokerProvider): string => {
@@ -317,14 +317,28 @@ const getProviderClientId = (provider: BrokerProvider): string => {
   return value;
 };
 
+const getSafeNextPath = (requestUrl: URL): string => {
+  const nextPath = toStringValue(requestUrl.searchParams.get("next"));
+  return nextPath.startsWith("/") ? nextPath : "/";
+};
+
+const getStartMode = (requestUrl: URL): "login" | "create" => {
+  const mode = toStringValue(requestUrl.searchParams.get("mode"));
+  return mode === "create" ? "create" : "login";
+};
+
+const getReturnPath = (mode: "login" | "create"): string => {
+  return mode === "create" ? "/create" : "/";
+};
+
 const getStateValue = (provider: BrokerProvider, requestUrl: URL): string => {
+  const mode = getStartMode(requestUrl);
   const statePayload = {
     provider,
+    mode,
+    next: getSafeNextPath(requestUrl),
+    return_to: getReturnPath(mode),
     project_id: toStringValue(requestUrl.searchParams.get("project_id")),
-    return_to:
-      toStringValue(requestUrl.searchParams.get("return_to")) ||
-      toStringValue(requestUrl.searchParams.get("returnTo")) ||
-      "/",
     consent_mode:
       toStringValue(requestUrl.searchParams.get("consent_mode")) ||
       toStringValue(requestUrl.searchParams.get("consentMode")),
@@ -333,6 +347,30 @@ const getStateValue = (provider: BrokerProvider, requestUrl: URL): string => {
   };
 
   return Buffer.from(JSON.stringify(statePayload), "utf-8").toString("base64url");
+};
+
+interface ProviderStatePayload {
+  returnTo: string;
+  nextPath: string;
+}
+
+const parseProviderState = (value: string | null): ProviderStatePayload => {
+  if (!value) {
+    return { returnTo: "/", nextPath: "/" };
+  }
+
+  try {
+    const decoded = Buffer.from(value, "base64url").toString("utf-8");
+    const parsed = JSON.parse(decoded) as Record<string, unknown>;
+    const returnTo = toStringValue(parsed.return_to);
+    const nextPath = toStringValue(parsed.next);
+    return {
+      returnTo: returnTo === "/create" ? "/create" : "/",
+      nextPath: nextPath.startsWith("/") ? nextPath : "/",
+    };
+  } catch {
+    return { returnTo: "/", nextPath: "/" };
+  }
 };
 
 const getProviderAuthorizationUrl = (
@@ -455,6 +493,8 @@ export const sendBrokerProviderCallback = async (
   response: ServerResponse,
   provider: BrokerProvider
 ): Promise<void> => {
+  const requestUrl = new URL(request.url ?? "/", "http://localhost");
+  const providerState = parseProviderState(requestUrl.searchParams.get("state"));
   const exchangeResult = await exchangeBrokerCallback(request, provider);
   if (!exchangeResult) {
     response.statusCode = 502;
@@ -474,7 +514,11 @@ export const sendBrokerProviderCallback = async (
     redirectParams.set("broker_code", exchangeResult.brokerCode);
   }
 
+  if (providerState.nextPath !== "/") {
+    redirectParams.set("next", providerState.nextPath);
+  }
+
   response.statusCode = 302;
-  response.setHeader("Location", getRedirectUrl("/", redirectParams));
+  response.setHeader("Location", getRedirectUrl(providerState.returnTo, redirectParams));
   response.end();
 };

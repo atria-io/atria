@@ -16,12 +16,12 @@ export const handleBrokerRoutes = async (
     return true;
   }
 
-  if (request.method === "GET" && pathname === "/broker/callback/google") {
+  if (request.method === "GET" && pathname === "/api/auth/callback/google") {
     await sendBrokerProviderCallback(request, response, "google");
     return true;
   }
 
-  if (request.method === "GET" && pathname === "/broker/callback/github") {
+  if (request.method === "GET" && pathname === "/api/auth/callback/github") {
     await sendBrokerProviderCallback(request, response, "github");
     return true;
   }

@@ -35,7 +35,7 @@ export const LoginView = () => {
         </div>
 
         <div className="auth-card__content">
-          <AuthProviderActions />
+          <AuthProviderActions mode="login" />
 
           <form onSubmit={(event) => void handleLogin(event)}>
             <input

@@ -34,7 +34,7 @@ export const CreateOwnerView = () => {
         </div>
 
         <div className="auth-card__content">
-          <AuthProviderActions />
+          <AuthProviderActions mode="create" />
 
           <form onSubmit={(event) => void handleCreateOwner(event)}>
             <input
