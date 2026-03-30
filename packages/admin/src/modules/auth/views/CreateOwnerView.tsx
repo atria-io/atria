@@ -1,24 +1,66 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
+import { CreateForm } from "../forms/Create.js";
 import { AuthProviderActions } from "./AuthProviderActions.js";
 
-export const CreateOwnerView = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const OAUTH_ERROR_MESSAGE = "Could not complete browser sign-in. Please try again.";
 
-  const handleCreateOwner = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
-    event.preventDefault();
+const readCookie = (key: string): string | null => {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const prefix = `${key}=`;
+  for (const chunk of document.cookie.split(";")) {
+    const value = chunk.trim();
+    if (value.startsWith(prefix)) {
+      return value.slice(prefix.length);
+    }
+  }
+
+  return null;
+};
+
+const clearCookie = (key: string): void => {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.cookie = `${key}=; Path=/; Max-Age=0`;
+};
+
+export const CreateOwnerView = () => {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+
+  useEffect(() => {
+    const signal = readCookie("atria_login_error");
+    if (signal === "oauth_failed") {
+      setErrorMessage(OAUTH_ERROR_MESSAGE);
+      clearCookie("atria_login_error");
+    }
+  }, []);
+
+  const handleCreateOwner = async (values: {
+    name: string;
+    email: string;
+    password: string;
+  }): Promise<void> => {
+    setErrorMessage(null);
 
     const response = await fetch("/auth/create-owner", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(values),
     });
 
     if (response.status === 204) {
       window.location.reload();
+      return;
     }
+
+    setErrorMessage("Could not create owner account. Please try again.");
   };
 
   return (
@@ -34,27 +76,28 @@ export const CreateOwnerView = () => {
         </div>
 
         <div className="auth-card__content">
-          <AuthProviderActions mode="create" />
+          {errorMessage ? <p className="auth-card__error">{errorMessage}</p> : null}
 
-          <form onSubmit={(event) => void handleCreateOwner(event)}>
-            <input
-              type="email"
-              name="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="Email"
-              required
+          {!showEmailForm ? (
+            <>
+              <AuthProviderActions mode="create" />
+              <div className="auth-card__actions">
+                <button
+                  type="button"
+                  className="auth-provider-button auth-provider-button--plain"
+                  onClick={() => setShowEmailForm(true)}
+                >
+                  <span>Continue with Email</span>
+                </button>
+              </div>
+            </>
+          ) : (
+            <CreateForm
+              errorMessage={errorMessage}
+              onSubmit={handleCreateOwner}
+              onBack={() => setShowEmailForm(false)}
             />
-            <input
-              type="password"
-              name="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Password"
-              required
-            />
-            <button type="submit">Create</button>
-          </form>
+          )}
         </div>
 
         <div className="auth-card__footer">

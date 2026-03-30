@@ -3,6 +3,7 @@ export type OwnerSetupState = "setup" | "create" | "ready";
 export interface AuthOwnerInput {
   email: string;
   password: string;
+  name?: string | null;
 }
 
 export interface AuthUser {
@@ -16,3 +17,13 @@ export interface AuthSession {
   userId: string;
   expiresAt: string;
 }
+
+export interface AuthOAuthProfileInput {
+  provider: AuthOAuthProvider;
+  providerUserId: string;
+  email: string | null;
+  name: string | null;
+  avatarUrl: string | null;
+}
+
+export type AuthOAuthProvider = "google" | "github";

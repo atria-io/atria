@@ -1,8 +1,17 @@
 import { randomBytes, randomUUID, scryptSync } from "node:crypto";
-import { openDatabase } from "../../client/openDatabase.js";
-import type { AuthOwnerInput, AuthSession, AuthUser, OwnerSetupState } from "./auth.types.js";
+import { openDatabase, initializeDatabase as initializeDatabaseFile } from "../../client/openDatabase.js";
+import { AUTH_SCHEMA_STATEMENTS, authQueries } from "./auth.queries.js";
+import type {
+  AuthOAuthProvider,
+  AuthOAuthProfileInput,
+  AuthOwnerInput,
+  AuthSession,
+  AuthUser,
+  OwnerSetupState,
+} from "./auth.types.js";
 
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 7;
+type AuthDatabase = NonNullable<Awaited<ReturnType<typeof openDatabase>>>;
 
 const hashPassword = (password: string): string => {
   const salt = randomBytes(16).toString("hex");
@@ -10,365 +19,284 @@ const hashPassword = (password: string): string => {
   return `scrypt$${salt}$${hash}`;
 };
 
-const toStringValue = (value: unknown): string | null => {
-  if (typeof value === "string" && value !== "") {
-    return value;
+const toNonEmptyString = (value: unknown): string | null => {
+  if (typeof value !== "string") {
+    return null;
   }
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return String(value);
-  }
-  if (typeof value === "bigint") {
-    return String(value);
-  }
-  return null;
+
+  const normalized = value.trim();
+  return normalized === "" ? null : normalized;
 };
 
-const parseCount = (value: unknown): number | null => {
-  if (typeof value === "number") {
+const toCount = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
     return value;
   }
+
   if (typeof value === "bigint") {
     return Number(value);
   }
+
   if (typeof value === "string") {
     const parsed = Number.parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : null;
   }
+
   return null;
 };
 
-export const getOwnerSetupState = async (): Promise<OwnerSetupState> => {
+const getTimestamp = (): string => new Date().toISOString();
+
+const withDatabase = async <T>(
+  fallbackValue: T,
+  run: (database: AuthDatabase) => T | Promise<T>
+): Promise<T> => {
   const database = await openDatabase();
   if (!database) {
-    return "setup";
+    return fallbackValue;
   }
 
   try {
-    const statements: Array<{ sql: string; args: unknown[] }> = [
-      { sql: "SELECT COUNT(*) AS count FROM atria_users WHERE role = ?", args: ["owner"] },
-      { sql: "SELECT COUNT(*) AS count FROM atria_users WHERE is_owner = 1", args: [] },
-    ];
-
-    for (const statement of statements) {
-      try {
-        const row = database.prepare(statement.sql).get(...statement.args) as
-          | { count?: unknown }
-          | undefined;
-        const count = parseCount(row?.count);
-        if (count !== null) {
-          return count > 0 ? "ready" : "create";
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    return "setup";
+    return await run(database);
   } finally {
     database.close();
   }
+};
+
+export const ensureAuthSchema = async (): Promise<boolean> => {
+  return withDatabase(false, (database) => {
+    try {
+      for (const statement of AUTH_SCHEMA_STATEMENTS) {
+        database.prepare(statement).run();
+      }
+
+      return true;
+    } catch {
+      return false;
+    }
+  });
+};
+
+export const initializeAuthPersistence = async (): Promise<boolean> => {
+  const databaseReady = await initializeDatabaseFile();
+  if (!databaseReady) {
+    return false;
+  }
+
+  return ensureAuthSchema();
+};
+
+export const getOwnerSetupState = async (): Promise<OwnerSetupState> => {
+  return withDatabase("setup" as OwnerSetupState, (database) => {
+    try {
+      const row = database.prepare(authQueries.countOwners).get() as { count?: unknown } | undefined;
+      const ownerCount = toCount(row?.count);
+      if (ownerCount === null) {
+        return "setup";
+      }
+
+      return ownerCount > 0 ? "ready" : "create";
+    } catch {
+      return "setup";
+    }
+  });
 };
 
 export const createOwner = async (input: AuthOwnerInput): Promise<string | null> => {
-  const database = await openDatabase();
-  if (!database) {
-    return null;
-  }
+  return withDatabase<string | null>(null, (database) => {
+    const userId = randomUUID();
+    const passwordHash = hashPassword(input.password);
+    const now = getTimestamp();
 
-  const userId = randomUUID();
-  const hashedPassword = hashPassword(input.password);
+    try {
+      database
+        .prepare(authQueries.insertOwnerUser)
+        .run(userId, input.email, input.name ?? null, null, now, now);
 
-  try {
-    const userStatements: Array<{ sql: string; args: unknown[] }> = [
-      {
-        sql: "INSERT INTO atria_users (id, email, role, is_owner) VALUES (?, ?, ?, 1)",
-        args: [userId, input.email, "owner"],
-      },
-      {
-        sql: "INSERT INTO atria_users (id, email, role) VALUES (?, ?, ?)",
-        args: [userId, input.email, "owner"],
-      },
-      {
-        sql: "INSERT INTO atria_users (id, email, is_owner) VALUES (?, ?, 1)",
-        args: [userId, input.email],
-      },
-    ];
+      database
+        .prepare(authQueries.insertOwnerCredential)
+        .run(userId, passwordHash, now, now);
 
-    let userCreated = false;
-    for (const statement of userStatements) {
-      try {
-        database.prepare(statement.sql).run(...statement.args);
-        userCreated = true;
-        break;
-      } catch {
-        continue;
-      }
-    }
-
-    if (!userCreated) {
+      return userId;
+    } catch {
       return null;
     }
-
-    const credentialStatements: Array<{ sql: string; args: unknown[] }> = [
-      {
-        sql: "INSERT INTO atria_user_credentials (user_id, password) VALUES (?, ?)",
-        args: [userId, hashedPassword],
-      },
-      {
-        sql: "INSERT INTO atria_user_credentials (user_id, secret) VALUES (?, ?)",
-        args: [userId, hashedPassword],
-      },
-      {
-        sql: "INSERT INTO atria_user_credentials (user_id, password_hash) VALUES (?, ?)",
-        args: [userId, hashedPassword],
-      },
-    ];
-
-    for (const statement of credentialStatements) {
-      try {
-        database.prepare(statement.sql).run(...statement.args);
-        return userId;
-      } catch {
-        continue;
-      }
-    }
-
-    return null;
-  } finally {
-    database.close();
-  }
+  });
 };
 
 export const getUserByEmail = async (email: string): Promise<AuthUser | null> => {
-  const database = await openDatabase();
-  if (!database) {
-    return null;
-  }
+  return withDatabase<AuthUser | null>(null, (database) => {
+    try {
+      const row = database.prepare(authQueries.selectUserByEmail).get(email) as
+        | { id?: unknown; email?: unknown; passwordHash?: unknown }
+        | undefined;
 
-  try {
-    const statements: Array<{ sql: string; args: unknown[] }> = [
-      {
-        sql: "SELECT u.id AS id, u.email AS email, c.password AS password FROM atria_users u JOIN atria_user_credentials c ON c.user_id = u.id WHERE u.email = ? LIMIT 1",
-        args: [email],
-      },
-      {
-        sql: "SELECT u.id AS id, u.email AS email, c.secret AS password FROM atria_users u JOIN atria_user_credentials c ON c.user_id = u.id WHERE u.email = ? LIMIT 1",
-        args: [email],
-      },
-      {
-        sql: "SELECT u.id AS id, u.email AS email, c.password_hash AS password FROM atria_users u JOIN atria_user_credentials c ON c.user_id = u.id WHERE u.email = ? LIMIT 1",
-        args: [email],
-      },
-      {
-        sql: "SELECT id, email, password FROM atria_users WHERE email = ? LIMIT 1",
-        args: [email],
-      },
-    ];
-
-    for (const statement of statements) {
-      try {
-        const row = database.prepare(statement.sql).get(...statement.args) as
-          | { id?: unknown; email?: unknown; password?: unknown }
-          | undefined;
-        const id = toStringValue(row?.id);
-        const rowEmail = toStringValue(row?.email);
-        const password = toStringValue(row?.password);
-        if (id && rowEmail && password) {
-          return { id, email: rowEmail, password };
-        }
-      } catch {
-        continue;
+      const id = toNonEmptyString(row?.id);
+      const rowEmail = toNonEmptyString(row?.email);
+      const passwordHash = toNonEmptyString(row?.passwordHash);
+      if (!id || !rowEmail || !passwordHash) {
+        return null;
       }
-    }
 
-    return null;
-  } finally {
-    database.close();
-  }
+      return { id, email: rowEmail, password: passwordHash };
+    } catch {
+      return null;
+    }
+  });
 };
 
 export const createSession = async (userId: string): Promise<AuthSession | null> => {
-  const database = await openDatabase();
-  if (!database) {
-    return null;
-  }
+  return withDatabase<AuthSession | null>(null, (database) => {
+    const sessionId = randomUUID();
+    const now = getTimestamp();
+    const expiresAt = new Date(Date.now() + SESSION_DURATION_MS).toISOString();
 
-  const sessionId = randomUUID();
-  const now = new Date().toISOString();
-  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS).toISOString();
-
-  try {
-    const statements: Array<{ sql: string; args: unknown[] }> = [
-      {
-        sql: "INSERT INTO atria_sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
-        args: [sessionId, userId, now, expiresAt],
-      },
-      {
-        sql: "INSERT INTO atria_sessions (id, user_id, created_at, expiresAt) VALUES (?, ?, ?, ?)",
-        args: [sessionId, userId, now, expiresAt],
-      },
-      {
-        sql: "INSERT INTO atria_sessions (session_id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
-        args: [sessionId, userId, now, expiresAt],
-      },
-      {
-        sql: "INSERT INTO atria_sessions (session_id, user_id, created_at, expiresAt) VALUES (?, ?, ?, ?)",
-        args: [sessionId, userId, now, expiresAt],
-      },
-      {
-        sql: "INSERT INTO atria_sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
-        args: [sessionId, userId, now, expiresAt],
-      },
-      {
-        sql: "INSERT INTO atria_sessions (token, user_id, created_at, expiresAt) VALUES (?, ?, ?, ?)",
-        args: [sessionId, userId, now, expiresAt],
-      },
-      {
-        sql: "INSERT INTO atria_sessions (id, user_id, created_at) VALUES (?, ?, ?)",
-        args: [sessionId, userId, now],
-      },
-      {
-        sql: "INSERT INTO atria_sessions (id, user_id) VALUES (?, ?)",
-        args: [sessionId, userId],
-      },
-      {
-        sql: "INSERT INTO atria_sessions (session_id, user_id, created_at) VALUES (?, ?, ?)",
-        args: [sessionId, userId, now],
-      },
-      {
-        sql: "INSERT INTO atria_sessions (token, user_id, created_at) VALUES (?, ?, ?)",
-        args: [sessionId, userId, now],
-      },
-    ];
-
-    for (const statement of statements) {
-      try {
-        database.prepare(statement.sql).run(...statement.args);
-        return { id: sessionId, userId, expiresAt };
-      } catch {
-        continue;
-      }
+    try {
+      database.prepare(authQueries.insertSession).run(sessionId, userId, now, expiresAt);
+      return { id: sessionId, userId, expiresAt };
+    } catch {
+      return null;
     }
-
-    return null;
-  } finally {
-    database.close();
-  }
+  });
 };
 
 export const getSessionById = async (sessionId: string): Promise<AuthSession | null> => {
-  const database = await openDatabase();
-  if (!database) {
-    return null;
-  }
+  return withDatabase<AuthSession | null>(null, (database) => {
+    try {
+      const row = database.prepare(authQueries.selectSessionById).get(sessionId) as
+        | { id?: unknown; userId?: unknown; expiresAt?: unknown }
+        | undefined;
 
-  try {
-    const statements: Array<{ sql: string; args: unknown[]; hasExpiry: boolean }> = [
-      {
-        sql: "SELECT id AS id, user_id AS userId, expires_at AS expiresAt FROM atria_sessions WHERE id = ? LIMIT 1",
-        args: [sessionId],
-        hasExpiry: true,
-      },
-      {
-        sql: "SELECT id AS id, user_id AS userId, expiresAt AS expiresAt FROM atria_sessions WHERE id = ? LIMIT 1",
-        args: [sessionId],
-        hasExpiry: true,
-      },
-      {
-        sql: "SELECT id AS id, user_id AS userId FROM atria_sessions WHERE id = ? LIMIT 1",
-        args: [sessionId],
-        hasExpiry: false,
-      },
-      {
-        sql: "SELECT session_id AS id, user_id AS userId, expires_at AS expiresAt FROM atria_sessions WHERE session_id = ? LIMIT 1",
-        args: [sessionId],
-        hasExpiry: true,
-      },
-      {
-        sql: "SELECT session_id AS id, user_id AS userId, expiresAt AS expiresAt FROM atria_sessions WHERE session_id = ? LIMIT 1",
-        args: [sessionId],
-        hasExpiry: true,
-      },
-      {
-        sql: "SELECT session_id AS id, user_id AS userId FROM atria_sessions WHERE session_id = ? LIMIT 1",
-        args: [sessionId],
-        hasExpiry: false,
-      },
-      {
-        sql: "SELECT token AS id, user_id AS userId, expires_at AS expiresAt FROM atria_sessions WHERE token = ? LIMIT 1",
-        args: [sessionId],
-        hasExpiry: true,
-      },
-      {
-        sql: "SELECT token AS id, user_id AS userId, expiresAt AS expiresAt FROM atria_sessions WHERE token = ? LIMIT 1",
-        args: [sessionId],
-        hasExpiry: true,
-      },
-      {
-        sql: "SELECT token AS id, user_id AS userId FROM atria_sessions WHERE token = ? LIMIT 1",
-        args: [sessionId],
-        hasExpiry: false,
-      },
-    ];
-
-    for (const statement of statements) {
-      try {
-        const row = database.prepare(statement.sql).get(...statement.args) as
-          | { id?: unknown; userId?: unknown; expiresAt?: unknown }
-          | undefined;
-        const id = toStringValue(row?.id);
-        const userId = toStringValue(row?.userId);
-        if (!id || !userId) {
-          continue;
-        }
-
-        if (!statement.hasExpiry) {
-          return null;
-        }
-
-        const expiresAt = toStringValue(row?.expiresAt);
-        if (!expiresAt) {
-          return null;
-        }
-
-        const expiresAtMs = Date.parse(expiresAt);
-        if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
-          return null;
-        }
-
-        return { id, userId, expiresAt };
-      } catch {
-        continue;
+      const id = toNonEmptyString(row?.id);
+      const userId = toNonEmptyString(row?.userId);
+      const expiresAt = toNonEmptyString(row?.expiresAt);
+      if (!id || !userId || !expiresAt) {
+        return null;
       }
-    }
 
-    return null;
-  } finally {
-    database.close();
-  }
+      const expiresAtMs = Date.parse(expiresAt);
+      if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
+        return null;
+      }
+
+      return { id, userId, expiresAt };
+    } catch {
+      return null;
+    }
+  });
 };
 
 export const deleteSessionById = async (sessionId: string): Promise<void> => {
-  const database = await openDatabase();
-  if (!database) {
-    return;
-  }
-
-  try {
-    const statements: Array<{ sql: string; args: unknown[] }> = [
-      { sql: "DELETE FROM atria_sessions WHERE id = ?", args: [sessionId] },
-      { sql: "DELETE FROM atria_sessions WHERE session_id = ?", args: [sessionId] },
-      { sql: "DELETE FROM atria_sessions WHERE token = ?", args: [sessionId] },
-    ];
-
-    for (const statement of statements) {
-      try {
-        database.prepare(statement.sql).run(...statement.args);
-      } catch {
-        continue;
-      }
-    }
-  } finally {
-    database.close();
-  }
+  await withDatabase<void>(undefined, (database) => {
+    database.prepare(authQueries.deleteSessionById).run(sessionId);
+  });
 };
+
+export const getOwnerUserId = async (): Promise<string | null> => {
+  return withDatabase<string | null>(null, (database) => {
+    try {
+      const row = database.prepare(authQueries.selectOwnerUserId).get() as { id?: unknown } | undefined;
+      return toNonEmptyString(row?.id);
+    } catch {
+      return null;
+    }
+  });
+};
+
+export const getUserIdByIdentity = async (
+  provider: AuthOAuthProvider,
+  providerUserId: string
+): Promise<string | null> => {
+  return withDatabase<string | null>(null, (database) => {
+    try {
+      const row = database
+        .prepare(authQueries.selectIdentityUserId)
+        .get(provider, providerUserId) as { userId?: unknown } | undefined;
+      return toNonEmptyString(row?.userId);
+    } catch {
+      return null;
+    }
+  });
+};
+
+export const getUserIdByEmail = async (email: string): Promise<string | null> => {
+  return withDatabase<string | null>(null, (database) => {
+    try {
+      const row = database.prepare(authQueries.selectUserIdByEmail).get(email) as
+        | { id?: unknown }
+        | undefined;
+      return toNonEmptyString(row?.id);
+    } catch {
+      return null;
+    }
+  });
+};
+
+export const createOwnerFromOAuthProfile = async (
+  profile: AuthOAuthProfileInput
+): Promise<string | null> => {
+  if (!profile.email) {
+    return null;
+  }
+
+  return withDatabase<string | null>(null, (database) => {
+    const userId = randomUUID();
+    const now = getTimestamp();
+
+    try {
+      database
+        .prepare(authQueries.insertOAuthOwnerUser)
+        .run(userId, profile.email, profile.name, profile.avatarUrl, now, now);
+
+      return userId;
+    } catch {
+      return null;
+    }
+  });
+};
+
+export const updateUserFromOAuthProfile = async (
+  userId: string,
+  profile: AuthOAuthProfileInput
+): Promise<void> => {
+  await withDatabase<void>(undefined, (database) => {
+    database
+      .prepare(authQueries.updateUserFromOAuth)
+      .run(profile.email, profile.name, profile.avatarUrl, getTimestamp(), userId);
+  });
+};
+
+export const linkIdentityToUser = async (
+  userId: string,
+  profile: AuthOAuthProfileInput
+): Promise<void> => {
+  await withDatabase<void>(undefined, (database) => {
+    const now = getTimestamp();
+    database
+      .prepare(authQueries.upsertIdentity)
+      .run(
+        profile.provider,
+        profile.providerUserId,
+        userId,
+        profile.email,
+        profile.name,
+        profile.avatarUrl,
+        now,
+        now
+      );
+  });
+};
+
+export const getLinkedUserIdByProvider = async (
+  provider: AuthOAuthProvider
+): Promise<string | null> =>
+  withDatabase<string | null>(null, (database) => {
+    try {
+      const row = database
+        .prepare(authQueries.selectLinkedUserIdByProvider)
+        .get(provider) as { userId?: unknown } | undefined;
+      return toNonEmptyString(row?.userId);
+    } catch {
+      return null;
+    }
+  });

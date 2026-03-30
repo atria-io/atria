@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
+import { LoginForm } from "../forms/Login.js";
 import { AuthProviderActions } from "./AuthProviderActions.js";
 
 const LOGIN_ERROR_MESSAGE = "Could not complete browser sign-in. Please try again.";
@@ -28,9 +29,8 @@ const clearCookie = (key: string): void => {
 };
 
 export const LoginView = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showEmailForm, setShowEmailForm] = useState(false);
 
   useEffect(() => {
     const signal = readCookie("atria_login_error");
@@ -40,17 +40,16 @@ export const LoginView = () => {
     }
   }, []);
 
-  const handleLogin = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
-    event.preventDefault();
+  const handleLogin = async (values: { email: string; password: string }): Promise<void> => {
     setErrorMessage(null);
 
-    const response = await fetch("/admin/login", {
+    const response = await fetch("/auth/login", {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(values),
     });
 
     if (response.status === 204) {
@@ -73,30 +72,35 @@ export const LoginView = () => {
           </div>
         </div>
 
+        {errorMessage ? <p className="auth-card__error">{errorMessage}</p> : null}
+
         <div className="auth-card__content">
-          {errorMessage ? <p className="auth-card__error">{errorMessage}</p> : null}
-
-          <AuthProviderActions mode="login" />
-
-          <form onSubmit={(event) => void handleLogin(event)}>
-            <input
-              type="email"
-              name="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="Email"
-              required
+          {!showEmailForm ? (
+            <>
+              <AuthProviderActions mode="login" />
+              <div className="auth-card__actions">
+                <button
+                  type="button"
+                  className="auth-provider-button auth-provider-button--plain"
+                  onClick={() => {
+                    setErrorMessage(null);
+                    setShowEmailForm(true);
+                  }}
+                >
+                  <span>Continue with Email</span>
+                </button>
+              </div>
+            </>
+          ) : (
+            <LoginForm
+              errorMessage={null}
+              onSubmit={handleLogin}
+              onBack={() => {
+                setErrorMessage(null);
+                setShowEmailForm(false);
+              }}
             />
-            <input
-              type="password"
-              name="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Password"
-              required
-            />
-            <button type="submit">Login</button>
-          </form>
+          )}
         </div>
 
         <div className="auth-card__footer">

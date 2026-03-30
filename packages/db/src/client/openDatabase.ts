@@ -123,20 +123,7 @@ export const initializeDatabase = async (): Promise<boolean> => {
       DatabaseSync: new (filename: string) => DatabaseLike;
     };
     const database = new sqlite.DatabaseSync(sqlitePath);
-
-    try {
-      database.prepare(
-        "CREATE TABLE IF NOT EXISTS atria_users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, role TEXT, is_owner INTEGER DEFAULT 0, password TEXT)"
-      ).run();
-      database.prepare(
-        "CREATE TABLE IF NOT EXISTS atria_user_credentials (user_id TEXT PRIMARY KEY, password TEXT, password_hash TEXT, secret TEXT)"
-      ).run();
-      database.prepare(
-        "CREATE TABLE IF NOT EXISTS atria_sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, created_at TEXT, expires_at TEXT)"
-      ).run();
-    } finally {
-      database.close();
-    }
+    database.close();
 
     return true;
   } catch {

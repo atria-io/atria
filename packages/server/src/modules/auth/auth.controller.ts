@@ -9,6 +9,9 @@ import {
 } from "@atria/db";
 import type { LoginPayload } from "./auth.types.js";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_PASSWORD_LENGTH = 256;
+
 const verifyPassword = (storedPassword: string, providedPassword: string): boolean => {
   if (!storedPassword.startsWith("scrypt$")) {
     return storedPassword === providedPassword;
@@ -59,6 +62,28 @@ const readJsonBody = async (request: IncomingMessage): Promise<LoginPayload | nu
   }
 };
 
+const parseEmail = (value: unknown): string | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return EMAIL_PATTERN.test(normalized) ? normalized : null;
+};
+
+const parsePassword = (value: unknown): string | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim();
+  if (normalized.length === 0 || normalized.length > MAX_PASSWORD_LENGTH) {
+    return null;
+  }
+
+  return normalized;
+};
+
 const getSessionIdFromCookie = (request: IncomingMessage): string | null => {
   const rawCookie = request.headers.cookie;
   if (typeof rawCookie !== "string" || rawCookie.trim() === "") {
@@ -91,8 +116,14 @@ export const sendAuthLogin = async (
   response: ServerResponse
 ): Promise<void> => {
   const payload = await readJsonBody(request);
-  const email = typeof payload?.email === "string" ? payload.email : "";
-  const password = typeof payload?.password === "string" ? payload.password : "";
+  const email = parseEmail(payload?.email);
+  const password = parsePassword(payload?.password);
+
+  if (!email || !password) {
+    response.statusCode = 401;
+    response.end();
+    return;
+  }
 
   const user = await getUserByEmail(email);
   if (!user || !verifyPassword(user.password, password)) {
@@ -118,8 +149,14 @@ export const sendAuthCreateOwner = async (
   response: ServerResponse
 ): Promise<void> => {
   const payload = await readJsonBody(request);
-  const email = typeof payload?.email === "string" ? payload.email : "";
-  const password = typeof payload?.password === "string" ? payload.password : "";
+  const email = parseEmail(payload?.email);
+  const password = parsePassword(payload?.password);
+
+  if (!email || !password) {
+    response.statusCode = 400;
+    response.end();
+    return;
+  }
 
   const ownerState = await getOwnerSetupState();
   if (ownerState === "ready") {

@@ -1,6 +1,14 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { randomUUID } from "node:crypto";
-import { createSession, openDatabase } from "@atria/db";
+import {
+  createOwnerFromOAuthProfile,
+  createSession,
+  getLinkedUserIdByProvider,
+  getOwnerUserId,
+  getUserIdByEmail,
+  getUserIdByIdentity,
+  linkIdentityToUser,
+  updateUserFromOAuthProfile,
+} from "@atria/db";
 import { resolveBrokerOrigin, resolveBrokerProjectId } from "./broker.config.js";
 import type { BrokerConfirmPayload, BrokerConfirmErrorResponse, BrokerProvider } from "./broker.types.js";
 
@@ -16,13 +24,6 @@ const writeBrokerConfirmError = (
   error: BrokerConfirmErrorResponse["error"]
 ): void => {
   writeJson(response, statusCode, { ok: false, error } satisfies BrokerConfirmErrorResponse);
-};
-
-const redirectToLoginWithOAuthFailure = (response: ServerResponse): void => {
-  response.statusCode = 302;
-  response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
-  response.setHeader("Location", "/login");
-  response.end();
 };
 
 const toStringValue = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
@@ -48,37 +49,6 @@ const readJsonBody = async (request: IncomingMessage): Promise<BrokerConfirmPayl
     return JSON.parse(rawBody) as BrokerConfirmPayload;
   } catch {
     return null;
-  }
-};
-
-const getBrokerUserId = async (): Promise<string | null> => {
-  const database = await openDatabase();
-  if (!database) {
-    return null;
-  }
-
-  try {
-    const statements = [
-      "SELECT id AS id FROM atria_users WHERE role = 'owner' LIMIT 1",
-      "SELECT id AS id FROM atria_users WHERE is_owner = 1 LIMIT 1",
-      "SELECT id AS id FROM atria_users LIMIT 1",
-    ];
-
-    for (const sql of statements) {
-      try {
-        const row = database.prepare(sql).get() as { id?: unknown } | undefined;
-        const userId = toStringValue(row?.id);
-        if (userId !== "") {
-          return userId;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    return null;
-  } finally {
-    database.close();
   }
 };
 
@@ -215,246 +185,80 @@ interface SessionResult {
   sessionId: string;
 }
 
-const findUserIdByEmail = (database: Awaited<ReturnType<typeof openDatabase>>, email: string): string | null => {
-  if (!database) {
-    return null;
-  }
-
-  try {
-    const row = database.prepare("SELECT id AS id FROM atria_users WHERE email = ? LIMIT 1").get(email) as
-      | { id?: unknown }
-      | undefined;
-    const userId = toStringValue(row?.id);
-    return userId === "" ? null : userId;
-  } catch {
-    return null;
-  }
-};
-
-const findLinkedUserId = (
-  database: Awaited<ReturnType<typeof openDatabase>>,
-  profile: BrokerExchangeProfile
-): string | null => {
-  if (!database) {
-    return null;
-  }
-
-  try {
-    const row = database
-      .prepare("SELECT user_id AS user_id FROM atria_identities WHERE provider = ? AND provider_user_id = ? LIMIT 1")
-      .get(profile.provider, profile.providerUserId) as { user_id?: unknown } | undefined;
-    const userId = toStringValue(row?.user_id);
-    return userId === "" ? null : userId;
-  } catch {
-    return null;
-  }
-};
-
-const createOAuthOwnerUser = (
-  database: Awaited<ReturnType<typeof openDatabase>>,
-  profile: BrokerExchangeProfile
-): string | null => {
-  if (!database || !profile.email) {
-    return null;
-  }
-
-  const userId = randomUUID();
-  const now = new Date().toISOString();
-  const attempts: Array<{ sql: string; args: unknown[] }> = [
-    {
-      sql: "INSERT INTO atria_users (id, email, role, is_owner, name, avatar_url, created_at, updated_at) VALUES (?, ?, 'owner', 1, ?, ?, ?, ?)",
-      args: [userId, profile.email, profile.name, profile.avatarUrl, now, now],
-    },
-    {
-      sql: "INSERT INTO atria_users (id, email, role, is_owner, name, avatar_url) VALUES (?, ?, 'owner', 1, ?, ?)",
-      args: [userId, profile.email, profile.name, profile.avatarUrl],
-    },
-    {
-      sql: "INSERT INTO atria_users (id, email, role, is_owner) VALUES (?, ?, 'owner', 1)",
-      args: [userId, profile.email],
-    },
-    {
-      sql: "INSERT INTO atria_users (id, email, name, avatar_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-      args: [userId, profile.email, profile.name, profile.avatarUrl, now, now],
-    },
-    {
-      sql: "INSERT INTO atria_users (id, email, name, avatar_url) VALUES (?, ?, ?, ?)",
-      args: [userId, profile.email, profile.name, profile.avatarUrl],
-    },
-    {
-      sql: "INSERT INTO atria_users (id, email) VALUES (?, ?)",
-      args: [userId, profile.email],
-    },
-  ];
-
-  for (const attempt of attempts) {
-    try {
-      database.prepare(attempt.sql).run(...attempt.args);
-      return userId;
-    } catch {
-      continue;
-    }
-  }
-
-  return null;
-};
-
-const updateUserFromProfile = (
-  database: Awaited<ReturnType<typeof openDatabase>>,
-  userId: string,
-  profile: BrokerExchangeProfile
-): void => {
-  if (!database) {
-    return;
-  }
-
-  const now = new Date().toISOString();
-  const attempts: Array<{ sql: string; args: unknown[] }> = [
-    {
-      sql: "UPDATE atria_users SET email = COALESCE(?, email), name = COALESCE(?, name), avatar_url = COALESCE(?, avatar_url), updated_at = ? WHERE id = ?",
-      args: [profile.email, profile.name, profile.avatarUrl, now, userId],
-    },
-    {
-      sql: "UPDATE atria_users SET email = COALESCE(?, email), name = COALESCE(?, name), avatar_url = COALESCE(?, avatar_url) WHERE id = ?",
-      args: [profile.email, profile.name, profile.avatarUrl, userId],
-    },
-    {
-      sql: "UPDATE atria_users SET email = COALESCE(?, email) WHERE id = ?",
-      args: [profile.email, userId],
-    },
-  ];
-
-  for (const attempt of attempts) {
-    try {
-      database.prepare(attempt.sql).run(...attempt.args);
-      return;
-    } catch {
-      continue;
-    }
-  }
-};
-
-const upsertIdentity = (
-  database: Awaited<ReturnType<typeof openDatabase>>,
-  userId: string,
-  profile: BrokerExchangeProfile
-): void => {
-  if (!database) {
-    return;
-  }
-
-  const now = new Date().toISOString();
-  const updateAttempts: Array<{ sql: string; args: unknown[] }> = [
-    {
-      sql: "UPDATE atria_identities SET user_id = ?, email = ?, name = ?, avatar_url = ?, updated_at = ? WHERE provider = ? AND provider_user_id = ?",
-      args: [userId, profile.email, profile.name, profile.avatarUrl, now, profile.provider, profile.providerUserId],
-    },
-    {
-      sql: "UPDATE atria_identities SET user_id = ?, email = ?, name = ?, avatar_url = ? WHERE provider = ? AND provider_user_id = ?",
-      args: [userId, profile.email, profile.name, profile.avatarUrl, profile.provider, profile.providerUserId],
-    },
-  ];
-
-  for (const attempt of updateAttempts) {
-    try {
-      database.prepare(attempt.sql).run(...attempt.args);
-      break;
-    } catch {
-      continue;
-    }
-  }
-
-  const insertAttempts: Array<{ sql: string; args: unknown[] }> = [
-    {
-      sql: "INSERT INTO atria_identities (provider, provider_user_id, user_id, email, name, avatar_url, linked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      args: [
-        profile.provider,
-        profile.providerUserId,
-        userId,
-        profile.email,
-        profile.name,
-        profile.avatarUrl,
-        now,
-        now,
-      ],
-    },
-    {
-      sql: "INSERT OR REPLACE INTO atria_identities (provider, provider_user_id, user_id, email, name, avatar_url, linked_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      args: [
-        profile.provider,
-        profile.providerUserId,
-        userId,
-        profile.email,
-        profile.name,
-        profile.avatarUrl,
-        now,
-        now,
-      ],
-    },
-  ];
-
-  for (const attempt of insertAttempts) {
-    try {
-      database.prepare(attempt.sql).run(...attempt.args);
-      return;
-    } catch {
-      continue;
-    }
-  }
-};
-
-const resolveOAuthUserId = async (
-  profile: BrokerExchangeProfile,
-  mode: "login" | "create"
-): Promise<string | null> => {
-  const database = await openDatabase();
-  if (!database) {
-    return null;
-  }
-
-  try {
-    const ownerUserId = await getBrokerUserId();
-    const linkedUserId = findLinkedUserId(database, profile);
-    let userId = linkedUserId;
-
-    if (mode === "login") {
-      if (!userId) {
-        return null;
-      }
-      updateUserFromProfile(database, userId, profile);
-      return userId;
-    }
-
-    if (!userId && profile.email) {
-      userId = findUserIdByEmail(database, profile.email);
-    }
-
-    if (!userId) {
-      if (ownerUserId) {
-        return null;
-      }
-
-      userId = createOAuthOwnerUser(database, profile);
-    }
-
-    if (!userId) {
-      return null;
-    }
-
-    updateUserFromProfile(database, userId, profile);
-    upsertIdentity(database, userId, profile);
-    return userId;
-  } finally {
-    database.close();
-  }
-};
-
 const createSessionFromBrokerExchange = async (profile: BrokerExchangeProfile | null): Promise<SessionResult> => {
   if (!profile) {
     return { status: "no-user", sessionId: "" };
   }
 
-  const userId = await resolveOAuthUserId(profile, "create");
+  const ownerUserId = await getOwnerUserId();
+  let userId = await getUserIdByIdentity(profile.provider, profile.providerUserId);
+
+  if (!userId && profile.email) {
+    userId = await getUserIdByEmail(profile.email);
+  }
+
+  if (!userId) {
+    if (ownerUserId) {
+      return { status: "no-user", sessionId: "" };
+    }
+
+    userId = await createOwnerFromOAuthProfile({
+      provider: profile.provider,
+      providerUserId: profile.providerUserId,
+      email: profile.email,
+      name: profile.name,
+      avatarUrl: profile.avatarUrl,
+    });
+  }
+
+  if (!userId) {
+    return { status: "no-user", sessionId: "" };
+  }
+
+  await updateUserFromOAuthProfile(userId, {
+    provider: profile.provider,
+    providerUserId: profile.providerUserId,
+    email: profile.email,
+    name: profile.name,
+    avatarUrl: profile.avatarUrl,
+  });
+
+  await linkIdentityToUser(userId, {
+    provider: profile.provider,
+    providerUserId: profile.providerUserId,
+    email: profile.email,
+    name: profile.name,
+    avatarUrl: profile.avatarUrl,
+  });
+
+  const session = await createSession(userId);
+  if (!session) {
+    return { status: "failed", sessionId: "" };
+  }
+
+  return { status: "ok", sessionId: session.id };
+};
+
+const getLoginFailureReturnPath = (request: IncomingMessage): string => {
+  const rawReferer = toStringValue(request.headers.referer);
+  if (rawReferer === "") {
+    return "/";
+  }
+
+  try {
+    const referer = new URL(rawReferer);
+    const host = toStringValue(request.headers.host);
+    if (host !== "" && referer.host !== host) {
+      return "/";
+    }
+    return `${referer.pathname}${referer.search}${referer.hash}`;
+  } catch {
+    return "/";
+  }
+};
+
+const createSessionFromLinkedProvider = async (provider: BrokerProvider): Promise<SessionResult> => {
+  const userId = await getLinkedUserIdByProvider(provider);
   if (!userId) {
     return { status: "no-user", sessionId: "" };
   }
@@ -465,38 +269,6 @@ const createSessionFromBrokerExchange = async (profile: BrokerExchangeProfile | 
   }
 
   return { status: "ok", sessionId: session.id };
-};
-
-const createSessionFromLinkedProvider = async (provider: BrokerProvider): Promise<SessionResult> => {
-  const database = await openDatabase();
-  if (!database) {
-    return { status: "failed", sessionId: "" };
-  }
-
-  try {
-    let userId: string | null = null;
-    try {
-      const row = database
-        .prepare("SELECT user_id AS user_id FROM atria_identities WHERE provider = ? LIMIT 1")
-        .get(provider) as { user_id?: unknown } | undefined;
-      userId = toNullableString(row?.user_id);
-    } catch {
-      userId = null;
-    }
-
-    if (!userId) {
-      return { status: "no-user", sessionId: "" };
-    }
-
-    const session = await createSession(userId);
-    if (!session) {
-      return { status: "failed", sessionId: "" };
-    }
-
-    return { status: "ok", sessionId: session.id };
-  } finally {
-    database.close();
-  }
 };
 
 export const sendBrokerConfirm = async (
@@ -681,18 +453,26 @@ export const sendBrokerProviderEntry = async (
 };
 
 export const sendProviderLoginStart = async (
-  _request: IncomingMessage,
+  request: IncomingMessage,
   response: ServerResponse,
   provider: BrokerProvider
 ): Promise<void> => {
   const sessionResult = await createSessionFromLinkedProvider(provider);
   if (sessionResult.status === "no-user") {
-    redirectToLoginWithOAuthFailure(response);
+    const returnPath = getLoginFailureReturnPath(request);
+    response.statusCode = 302;
+    response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
+    response.setHeader("Location", returnPath);
+    response.end();
     return;
   }
 
   if (sessionResult.status !== "ok") {
-    redirectToLoginWithOAuthFailure(response);
+    const returnPath = getLoginFailureReturnPath(request);
+    response.statusCode = 302;
+    response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
+    response.setHeader("Location", returnPath);
+    response.end();
     return;
   }
 
@@ -755,22 +535,27 @@ export const sendBrokerProviderCallback = async (
 
   const exchangeResult = await exchangeBrokerCode(brokerCode, projectId);
   if (exchangeResult.status !== "ok") {
-    response.statusCode = 502;
-    response.end("Broker exchange failed.");
+    response.statusCode = 302;
+    response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
+    response.setHeader("Location", "/");
+    response.end();
     return;
   }
 
   const sessionResult = await createSessionFromBrokerExchange(exchangeResult.profile);
   if (sessionResult.status === "no-user") {
     response.statusCode = 302;
-    response.setHeader("Location", "/?oauth_error=broker-login-failed");
+    response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
+    response.setHeader("Location", "/");
     response.end();
     return;
   }
 
   if (sessionResult.status !== "ok") {
-    response.statusCode = 401;
-    response.end("Session creation failed.");
+    response.statusCode = 302;
+    response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
+    response.setHeader("Location", "/");
+    response.end();
     return;
   }
 
