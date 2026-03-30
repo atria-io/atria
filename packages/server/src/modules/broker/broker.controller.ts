@@ -18,6 +18,13 @@ const writeBrokerConfirmError = (
   writeJson(response, statusCode, { ok: false, error } satisfies BrokerConfirmErrorResponse);
 };
 
+const redirectToLoginWithOAuthFailure = (response: ServerResponse): void => {
+  response.statusCode = 302;
+  response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
+  response.setHeader("Location", "/login");
+  response.end();
+};
+
 const toStringValue = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 const toNullableString = (value: unknown): string | null => {
   const normalized = toStringValue(value);
@@ -680,18 +687,12 @@ export const sendProviderLoginStart = async (
 ): Promise<void> => {
   const sessionResult = await createSessionFromLinkedProvider(provider);
   if (sessionResult.status === "no-user") {
-    writeJson(response, 401, {
-      ok: false,
-      error: "Could not complete browser sign-in. Please try again.",
-    });
+    redirectToLoginWithOAuthFailure(response);
     return;
   }
 
   if (sessionResult.status !== "ok") {
-    writeJson(response, 401, {
-      ok: false,
-      error: "Could not complete browser sign-in. Please try again.",
-    });
+    redirectToLoginWithOAuthFailure(response);
     return;
   }
 
