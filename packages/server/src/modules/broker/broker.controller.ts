@@ -1,14 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
 import { createOwner, createSession, getOwnerSetupState, openDatabase } from "@atria/db";
-import { resolveBrokerOrigin } from "./broker.config.js";
-import type {
-  BrokerConfirmPayload,
-  BrokerConsentPlaceholderResponse,
-  BrokerConfirmErrorResponse,
-  BrokerExchangeResult,
-  BrokerProvider,
-} from "./broker.types.js";
+import { resolveBrokerOrigin, resolveBrokerProjectId } from "./broker.config.js";
+import type { BrokerConfirmPayload, BrokerConfirmErrorResponse, BrokerProvider } from "./broker.types.js";
 
 const writeJson = (response: ServerResponse, statusCode: number, payload: unknown): void => {
   response.statusCode = statusCode;
@@ -22,15 +16,6 @@ const writeBrokerConfirmError = (
   error: BrokerConfirmErrorResponse["error"]
 ): void => {
   writeJson(response, statusCode, { ok: false, error } satisfies BrokerConfirmErrorResponse);
-};
-
-export const sendBrokerConsentPlaceholder = async (response: ServerResponse): Promise<void> => {
-  const payload: BrokerConsentPlaceholderResponse = {
-    status: "placeholder",
-    message: "Broker consent endpoint placeholder",
-  };
-
-  writeJson(response, 200, payload);
 };
 
 const toStringValue = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
@@ -88,51 +73,85 @@ const getBrokerUserId = async (): Promise<string | null> => {
 
 interface BrokerConfirmResult {
   status: "ok" | "rejected" | "failed";
-  email: string | null;
+  brokerCode: string;
 }
 
-const getBrokerConfirmEmail = (payload: Record<string, unknown>): string | null => {
-  const nested =
-    payload.data && typeof payload.data === "object" ? (payload.data as Record<string, unknown>) : null;
-  const source = nested ?? payload;
-  const emailCandidates = [
-    source.email,
-    source.user_email,
-    source.userEmail,
-    source.owner_email,
-    source.ownerEmail,
-    payload.email,
-    payload.user_email,
-    payload.userEmail,
-    payload.owner_email,
-    payload.ownerEmail,
-  ];
+const confirmBrokerConsent = async (
+  consentToken: string,
+  projectId: string
+): Promise<BrokerConfirmResult> => {
+  try {
+    const brokerConfirmUrl = new URL("/oauth/confirm", resolveBrokerOrigin());
+    brokerConfirmUrl.searchParams.set("consent_token", consentToken);
+    const brokerResponse = await fetch(brokerConfirmUrl, { method: "GET", headers: { Accept: "application/json" } });
 
-  for (const candidate of emailCandidates) {
-    const email = toStringValue(candidate);
-    if (email !== "") {
-      return email;
+    if (!brokerResponse.ok) {
+      return {
+        status: brokerResponse.status >= 400 && brokerResponse.status < 500 ? "rejected" : "failed",
+        brokerCode: "",
+      };
     }
-  }
 
-  return null;
+    const rawPayload = (await brokerResponse.json()) as unknown;
+    if (!rawPayload || typeof rawPayload !== "object") {
+      return { status: "failed", brokerCode: "" };
+    }
+
+    const root = rawPayload as Record<string, unknown>;
+    const explicitFailure = root.ok === false || root.success === false;
+    if (explicitFailure) {
+      return { status: "rejected", brokerCode: "" };
+    }
+
+    const confirmedProjectId = toStringValue(root.project_id ?? root.projectId);
+    const brokerCode = toStringValue(root.code ?? root.broker_code ?? root.brokerCode);
+    if (confirmedProjectId === "" || confirmedProjectId !== projectId || brokerCode === "") {
+      return { status: "failed", brokerCode: "" };
+    }
+
+    return { status: "ok", brokerCode };
+  } catch {
+    return { status: "failed", brokerCode: "" };
+  }
 };
 
-const confirmBrokerConsent = async (payload: {
-  provider: BrokerProvider;
-  project_id: string;
-  broker_consent_token: string;
-  broker_code: string;
-}): Promise<BrokerConfirmResult> => {
+const readObject = (value: unknown): Record<string, unknown> | null => {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  return value as Record<string, unknown>;
+};
+
+const getBrokerExchangeEmail = (payload: unknown): string | null => {
+  const root = readObject(payload);
+  if (!root) {
+    return null;
+  }
+
+  const user = readObject(root.user);
+  const nested = readObject(root.data);
+  const nestedUser = nested ? readObject(nested.user) : null;
+  const source = user ?? nestedUser;
+  if (!source) {
+    return null;
+  }
+
+  const email = toStringValue(source.email ?? source.user_email ?? source.userEmail);
+  return email === "" ? null : email;
+};
+
+const exchangeBrokerCode = async (
+  brokerCode: string,
+  projectId: string
+): Promise<{ status: "ok" | "rejected" | "failed"; email: string | null }> => {
   try {
-    const brokerConfirmUrl = new URL("/api/auth/broker/confirm", resolveBrokerOrigin());
-    const brokerResponse = await fetch(brokerConfirmUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(payload),
+    const brokerExchangeUrl = new URL("/oauth/exchange", resolveBrokerOrigin());
+    brokerExchangeUrl.searchParams.set("code", brokerCode);
+    brokerExchangeUrl.searchParams.set("project_id", projectId);
+    const brokerResponse = await fetch(brokerExchangeUrl, {
+      method: "GET",
+      headers: { Accept: "application/json" },
     });
 
     if (!brokerResponse.ok) {
@@ -142,26 +161,8 @@ const confirmBrokerConsent = async (payload: {
       };
     }
 
-    const contentType = toStringValue(brokerResponse.headers.get("content-type")).toLowerCase();
-    if (!contentType.includes("application/json")) {
-      return { status: "ok", email: null };
-    }
-
     const rawPayload = (await brokerResponse.json()) as unknown;
-    if (!rawPayload || typeof rawPayload !== "object") {
-      return { status: "ok", email: null };
-    }
-
-    const root = rawPayload as Record<string, unknown>;
-    const nested =
-      root.data && typeof root.data === "object" ? (root.data as Record<string, unknown>) : null;
-    const source = nested ?? root;
-    const explicitFailure = source.ok === false || source.success === false || root.ok === false;
-    if (explicitFailure) {
-      return { status: "rejected", email: null };
-    }
-
-    return { status: "ok", email: getBrokerConfirmEmail(root) };
+    return { status: "ok", email: getBrokerExchangeEmail(rawPayload) };
   } catch {
     return { status: "failed", email: null };
   }
@@ -202,13 +203,12 @@ export const sendBrokerConfirm = async (
     return;
   }
 
-  const confirmResult = await confirmBrokerConsent({
-    provider,
-    project_id: projectId,
-    broker_consent_token: brokerConsentToken,
-    broker_code: brokerCode,
-  });
-  if (confirmResult.status !== "ok") {
+  const confirmResult =
+    brokerCode !== ""
+      ? { status: "ok" as const, brokerCode }
+      : await confirmBrokerConsent(brokerConsentToken, projectId);
+
+  if (confirmResult.status !== "ok" || confirmResult.brokerCode === "") {
     if (confirmResult.status === "rejected") {
       writeBrokerConfirmError(response, 401, {
         code: "consent_rejected",
@@ -230,9 +230,21 @@ export const sendBrokerConfirm = async (
     return;
   }
 
+  const exchangeResult = await exchangeBrokerCode(confirmResult.brokerCode, projectId);
+  if (exchangeResult.status !== "ok") {
+    writeBrokerConfirmError(response, 502, {
+      code: "broker_confirm_failed",
+      title: "Broker unavailable",
+      message: "Could not complete broker exchange.",
+      retryable: true,
+      backToLogin: false,
+    });
+    return;
+  }
+
   const userId = await getBrokerUserId();
   if (!userId) {
-    const createdOwnerId = await createBrokerOwnerIfNeeded(confirmResult.email);
+    const createdOwnerId = await createBrokerOwnerIfNeeded(exchangeResult.email);
     if (createdOwnerId) {
       const createdOwnerSession = await createSession(createdOwnerId);
       if (!createdOwnerSession) {
@@ -279,11 +291,6 @@ export const sendBrokerConfirm = async (
   response.end();
 };
 
-const getRedirectUrl = (pathname: string, params: URLSearchParams): string => {
-  const query = params.toString();
-  return query === "" ? pathname : `${pathname}?${query}`;
-};
-
 const getRequestProtocol = (request: IncomingMessage): string => {
   const forwardedProto = toStringValue(request.headers["x-forwarded-proto"]);
   if (forwardedProto !== "") {
@@ -303,20 +310,6 @@ const getRequestHost = (request: IncomingMessage): string => {
   return hostHeader === "" ? "localhost" : hostHeader;
 };
 
-const getServerCallbackUrl = (request: IncomingMessage, provider: BrokerProvider): string => {
-  const protocol = getRequestProtocol(request);
-  const host = getRequestHost(request);
-  return `${protocol}://${host}/api/auth/callback/${provider}`;
-};
-
-const getProviderClientId = (provider: BrokerProvider): string => {
-  const value =
-    provider === "google"
-      ? toStringValue(process.env.ATRIA_AUTH_GOOGLE_CLIENT_ID)
-      : toStringValue(process.env.ATRIA_AUTH_GITHUB_CLIENT_ID);
-  return value;
-};
-
 const getSafeNextPath = (requestUrl: URL): string => {
   const nextPath = toStringValue(requestUrl.searchParams.get("next"));
   return nextPath.startsWith("/") ? nextPath : "/";
@@ -331,140 +324,21 @@ const getReturnPath = (mode: "login" | "create"): string => {
   return mode === "create" ? "/create" : "/";
 };
 
-const getStateValue = (provider: BrokerProvider, requestUrl: URL): string => {
-  const mode = getStartMode(requestUrl);
-  const statePayload = {
-    provider,
-    mode,
-    next: getSafeNextPath(requestUrl),
-    return_to: getReturnPath(mode),
-    project_id: toStringValue(requestUrl.searchParams.get("project_id")),
-    consent_mode:
-      toStringValue(requestUrl.searchParams.get("consent_mode")) ||
-      toStringValue(requestUrl.searchParams.get("consentMode")),
-    nonce: randomUUID(),
-    issued_at: Date.now(),
-  };
-
-  return Buffer.from(JSON.stringify(statePayload), "utf-8").toString("base64url");
-};
-
-interface ProviderStatePayload {
-  returnTo: string;
-  nextPath: string;
-}
-
-const parseProviderState = (value: string | null): ProviderStatePayload => {
-  if (!value) {
-    return { returnTo: "/", nextPath: "/" };
+const parseConsentMode = (requestUrl: URL): "auto" | "required" => {
+  const consentRaw =
+    toStringValue(requestUrl.searchParams.get("consent")) ||
+    toStringValue(requestUrl.searchParams.get("consent_mode")) ||
+    toStringValue(requestUrl.searchParams.get("consentMode"));
+  const normalized = consentRaw.toLowerCase();
+  if (normalized === "" || normalized === "auto") {
+    return "auto";
   }
 
-  try {
-    const decoded = Buffer.from(value, "base64url").toString("utf-8");
-    const parsed = JSON.parse(decoded) as Record<string, unknown>;
-    const returnTo = toStringValue(parsed.return_to);
-    const nextPath = toStringValue(parsed.next);
-    return {
-      returnTo: returnTo === "/create" ? "/create" : "/",
-      nextPath: nextPath.startsWith("/") ? nextPath : "/",
-    };
-  } catch {
-    return { returnTo: "/", nextPath: "/" };
-  }
-};
-
-const getProviderAuthorizationUrl = (
-  provider: BrokerProvider,
-  clientId: string,
-  redirectUri: string,
-  state: string
-): string => {
-  if (provider === "github") {
-    const githubUrl = new URL("https://github.com/login/oauth/authorize");
-    githubUrl.searchParams.set("client_id", clientId);
-    githubUrl.searchParams.set("redirect_uri", redirectUri);
-    githubUrl.searchParams.set("response_type", "code");
-    githubUrl.searchParams.set("scope", "read:user user:email");
-    githubUrl.searchParams.set("state", state);
-    return githubUrl.toString();
+  if (normalized === "required") {
+    return "required";
   }
 
-  const googleUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-  googleUrl.searchParams.set("client_id", clientId);
-  googleUrl.searchParams.set("redirect_uri", redirectUri);
-  googleUrl.searchParams.set("response_type", "code");
-  googleUrl.searchParams.set("scope", "openid email profile");
-  googleUrl.searchParams.set("state", state);
-  return googleUrl.toString();
-};
-
-const getNormalizedCodeParam = (value: unknown): string => {
-  return toStringValue(value);
-};
-
-const readObject = (value: unknown): Record<string, unknown> | null => {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  return value as Record<string, unknown>;
-};
-
-const normalizeBrokerExchangeResult = (
-  payload: unknown,
-  fallbackProvider: BrokerProvider
-): BrokerExchangeResult | null => {
-  const root = readObject(payload);
-  if (!root) {
-    return null;
-  }
-
-  const nested = readObject(root.data);
-  const source = nested ?? root;
-
-  const providerValue = toStringValue(source.provider ?? root.provider).toLowerCase();
-  const provider = isSupportedProvider(providerValue) ? providerValue : fallbackProvider;
-  const projectId = toStringValue(source.project_id ?? source.projectId ?? root.project_id ?? root.projectId);
-  const brokerConsentToken = toStringValue(
-    source.broker_consent_token ??
-      source.brokerConsentToken ??
-      root.broker_consent_token ??
-      root.brokerConsentToken
-  );
-  const brokerCode = getNormalizedCodeParam(
-    source.broker_code ?? source.brokerCode ?? root.broker_code ?? root.brokerCode
-  );
-
-  if (projectId === "" || (brokerConsentToken === "" && brokerCode === "")) {
-    return null;
-  }
-
-  return { provider, projectId, brokerConsentToken, brokerCode };
-};
-
-const exchangeBrokerCallback = async (
-  request: IncomingMessage,
-  provider: BrokerProvider
-): Promise<BrokerExchangeResult | null> => {
-  const requestUrl = new URL(request.url ?? "/", "http://localhost");
-  const brokerExchangeUrl = new URL("/api/auth/broker/exchange", resolveBrokerOrigin());
-  const exchangeParams = new URLSearchParams(requestUrl.searchParams);
-  exchangeParams.set("provider", provider);
-  brokerExchangeUrl.search = exchangeParams.toString();
-
-  const brokerResponse = await fetch(brokerExchangeUrl, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-    },
-  });
-
-  if (!brokerResponse.ok) {
-    return null;
-  }
-
-  const payload = (await brokerResponse.json()) as unknown;
-  return normalizeBrokerExchangeResult(payload, provider);
+  throw new Error("Invalid consent.");
 };
 
 export const sendBrokerProviderEntry = async (
@@ -473,52 +347,41 @@ export const sendBrokerProviderEntry = async (
   provider: BrokerProvider
 ): Promise<void> => {
   const requestUrl = new URL(request.url ?? "/", "http://localhost");
-  const callbackUrl = getServerCallbackUrl(request, provider);
-  const clientId = getProviderClientId(provider);
-  if (clientId === "") {
-    response.statusCode = 500;
-    response.end();
+  const protocol = getRequestProtocol(request);
+  const host = getRequestHost(request);
+  const mode = getStartMode(requestUrl);
+  const nextPath = getSafeNextPath(requestUrl);
+  const returnTo = new URL(getReturnPath(mode), `${protocol}://${host}`);
+  returnTo.searchParams.set("screen", "broker-consent");
+  if (nextPath !== "/") {
+    returnTo.searchParams.set("next", nextPath);
+  }
+
+  const projectIdFromQuery = toStringValue(
+    requestUrl.searchParams.get("project_id") ?? requestUrl.searchParams.get("projectId")
+  );
+  const projectId = projectIdFromQuery !== "" ? projectIdFromQuery : await resolveBrokerProjectId();
+  if (projectId === "") {
+    writeJson(response, 500, { error: "Missing projectId." });
     return;
   }
 
-  const state = getStateValue(provider, requestUrl);
-  const authorizationUrl = getProviderAuthorizationUrl(provider, clientId, callbackUrl, state);
-  response.statusCode = 302;
-  response.setHeader("Location", authorizationUrl);
-  response.end();
-};
-
-export const sendBrokerProviderCallback = async (
-  request: IncomingMessage,
-  response: ServerResponse,
-  provider: BrokerProvider
-): Promise<void> => {
-  const requestUrl = new URL(request.url ?? "/", "http://localhost");
-  const providerState = parseProviderState(requestUrl.searchParams.get("state"));
-  const exchangeResult = await exchangeBrokerCallback(request, provider);
-  if (!exchangeResult) {
-    response.statusCode = 502;
-    response.end();
+  let consentMode: "auto" | "required";
+  try {
+    consentMode = parseConsentMode(requestUrl);
+  } catch (error) {
+    writeJson(response, 400, { error: error instanceof Error ? error.message : "Invalid consent." });
     return;
   }
 
-  const redirectParams = new URLSearchParams();
-
-  redirectParams.set("screen", "broker-consent");
-  redirectParams.set("provider", exchangeResult.provider);
-  redirectParams.set("project_id", exchangeResult.projectId);
-  if (exchangeResult.brokerConsentToken !== "") {
-    redirectParams.set("broker_consent_token", exchangeResult.brokerConsentToken);
-  }
-  if (exchangeResult.brokerCode !== "") {
-    redirectParams.set("broker_code", exchangeResult.brokerCode);
-  }
-
-  if (providerState.nextPath !== "/") {
-    redirectParams.set("next", providerState.nextPath);
+  const authorizationUrl = new URL(`/v1/auth/login/${provider}`, resolveBrokerOrigin());
+  authorizationUrl.searchParams.set("origin", returnTo.toString());
+  authorizationUrl.searchParams.set("projectId", projectId);
+  if (consentMode === "required") {
+    authorizationUrl.searchParams.set("consent", "required");
   }
 
   response.statusCode = 302;
-  response.setHeader("Location", getRedirectUrl(providerState.returnTo, redirectParams));
+  response.setHeader("Location", authorizationUrl.toString());
   response.end();
 };

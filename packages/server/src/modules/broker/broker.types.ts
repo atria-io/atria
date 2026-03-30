@@ -1,8 +1,3 @@
-export interface BrokerConsentPlaceholderResponse {
-  status: "placeholder";
-  message: string;
-}
-
 export type BrokerConfirmErrorCode =
   | "invalid_payload"
   | "consent_rejected"
@@ -31,10 +26,3 @@ export interface BrokerConfirmPayload {
 }
 
 export type BrokerProvider = "google" | "github";
-
-export interface BrokerExchangeResult {
-  provider: BrokerProvider;
-  projectId: string;
-  brokerConsentToken: string;
-  brokerCode: string;
-}

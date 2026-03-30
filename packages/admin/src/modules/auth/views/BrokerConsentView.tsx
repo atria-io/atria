@@ -17,8 +17,22 @@ export const BrokerConsentView = () => {
       provider: params.get("provider") ?? "",
       project_id: params.get("project_id") ?? "",
       broker_consent_token: params.get("broker_consent_token") ?? "",
+      broker_code: params.get("broker_code") ?? "",
     };
   }, []);
+
+  const navigateToCleanUrl = (): void => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("screen");
+    url.searchParams.delete("provider");
+    url.searchParams.delete("project_id");
+    url.searchParams.delete("broker_consent_token");
+    url.searchParams.delete("broker_code");
+    url.searchParams.delete("next");
+    const cleanPath = url.pathname === "/create" ? "/" : url.pathname;
+    const cleanQuery = url.searchParams.toString();
+    window.location.replace(cleanQuery === "" ? cleanPath : `${cleanPath}?${cleanQuery}`);
+  };
 
   const handleConfirm = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -26,7 +40,7 @@ export const BrokerConsentView = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/broker/confirm", {
+      const response = await fetch("/api/auth/broker/confirm", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -36,7 +50,7 @@ export const BrokerConsentView = () => {
       });
 
       if (response.status === 204) {
-        window.location.reload();
+        navigateToCleanUrl();
         return;
       }
 
@@ -131,7 +145,7 @@ export const BrokerConsentView = () => {
         </div>
 
         <div className="auth-card__footer">
-          <span>OAuth exchange and broker verification are not connected yet</span>
+          <span>Continue after consent confirmation.</span>
         </div>
       </div>
     </section>

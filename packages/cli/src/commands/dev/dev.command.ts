@@ -37,6 +37,17 @@ const parsePort = (
   return parsed;
 };
 
+const readProjectIdFromProjectConfig = async (projectRoot: string): Promise<string> => {
+  try {
+    const configPath = path.join(projectRoot, "atria.config.json");
+    const raw = await fs.readFile(configPath, "utf-8");
+    const parsed = JSON.parse(raw) as { projectId?: unknown };
+    return typeof parsed.projectId === "string" ? parsed.projectId.trim() : "";
+  } catch {
+    return "";
+  }
+};
+
 const mimeTypeByExtension: Record<string, string> = {
   ".htm": "text/html; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -47,14 +58,31 @@ const mimeTypeByExtension: Record<string, string> = {
   ".woff2": "font/woff2"
 };
 
+const DEFAULT_RUNTIME_APP_SCRIPT = `// This file is auto-generated from "atria dev".
+// Modifications to this file are automatically discarded.
+
+import { mountAdminApp } from "/static/app.js";
+
+const rootElement = document.getElementById("atria");
+
+mountAdminApp({
+  mountElement: rootElement,
+  basePath: "/",
+  reactStrictMode: false
+});
+`;
+
 const resolveRuntimeFilePath = (
   runtimeRoot: string,
+  adminRuntimeIndexFile: string,
   adminStaticRoot: string,
   adminBundleFile: string,
   urlPath: string
 ): string | null => {
+  const runtimeIndexFile = path.join(runtimeRoot, "index.htm");
+
   if (urlPath === "/" || urlPath === "/index.html") {
-    return path.join(runtimeRoot, "index.htm");
+    return existsSync(runtimeIndexFile) ? runtimeIndexFile : adminRuntimeIndexFile;
   }
 
   if (urlPath === "/app.js") {
@@ -74,6 +102,10 @@ const resolveRuntimeFilePath = (
     ) {
       return candidatePath;
     }
+  }
+
+  if (path.extname(urlPath) === "") {
+    return existsSync(runtimeIndexFile) ? runtimeIndexFile : adminRuntimeIndexFile;
   }
 
   return null;
@@ -152,8 +184,16 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const adminPackagePaths = resolveAdminPackagePaths();
   const adminStaticRoot = adminPackagePaths.staticRoot;
   const adminBundleFile = adminPackagePaths.bundleFile;
+  const adminRuntimeIndexFile = adminPackagePaths.runtimeIndexFile;
   const internalApiPort = adminPort + 1;
   let internalApiServer: Server | null = null;
+
+  if (!process.env.ATRIA_PROJECT_ID) {
+    const projectId = await readProjectIdFromProjectConfig(projectRoot);
+    if (projectId !== "") {
+      process.env.ATRIA_PROJECT_ID = projectId;
+    }
+  }
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
   internalApiServer = await startDevServer({ host: "0.0.0.0", port: internalApiPort });
@@ -161,8 +201,13 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const server = createServer(async (request, response) => {
     const requestUrl = request.url ?? "/";
     const pathname = new URL(requestUrl, "http://localhost").pathname;
+    const runtimeAppFile = path.join(runtimeRoot, "app.js");
 
-    if (pathname.startsWith("/admin/") || pathname.startsWith("/auth/")) {
+    if (
+      pathname.startsWith("/api/") ||
+      pathname.startsWith("/admin/") ||
+      pathname.startsWith("/auth/")
+    ) {
       try {
         await proxyToInternalApi(request, response, internalApiPort, requestUrl);
       } catch {
@@ -173,8 +218,16 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
       return;
     }
 
+    if (pathname === "/app.js" && !existsSync(runtimeAppFile)) {
+      response.statusCode = 200;
+      response.setHeader("Content-Type", "text/javascript; charset=utf-8");
+      response.end(DEFAULT_RUNTIME_APP_SCRIPT);
+      return;
+    }
+
     const runtimeFilePath = resolveRuntimeFilePath(
       runtimeRoot,
+      adminRuntimeIndexFile,
       adminStaticRoot,
       adminBundleFile,
       pathname
@@ -243,24 +296,34 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   process.on("SIGTERM", shutdown);
 };
 
-const resolveAdminPackagePaths = (): { staticRoot: string; bundleFile: string } => {
+const resolveAdminPackagePaths = (): { staticRoot: string; bundleFile: string; runtimeIndexFile: string } => {
   const require = createRequire(import.meta.url);
   const adminPackageJson = require.resolve("@atria/admin/package.json");
   const adminRoot = path.dirname(adminPackageJson);
   const buildCandidate = {
     staticRoot: path.join(adminRoot, "dist", "runtime", "static"),
     bundleFile: path.join(adminRoot, "dist", "app.js"),
+    runtimeIndexFile: path.join(adminRoot, "dist", "runtime", "index.htm"),
   };
   const sourceCandidate = {
     staticRoot: path.join(adminRoot, "studio", "static"),
     bundleFile: path.join(adminRoot, "dist", "app.js"),
+    runtimeIndexFile: path.join(adminRoot, "studio", "index.htm"),
   };
 
-  if (existsSync(buildCandidate.staticRoot) && existsSync(buildCandidate.bundleFile)) {
+  if (
+    existsSync(buildCandidate.staticRoot) &&
+    existsSync(buildCandidate.bundleFile) &&
+    existsSync(buildCandidate.runtimeIndexFile)
+  ) {
     return buildCandidate;
   }
 
-  if (existsSync(sourceCandidate.staticRoot) && existsSync(sourceCandidate.bundleFile)) {
+  if (
+    existsSync(sourceCandidate.staticRoot) &&
+    existsSync(sourceCandidate.bundleFile) &&
+    existsSync(sourceCandidate.runtimeIndexFile)
+  ) {
     return sourceCandidate;
   }
 

@@ -14,7 +14,14 @@ const hasBrokerConsentMarker = (): boolean => {
   }
 
   const url = new URL(window.location.href);
-  return url.searchParams.get("screen") === "broker-consent";
+  if (url.searchParams.get("screen") === "broker-consent") {
+    return true;
+  }
+
+  return (
+    url.searchParams.get("broker_consent_token") !== null ||
+    url.searchParams.get("broker_code") !== null
+  );
 };
 
 export const Auth = ({ state }: AuthProps) => {
