@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { AuthProviderActions } from "./AuthProviderActions.js";
 
 export const CreateOwnerView = () => {
   const [email, setEmail] = useState("");
@@ -33,6 +34,8 @@ export const CreateOwnerView = () => {
         </div>
 
         <div className="auth-card__content">
+          <AuthProviderActions />
+
           <form onSubmit={(event) => void handleCreateOwner(event)}>
             <input
               type="email"
