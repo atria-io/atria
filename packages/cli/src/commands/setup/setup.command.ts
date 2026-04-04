@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
-import { done, doneField, isInteractivePrompt, success, terminal } from "@atria/shared";
+import { done, doneField, isInteractivePrompt, terminal } from "@atria/shared";
 import { parseArgs } from "../../parseArgs.js";
 
 type DatabaseMode = "sqlite" | "postgres";
@@ -211,5 +211,5 @@ export const runSetupCommand = async (args: string[]): Promise<void> => {
   if (parsedArgs.flags["database-only"] === true) {
     console.log(done("Setup finished in database-only mode."));
   }
-  console.log(success("Setup completed."));
+  console.log(done("Setup completed."));
 };
