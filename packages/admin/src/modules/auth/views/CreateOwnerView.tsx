@@ -64,46 +64,40 @@ export const CreateOwnerView = () => {
   };
 
   return (
-    <section className="auth-screen">
-      <div className="auth-card">
-        <div className="auth-card__header">
-          <h1 className="auth-card__title">
-            <span>Create owner</span>
-          </h1>
-          <div className="auth-card__header-text">
-            <span>Create the first user</span>
-          </div>
-        </div>
-
-        <div className="auth-card__content">
-          {errorMessage ? <p className="auth-card__error">{errorMessage}</p> : null}
-
-          {!showEmailForm ? (
-            <>
-              <AuthProviderActions mode="create" />
-              <div className="auth-card__actions">
-                <button
-                  type="button"
-                  className="auth-provider-button auth-provider-button--plain"
-                  onClick={() => setShowEmailForm(true)}
-                >
-                  <span>Continue with Email</span>
-                </button>
-              </div>
-            </>
-          ) : (
-            <CreateForm
-              errorMessage={errorMessage}
-              onSubmit={handleCreateOwner}
-              onBack={() => setShowEmailForm(false)}
-            />
-          )}
-        </div>
-
-        <div className="auth-card__footer">
-          <span>This account will manage the workspace</span>
+    <div className="auth-card">
+      <div className="auth-card__header">
+        <h1 className="auth-card__title">
+          <span>Create owner</span>
+        </h1>
+        <div className="auth-card__header-text">
+          <span>Create the first user</span>
         </div>
       </div>
-    </section>
+
+      <div className="auth-card__content">
+        {errorMessage ? <p className="auth-card__error">{errorMessage}</p> : null}
+
+        {!showEmailForm ? (
+          <>
+            <AuthProviderActions mode="create" />
+            <div className="auth-card__actions">
+              <button
+                type="button"
+                className="auth-provider-button auth-provider-button--plain"
+                onClick={() => setShowEmailForm(true)}
+              >
+                <span>Continue with Email</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          <CreateForm
+            errorMessage={errorMessage}
+            onSubmit={handleCreateOwner}
+            onBack={() => setShowEmailForm(false)}
+          />
+        )}
+      </div>
+    </div>
   );
 };

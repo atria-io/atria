@@ -23,10 +23,6 @@ export const SetupView = () => {
             Continue
           </button>
         </div>
-
-        <div className="auth-card__footer">
-          <span>Ready to configure your studio</span>
-        </div>
       </div>
     </section>
   );

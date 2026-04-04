@@ -61,52 +61,46 @@ export const LoginView = () => {
   };
 
   return (
-    <section className="auth-screen">
-      <div className="auth-card">
-        <div className="auth-card__header">
-          <h1 className="auth-card__title">
-            <span>Login</span>
-          </h1>
-          <div className="auth-card__header-text">
-            <span>Access your workspace</span>
-          </div>
-        </div>
-
-        {errorMessage ? <p className="auth-card__error">{errorMessage}</p> : null}
-
-        <div className="auth-card__content">
-          {!showEmailForm ? (
-            <>
-              <AuthProviderActions mode="login" />
-              <div className="auth-card__actions">
-                <button
-                  type="button"
-                  className="auth-provider-button auth-provider-button--plain"
-                  onClick={() => {
-                    setErrorMessage(null);
-                    setShowEmailForm(true);
-                  }}
-                >
-                  <span>Continue with Email</span>
-                </button>
-              </div>
-            </>
-          ) : (
-            <LoginForm
-              errorMessage={null}
-              onSubmit={handleLogin}
-              onBack={() => {
-                setErrorMessage(null);
-                setShowEmailForm(false);
-              }}
-            />
-          )}
-        </div>
-
-        <div className="auth-card__footer">
-          <span>Use your owner account credentials</span>
+    <div className="auth-card">
+      <div className="auth-card__header">
+        <h1 className="auth-card__title">
+          <span>Login</span>
+        </h1>
+        <div className="auth-card__header-text">
+          <span>Access your workspace</span>
         </div>
       </div>
-    </section>
+
+      {errorMessage ? <p className="auth-card__error">{errorMessage}</p> : null}
+
+      <div className="auth-card__content">
+        {!showEmailForm ? (
+          <>
+            <AuthProviderActions mode="login" />
+            <div className="auth-card__actions">
+              <button
+                type="button"
+                className="auth-provider-button auth-provider-button--plain"
+                onClick={() => {
+                  setErrorMessage(null);
+                  setShowEmailForm(true);
+                }}
+              >
+                <span>Continue with Email</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          <LoginForm
+            errorMessage={null}
+            onSubmit={handleLogin}
+            onBack={() => {
+              setErrorMessage(null);
+              setShowEmailForm(false);
+            }}
+          />
+        )}
+      </div>
+    </div>
   );
 };

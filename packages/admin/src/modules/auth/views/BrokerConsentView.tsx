@@ -143,10 +143,6 @@ export const BrokerConsentView = () => {
             </>
           )}
         </div>
-
-        <div className="auth-card__footer">
-          <span>Continue after consent confirmation.</span>
-        </div>
       </div>
     </section>
   );
