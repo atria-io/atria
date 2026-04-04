@@ -7,7 +7,7 @@ export const handleAdminRoutes = async (
 ): Promise<boolean> => {
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
 
-  if (request.method === "GET" && pathname === "/admin/bootstrap") {
+  if (request.method === "GET" && pathname === "/api/state") {
     await sendAdminBootstrap(request, response);
     return true;
   }

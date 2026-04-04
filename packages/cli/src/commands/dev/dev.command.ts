@@ -67,7 +67,7 @@ const rootElement = document.getElementById("atria");
 
 const readInitialBootstrap = async () => {
   try {
-    const response = await fetch("/admin/bootstrap", { method: "GET" });
+    const response = await fetch("/api/state", { method: "GET" });
     return {
       ok: response.ok,
       payload: response.ok ? await response.json() : undefined

@@ -73,7 +73,7 @@ export const resolveInitialAppState = (snapshot: InitialBootstrapSnapshot): AppS
 };
 
 export const getAppState = async (_basePath: string): Promise<AppState> => {
-  const response = await fetch("/admin/bootstrap", { method: "GET" });
+  const response = await fetch("/api/state", { method: "GET" });
   if (!response.ok) {
     throw new Error(`Bootstrap request failed with status ${response.status}`);
   }
