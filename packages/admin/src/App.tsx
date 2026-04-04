@@ -11,6 +11,9 @@ export interface AdminAppProps {
 
 export const AdminApp = ({ basePath, initialAppState }: AdminAppProps) => {
   const appState = useAppState(basePath, initialAppState);
+  if (!appState) {
+    return null;
+  }
 
   if (appState.realm === "critical") {
     return <CriticalShell screen={appState.screen} />;

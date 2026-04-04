@@ -3,10 +3,8 @@ import { getAppState } from "./getAppState.js";
 import { getRuntimeFatalState, RUNTIME_FATAL_EVENT } from "../runtime/runtimeFatal.js";
 import type { AppState, CriticalScreen } from "../runtime/runtimeTypes.js";
 
-export const useAppState = (basePath: string, initialAppState?: AppState): AppState => {
-  const [appState, setAppState] = useState<AppState>(
-    initialAppState ?? { realm: "auth", screen: "setup" }
-  );
+export const useAppState = (basePath: string, initialAppState?: AppState): AppState | null => {
+  const [appState, setAppState] = useState<AppState | null>(initialAppState ?? null);
 
   useEffect(() => {
     let isActive = true;
