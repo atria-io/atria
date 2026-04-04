@@ -58,40 +58,6 @@ const mimeTypeByExtension: Record<string, string> = {
   ".woff2": "font/woff2"
 };
 
-const DEFAULT_RUNTIME_APP_SCRIPT = `// This file is auto-generated from "atria dev".
-// Modifications to this file are automatically discarded.
-
-import { mountAdminApp } from "/static/app.js";
-
-const rootElement = document.getElementById("atria");
-
-const readInitialBootstrap = async () => {
-  try {
-    const response = await fetch("/api/state", { method: "GET" });
-    return {
-      ok: response.ok,
-      payload: response.ok ? await response.json() : undefined
-    };
-  } catch {
-    return {
-      ok: false,
-      failed: "network",
-      online: window.navigator.onLine
-    };
-  }
-};
-
-void (async () => {
-  const initialBootstrap = await readInitialBootstrap();
-  mountAdminApp({
-    mountElement: rootElement,
-    basePath: "/",
-    reactStrictMode: false,
-    initialBootstrap
-  });
-})();
-`;
-
 const resolveRuntimeFilePath = (
   runtimeRoot: string,
   adminRuntimeIndexFile: string,
@@ -205,6 +171,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const adminStaticRoot = adminPackagePaths.staticRoot;
   const adminBundleFile = adminPackagePaths.bundleFile;
   const adminRuntimeIndexFile = adminPackagePaths.runtimeIndexFile;
+  const adminStudioAppFile = adminPackagePaths.runtimeAppFile;
   const internalApiPort = adminPort + 1;
   let internalApiServer: Server | null = null;
 
@@ -239,10 +206,24 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
     }
 
     if (pathname === "/app.js" && !existsSync(runtimeAppFile)) {
-      response.statusCode = 200;
-      response.setHeader("Content-Type", "text/javascript; charset=utf-8");
-      response.end(DEFAULT_RUNTIME_APP_SCRIPT);
-      return;
+      try {
+        const content = await fs.readFile(adminStudioAppFile);
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "text/javascript; charset=utf-8");
+        response.end(content);
+        return;
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code === "ENOENT") {
+          response.statusCode = 404;
+          response.end("Not Found");
+          return;
+        }
+
+        response.statusCode = 500;
+        response.end("Internal Server Error");
+        return;
+      }
     }
 
     const runtimeFilePath = resolveRuntimeFilePath(
@@ -316,22 +297,31 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   process.on("SIGTERM", shutdown);
 };
 
-const resolveAdminPackagePaths = (): { staticRoot: string; bundleFile: string; runtimeIndexFile: string } => {
+const resolveAdminPackagePaths = (): {
+  staticRoot: string;
+  bundleFile: string;
+  runtimeIndexFile: string;
+  runtimeAppFile: string;
+} => {
   const require = createRequire(import.meta.url);
   const adminPackageJson = require.resolve("@atria/admin/package.json");
   const adminRoot = path.dirname(adminPackageJson);
+  const runtimeAppFile = path.join(adminRoot, "studio", "app.js");
   const buildCandidate = {
     staticRoot: path.join(adminRoot, "dist", "runtime", "static"),
     bundleFile: path.join(adminRoot, "dist", "app.js"),
     runtimeIndexFile: path.join(adminRoot, "dist", "runtime", "index.htm"),
+    runtimeAppFile,
   };
   const sourceCandidate = {
     staticRoot: path.join(adminRoot, "studio", "static"),
     bundleFile: path.join(adminRoot, "dist", "app.js"),
     runtimeIndexFile: path.join(adminRoot, "studio", "index.htm"),
+    runtimeAppFile,
   };
 
   if (
+    existsSync(buildCandidate.runtimeAppFile) &&
     existsSync(buildCandidate.staticRoot) &&
     existsSync(buildCandidate.bundleFile) &&
     existsSync(buildCandidate.runtimeIndexFile)
@@ -340,6 +330,7 @@ const resolveAdminPackagePaths = (): { staticRoot: string; bundleFile: string; r
   }
 
   if (
+    existsSync(sourceCandidate.runtimeAppFile) &&
     existsSync(sourceCandidate.staticRoot) &&
     existsSync(sourceCandidate.bundleFile) &&
     existsSync(sourceCandidate.runtimeIndexFile)
@@ -348,6 +339,6 @@ const resolveAdminPackagePaths = (): { staticRoot: string; bundleFile: string; r
   }
 
   throw new Error(
-    "Admin runtime not found in @atria/admin (expected static and dist/app.js)."
+    "Admin runtime not found in @atria/admin (expected studio/app.js, static assets and dist/app.js)."
   );
 };
