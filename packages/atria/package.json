@@ -1,6 +1,6 @@
 {
   "name": "atria",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "description": "Unscoped atria CLI wrapper package",
   "keywords": [
     "atria",

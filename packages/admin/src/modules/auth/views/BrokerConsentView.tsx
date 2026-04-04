@@ -16,7 +16,7 @@ export const BrokerConsentView = () => {
     return {
       provider: params.get("provider") ?? "",
       project_id: params.get("project_id") ?? "",
-      broker_consent_token: params.get("broker_consent_token") ?? "",
+      broker_consent_token: params.get("code") ?? params.get("broker_consent_token") ?? "",
       broker_code: params.get("broker_code") ?? "",
     };
   }, []);
@@ -26,6 +26,7 @@ export const BrokerConsentView = () => {
     url.searchParams.delete("screen");
     url.searchParams.delete("provider");
     url.searchParams.delete("project_id");
+    url.searchParams.delete("code");
     url.searchParams.delete("broker_consent_token");
     url.searchParams.delete("broker_code");
     url.searchParams.delete("next");

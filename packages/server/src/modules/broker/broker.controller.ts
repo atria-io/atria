@@ -513,10 +513,10 @@ export const sendBrokerProviderCallback = async (
 
   if (brokerConsentToken !== "") {
     const redirectParams = new URLSearchParams();
-    redirectParams.set("screen", "broker-consent");
+    redirectParams.set("screen", "consent");
     redirectParams.set("provider", callbackProvider);
     redirectParams.set("project_id", projectId);
-    redirectParams.set("broker_consent_token", brokerConsentToken);
+    redirectParams.set("code", brokerConsentToken);
     if (nextPath !== "/") {
       redirectParams.set("next", nextPath);
     }
