@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { promises as fs } from "node:fs";
+import { existsSync, promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { done, doneField, isInteractivePrompt, success, terminal } from "@atria/shared";
@@ -14,10 +14,11 @@ const ATRIA_RUNTIME_DIR = path.join(".atria", "runtime");
 const PUBLIC_OUTPUT_DIR = path.join("production", "public");
 const STUDIO_CONTENT_DIR = path.join("production", "studio", "content");
 const STUDIO_THEME_DIR = path.join("production", "studio", "theme");
-const ADMIN_RUNTIME_SOURCE_DIR = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../admin/studio"
-);
+const CURRENT_MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+const BUNDLED_ADMIN_RUNTIME_SOURCE_DIR = path.resolve(CURRENT_MODULE_DIR, "./runtime");
+const ADMIN_RUNTIME_SOURCE_DIR = existsSync(BUNDLED_ADMIN_RUNTIME_SOURCE_DIR)
+  ? BUNDLED_ADMIN_RUNTIME_SOURCE_DIR
+  : path.resolve(CURRENT_MODULE_DIR, "../../admin/studio");
 
 const DEFAULT_PROJECT_LABEL = "My Studio Project";
 const DEFAULT_PROJECT_DIR = "my-project";

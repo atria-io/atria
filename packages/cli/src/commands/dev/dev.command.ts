@@ -306,18 +306,17 @@ const resolveAdminPackagePaths = (): {
   const require = createRequire(import.meta.url);
   const adminPackageJson = require.resolve("@atria/admin/package.json");
   const adminRoot = path.dirname(adminPackageJson);
-  const runtimeAppFile = path.join(adminRoot, "studio", "app.js");
   const buildCandidate = {
     staticRoot: path.join(adminRoot, "dist", "runtime", "static"),
     bundleFile: path.join(adminRoot, "dist", "app.js"),
     runtimeIndexFile: path.join(adminRoot, "dist", "runtime", "index.htm"),
-    runtimeAppFile,
+    runtimeAppFile: path.join(adminRoot, "dist", "runtime", "app.js"),
   };
   const sourceCandidate = {
     staticRoot: path.join(adminRoot, "studio", "static"),
     bundleFile: path.join(adminRoot, "dist", "app.js"),
     runtimeIndexFile: path.join(adminRoot, "studio", "index.htm"),
-    runtimeAppFile,
+    runtimeAppFile: path.join(adminRoot, "studio", "app.js"),
   };
 
   if (
@@ -339,6 +338,6 @@ const resolveAdminPackagePaths = (): {
   }
 
   throw new Error(
-    "Admin runtime not found in @atria/admin (expected studio/app.js, static assets and dist/app.js)."
+    "Admin runtime not found in @atria/admin (expected runtime app.js, static assets and dist/app.js)."
   );
 };

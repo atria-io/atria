@@ -1,6 +1,6 @@
 {
   "name": "@atria/db",
-  "version": "0.0.1",
+  "version": "0.0.22",
   "description": "Database package",
   "license": "MIT",
   "type": "module",
