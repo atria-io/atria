@@ -49,7 +49,8 @@ const extractTokens = (block, scheme) => {
   return tokens;
 };
 
-const buildRuntimeSource = (tokenMap) => `(() => {
+const buildRuntimeSource = (tokenMap) => `(() => {// This file is auto-generated from "atria dev".
+// Modifications to this file are automatically discarded.
   const TOKENS = ${JSON.stringify(tokenMap)};
   const STORAGE_KEY = "atria:color-scheme";
   const STYLE_ID = "atria-scheme";

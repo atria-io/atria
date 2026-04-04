@@ -5,13 +5,7 @@ export interface AppStatePayload {
   user?: AppUser;
 }
 
-export const getAppState = async (_basePath: string): Promise<AppState> => {
-  const response = await fetch("/admin/bootstrap", { method: "GET" });
-  if (!response.ok) {
-    throw new Error(`Bootstrap request failed with status ${response.status}`);
-  }
-
-  const payload = (await response.json()) as Partial<AppStatePayload>;
+export const resolveAppStateFromPayload = (payload: Partial<AppStatePayload>): AppState => {
   if (
     payload.state === "setup" ||
     payload.state === "create" ||
@@ -42,4 +36,14 @@ export const getAppState = async (_basePath: string): Promise<AppState> => {
   }
 
   return { realm: "auth", screen: "setup" };
+};
+
+export const getAppState = async (_basePath: string): Promise<AppState> => {
+  const response = await fetch("/admin/bootstrap", { method: "GET" });
+  if (!response.ok) {
+    throw new Error(`Bootstrap request failed with status ${response.status}`);
+  }
+
+  const payload = (await response.json()) as Partial<AppStatePayload>;
+  return resolveAppStateFromPayload(payload);
 };

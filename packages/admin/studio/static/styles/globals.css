@@ -14,8 +14,6 @@ body {
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   font-family: var(--font-family);
-  background: var(--boot-bg);
-  color: var(--color-text);
 }
 
 body > div {

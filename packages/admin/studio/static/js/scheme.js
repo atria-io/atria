@@ -1,4 +1,5 @@
-(() => {
+(() => {// This file is auto-generated from "atria dev".
+// Modifications to this file are automatically discarded.
   const TOKENS = {"light":{"background":"#ffffff","boot_track":"#d7dde8","boot_spinner":"#1f2937","text":"#222222","text_muted":"#515870"},"dark":{"background":"#131319","boot_track":"#24252f","boot_spinner":"#8a8a8a","text":"#f3f4f6","text_muted":"#9ca3af"}};
   const STORAGE_KEY = "atria:color-scheme";
   const STYLE_ID = "atria-scheme";
