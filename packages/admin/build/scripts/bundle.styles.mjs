@@ -5,8 +5,9 @@ import { minifyCss } from "./css.minify.mjs";
 
 export const runStyleBundle = async (entryUrl) => {
   const paths = getPaths(entryUrl);
+  const shellFiles = await collectShellStyleFiles(paths.shellStylesDir);
   const files = await collectModuleStyleFiles(paths.modulesDir);
-  const css = await concatCss(paths.baseFile, files);
+  const css = await concatCss(paths.baseFile, shellFiles, files);
   const minified = minifyCss(css);
   await writeFile(paths.outputFile, minified, "utf-8");
 };
@@ -18,10 +19,23 @@ const getPaths = (entryUrl) => {
       ? path.resolve(entryDir, "..", "..")
       : path.resolve(entryDir, "..");
   const modulesDir = path.join(packageRoot, "src", "modules");
+  const shellStylesDir = path.join(packageRoot, "src", "app", "shell", "styles");
   const outputFile = path.join(packageRoot, "dist", "runtime", "static", "styles", "globals.css");
   const baseFile = path.join(packageRoot, "studio", "static", "styles", "globals.css");
 
-  return { modulesDir, outputFile, baseFile };
+  return { modulesDir, shellStylesDir, outputFile, baseFile };
+};
+
+const collectShellStyleFiles = async (shellStylesDir) => {
+  try {
+    const entries = await readdir(shellStylesDir, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".css"))
+      .map((entry) => path.join(shellStylesDir, entry.name))
+      .sort();
+  } catch {
+    return [];
+  }
 };
 
 const collectModuleStyleFiles = async (dir) => {
@@ -49,11 +63,15 @@ const walk = async (dir, out, insideStyleDir) => {
   }
 };
 
-const concatCss = async (baseFile, files) => {
+const concatCss = async (baseFile, shellFiles, moduleFiles) => {
   const parts = [];
   parts.push(await readFile(baseFile, "utf-8"));
 
-  for (const file of files) {
+  for (const file of shellFiles) {
+    parts.push(await readFile(file, "utf-8"));
+  }
+
+  for (const file of moduleFiles) {
     parts.push(await readFile(file, "utf-8"));
   }
 
