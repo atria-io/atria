@@ -3,6 +3,23 @@ import { getAppState } from "./getAppState.js";
 import { getRuntimeFatalState, RUNTIME_FATAL_EVENT } from "../runtime/runtimeFatal.js";
 import type { AppState, CriticalScreen } from "../runtime/runtimeTypes.js";
 
+const areAppStatesEqual = (left: AppState | null, right: AppState): boolean => {
+  if (!left || left.realm !== right.realm || left.screen !== right.screen) {
+    return false;
+  }
+
+  if (left.realm !== "studio" || right.realm !== "studio") {
+    return true;
+  }
+
+  return (
+    left.user.name === right.user.name &&
+    left.user.email === right.user.email &&
+    left.user.avatarUrl === right.user.avatarUrl &&
+    left.user.role === right.user.role
+  );
+};
+
 export const useAppState = (basePath: string, initialAppState?: AppState): AppState | null => {
   const [appState, setAppState] = useState<AppState | null>(initialAppState ?? null);
 
@@ -25,7 +42,7 @@ export const useAppState = (basePath: string, initialAppState?: AppState): AppSt
       try {
         const nextAppState = await getAppState(basePath);
         if (isActive) {
-          setAppState(nextAppState);
+          setAppState((current) => (areAppStatesEqual(current, nextAppState) ? current : nextAppState));
         }
       } catch {
         if (!window.navigator.onLine) {

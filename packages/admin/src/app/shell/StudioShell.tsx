@@ -17,17 +17,15 @@ export const StudioShell = ({ screen, user }: StudioShellProps) => {
     await fetch("/auth/logout", { method: "POST", credentials: "include" });
     window.location.reload();
   };
+  const handleLogoutClick = (): void => {
+    void handleLogout();
+  };
 
-  const content = (() => {
-    switch (screen) {
-      case "dashboard":
-        return <Dashboard />;
-    }
-  })();
+  const content = <Dashboard />;
 
   return (
     <div className="admin-shell" data-route={screen} data-scheme={resolved}>
-      <StudioHeader accountPanel={<StudioAccountPanel user={user} onLogout={() => void handleLogout()} />} />
+      <StudioHeader accountPanel={<StudioAccountPanel user={user} onLogout={handleLogoutClick} />} />
       <StudioMain>{content}</StudioMain>
     </div>
   );

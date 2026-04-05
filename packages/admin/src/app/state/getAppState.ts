@@ -24,10 +24,36 @@ const isApiState = (value: unknown): value is BootstrapState => {
   );
 };
 
+const hasBrokerConsentMarker = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const params = new URL(window.location.href).searchParams;
+  const screen = params.get("screen");
+  if (screen === "broker-consent" || screen === "consent") {
+    return true;
+  }
+
+  return (
+    params.get("code") !== null ||
+    params.get("broker_consent_token") !== null ||
+    params.get("broker_code") !== null
+  );
+};
+
+const applyAuthUrlOverride = (state: AppState): AppState => {
+  if (state.realm === "auth" && hasBrokerConsentMarker()) {
+    return { realm: "auth", screen: "broker-consent" };
+  }
+
+  return state;
+};
+
 export const resolveAppStateFromPayload = (payload: Partial<AppStatePayload>): AppState => {
   if (isApiState(payload.state)) {
     if (payload.state !== "authenticated") {
-      return { realm: "auth", screen: payload.state };
+      return applyAuthUrlOverride({ realm: "auth", screen: payload.state });
     }
 
     const user = payload.user;
@@ -45,10 +71,10 @@ export const resolveAppStateFromPayload = (payload: Partial<AppStatePayload>): A
       };
     }
 
-    return { realm: "auth", screen: "login" };
+    return applyAuthUrlOverride({ realm: "auth", screen: "login" });
   }
 
-  return { realm: "auth", screen: "setup" };
+  return applyAuthUrlOverride({ realm: "auth", screen: "setup" });
 };
 
 export const resolveInitialAppState = (snapshot: InitialBootstrapSnapshot): AppState => {

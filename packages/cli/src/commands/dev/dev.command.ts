@@ -58,6 +58,20 @@ const mimeTypeByExtension: Record<string, string> = {
   ".woff2": "font/woff2"
 };
 
+const hasRequiredAdminRuntimeFiles = (paths: {
+  staticRoot: string;
+  bundleFile: string;
+  runtimeIndexFile: string;
+  runtimeAppFile: string;
+}): boolean => {
+  return (
+    existsSync(paths.runtimeAppFile) &&
+    existsSync(paths.staticRoot) &&
+    existsSync(paths.bundleFile) &&
+    existsSync(paths.runtimeIndexFile)
+  );
+};
+
 const resolveRuntimeFilePath = (
   runtimeRoot: string,
   adminRuntimeIndexFile: string,
@@ -173,6 +187,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const adminRuntimeIndexFile = adminPackagePaths.runtimeIndexFile;
   const adminStudioAppFile = adminPackagePaths.runtimeAppFile;
   const internalApiPort = adminPort + 1;
+  const runtimeAppFile = path.join(runtimeRoot, "app.js");
   let internalApiServer: Server | null = null;
 
   if (!process.env.ATRIA_PROJECT_ID) {
@@ -188,7 +203,6 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const server = createServer(async (request, response) => {
     const requestUrl = request.url ?? "/";
     const pathname = new URL(requestUrl, "http://localhost").pathname;
-    const runtimeAppFile = path.join(runtimeRoot, "app.js");
 
     if (
       pathname.startsWith("/api/") ||
@@ -319,21 +333,11 @@ const resolveAdminPackagePaths = (): {
     runtimeAppFile: path.join(adminRoot, "studio", "app.js"),
   };
 
-  if (
-    existsSync(buildCandidate.runtimeAppFile) &&
-    existsSync(buildCandidate.staticRoot) &&
-    existsSync(buildCandidate.bundleFile) &&
-    existsSync(buildCandidate.runtimeIndexFile)
-  ) {
+  if (hasRequiredAdminRuntimeFiles(buildCandidate)) {
     return buildCandidate;
   }
 
-  if (
-    existsSync(sourceCandidate.runtimeAppFile) &&
-    existsSync(sourceCandidate.staticRoot) &&
-    existsSync(sourceCandidate.bundleFile) &&
-    existsSync(sourceCandidate.runtimeIndexFile)
-  ) {
+  if (hasRequiredAdminRuntimeFiles(sourceCandidate)) {
     return sourceCandidate;
   }
 

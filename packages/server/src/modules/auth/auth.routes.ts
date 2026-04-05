@@ -2,16 +2,30 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { sendAuthCreateOwner, sendAuthLogin, sendAuthLogout } from "./auth.controller.js";
 import { sendBrokerProviderEntry, sendProviderLoginStart } from "../broker/broker.controller.js";
 
+type AuthProvider = "google" | "github";
+
 const getStartMode = (request: IncomingMessage): "login" | "create" => {
   const requestUrl = new URL(request.url ?? "/", "http://localhost");
   const mode = requestUrl.searchParams.get("mode");
   return mode === "create" ? "create" : "login";
 };
 
+const getProviderFromStartPath = (pathname: string): AuthProvider | null => {
+  if (pathname === "/api/auth/start/google") {
+    return "google";
+  }
+
+  if (pathname === "/api/auth/start/github") {
+    return "github";
+  }
+
+  return null;
+};
+
 const handleProviderStartRoute = async (
   request: IncomingMessage,
   response: ServerResponse,
-  provider: "google" | "github"
+  provider: AuthProvider
 ): Promise<void> => {
   if (getStartMode(request) === "create") {
     await sendBrokerProviderEntry(request, response, provider);
@@ -27,13 +41,13 @@ export const handleAuthRoutes = async (
 ): Promise<boolean> => {
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
 
-  if (request.method === "GET" && pathname === "/api/auth/start/google") {
-    await handleProviderStartRoute(request, response, "google");
-    return true;
-  }
+  if (request.method === "GET") {
+    const provider = getProviderFromStartPath(pathname);
+    if (!provider) {
+      return false;
+    }
 
-  if (request.method === "GET" && pathname === "/api/auth/start/github") {
-    await handleProviderStartRoute(request, response, "github");
+    await handleProviderStartRoute(request, response, provider);
     return true;
   }
 
