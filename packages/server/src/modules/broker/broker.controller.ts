@@ -26,6 +26,13 @@ const writeBrokerConfirmError = (
   writeJson(response, statusCode, { ok: false, error } satisfies BrokerConfirmErrorResponse);
 };
 
+const sendOAuthFailureRedirect = (response: ServerResponse, location: string): void => {
+  response.statusCode = 302;
+  response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
+  response.setHeader("Location", location);
+  response.end();
+};
+
 const toStringValue = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 const toNullableString = (value: unknown): string | null => {
   const normalized = toStringValue(value);
@@ -459,20 +466,12 @@ export const sendProviderLoginStart = async (
 ): Promise<void> => {
   const sessionResult = await createSessionFromLinkedProvider(provider);
   if (sessionResult.status === "no-user") {
-    const returnPath = getLoginFailureReturnPath(request);
-    response.statusCode = 302;
-    response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
-    response.setHeader("Location", returnPath);
-    response.end();
+    sendOAuthFailureRedirect(response, getLoginFailureReturnPath(request));
     return;
   }
 
   if (sessionResult.status !== "ok") {
-    const returnPath = getLoginFailureReturnPath(request);
-    response.statusCode = 302;
-    response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
-    response.setHeader("Location", returnPath);
-    response.end();
+    sendOAuthFailureRedirect(response, getLoginFailureReturnPath(request));
     return;
   }
 
@@ -535,27 +534,18 @@ export const sendBrokerProviderCallback = async (
 
   const exchangeResult = await exchangeBrokerCode(brokerCode, projectId);
   if (exchangeResult.status !== "ok") {
-    response.statusCode = 302;
-    response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
-    response.setHeader("Location", "/");
-    response.end();
+    sendOAuthFailureRedirect(response, "/");
     return;
   }
 
   const sessionResult = await createSessionFromBrokerExchange(exchangeResult.profile);
   if (sessionResult.status === "no-user") {
-    response.statusCode = 302;
-    response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
-    response.setHeader("Location", "/");
-    response.end();
+    sendOAuthFailureRedirect(response, "/");
     return;
   }
 
   if (sessionResult.status !== "ok") {
-    response.statusCode = 302;
-    response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
-    response.setHeader("Location", "/");
-    response.end();
+    sendOAuthFailureRedirect(response, "/");
     return;
   }
 

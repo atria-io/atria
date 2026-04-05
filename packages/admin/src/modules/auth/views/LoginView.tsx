@@ -1,42 +1,19 @@
 import { useEffect, useState } from "react";
 import { LoginForm } from "../forms/Login.js";
 import { AuthProviderActions } from "./AuthProviderActions.js";
+import { clearAuthLoginErrorCookie, readAuthLoginErrorCookie } from "./authLoginErrorCookie.js";
 
 const LOGIN_ERROR_MESSAGE = "Could not complete browser sign-in. Please try again.";
-
-const readCookie = (key: string): string | null => {
-  if (typeof document === "undefined") {
-    return null;
-  }
-
-  const prefix = `${key}=`;
-  for (const chunk of document.cookie.split(";")) {
-    const value = chunk.trim();
-    if (value.startsWith(prefix)) {
-      return value.slice(prefix.length);
-    }
-  }
-
-  return null;
-};
-
-const clearCookie = (key: string): void => {
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  document.cookie = `${key}=; Path=/; Max-Age=0`;
-};
 
 export const LoginView = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showEmailForm, setShowEmailForm] = useState(false);
 
   useEffect(() => {
-    const signal = readCookie("atria_login_error");
+    const signal = readAuthLoginErrorCookie();
     if (signal === "oauth_failed") {
       setErrorMessage(LOGIN_ERROR_MESSAGE);
-      clearCookie("atria_login_error");
+      clearAuthLoginErrorCookie();
     }
   }, []);
 

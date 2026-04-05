@@ -109,10 +109,6 @@ const buildRuntimeSource = (tokenMap) => `(() => {// This file is auto-generated
   };
 
   const syncDomScheme = (nextScheme) => {
-    if (document.documentElement.getAttribute("data-scheme") !== nextScheme) {
-      document.documentElement.setAttribute("data-scheme", nextScheme);
-    }
-
     const shellNodes = document.querySelectorAll(".admin-shell[data-scheme]");
     for (const shellNode of shellNodes) {
       if (shellNode.getAttribute("data-scheme") !== nextScheme) {

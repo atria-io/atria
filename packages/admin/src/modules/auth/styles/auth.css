@@ -14,8 +14,8 @@
 .auth-card {
   display: flex;
   flex-direction: column;
-  width: min(17.5rem, 100%);
   transition: opacity var(--duration-fast) var(--easing);
+  width: 17.5rem;
   gap: 2rem;
 }
 
@@ -26,8 +26,8 @@
 }
 
 .auth-card__content {
-  margin-bottom: 3rem;
-  border-radius: var(--radius-sm);
+  margin-bottom: 4vh;
+  border-radius: var(--radius-xs);
   border: var(--border);
   padding: 1.25rem;
 }

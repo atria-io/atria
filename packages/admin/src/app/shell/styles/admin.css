@@ -1,7 +1,20 @@
 .admin-shell {
+  display: flex;
+  flex-direction: column;
   min-height: 100%;
 }
 
+.admin-shell__header {
+  flex: 0 0 auto;
+  padding: 0.75rem;
+  border-bottom: var(--border);
+}
+
 .admin-shell__main {
-  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.studio-account {
+  display: none;
 }

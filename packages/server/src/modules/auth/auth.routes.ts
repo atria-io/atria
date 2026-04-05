@@ -8,6 +8,19 @@ const getStartMode = (request: IncomingMessage): "login" | "create" => {
   return mode === "create" ? "create" : "login";
 };
 
+const handleProviderStartRoute = async (
+  request: IncomingMessage,
+  response: ServerResponse,
+  provider: "google" | "github"
+): Promise<void> => {
+  if (getStartMode(request) === "create") {
+    await sendBrokerProviderEntry(request, response, provider);
+    return;
+  }
+
+  await sendProviderLoginStart(request, response, provider);
+};
+
 export const handleAuthRoutes = async (
   request: IncomingMessage,
   response: ServerResponse
@@ -15,20 +28,12 @@ export const handleAuthRoutes = async (
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
 
   if (request.method === "GET" && pathname === "/api/auth/start/google") {
-    if (getStartMode(request) === "create") {
-      await sendBrokerProviderEntry(request, response, "google");
-    } else {
-      await sendProviderLoginStart(request, response, "google");
-    }
+    await handleProviderStartRoute(request, response, "google");
     return true;
   }
 
   if (request.method === "GET" && pathname === "/api/auth/start/github") {
-    if (getStartMode(request) === "create") {
-      await sendBrokerProviderEntry(request, response, "github");
-    } else {
-      await sendProviderLoginStart(request, response, "github");
-    }
+    await handleProviderStartRoute(request, response, "github");
     return true;
   }
 

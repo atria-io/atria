@@ -20,7 +20,6 @@ body > div {
   display: flex;
   min-height: 100%;
   flex-direction: column;
-  transition: left var(--duration-base) ease;
   position: relative;
   height: 100%;
 }
@@ -98,6 +97,7 @@ button:hover {
 button {
   padding: 0;
   display: flex;
+  color: inherit;
   white-space: nowrap;
   background: initial;
   -webkit-user-select: none;
