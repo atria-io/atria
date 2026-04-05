@@ -14,7 +14,7 @@ export interface InitialBootstrapSnapshot {
   online?: boolean;
 }
 
-const isApiState = (value: unknown): value is BootstrapState => {
+const isBootstrapState = (value: unknown): value is BootstrapState => {
   return (
     value === "setup" ||
     value === "create" ||
@@ -24,7 +24,7 @@ const isApiState = (value: unknown): value is BootstrapState => {
   );
 };
 
-const hasBrokerConsentMarker = (): boolean => {
+const hasBrokerConsentQueryMarker = (): boolean => {
   if (typeof window === "undefined") {
     return false;
   }
@@ -42,8 +42,8 @@ const hasBrokerConsentMarker = (): boolean => {
   );
 };
 
-const applyAuthUrlOverride = (state: AppState): AppState => {
-  if (state.realm === "auth" && hasBrokerConsentMarker()) {
+const applyAuthQueryOverride = (state: AppState): AppState => {
+  if (state.realm === "auth" && hasBrokerConsentQueryMarker()) {
     return { realm: "auth", screen: "broker-consent" };
   }
 
@@ -51,9 +51,9 @@ const applyAuthUrlOverride = (state: AppState): AppState => {
 };
 
 export const resolveAppStateFromPayload = (payload: Partial<AppStatePayload>): AppState => {
-  if (isApiState(payload.state)) {
+  if (isBootstrapState(payload.state)) {
     if (payload.state !== "authenticated") {
-      return applyAuthUrlOverride({ realm: "auth", screen: payload.state });
+      return applyAuthQueryOverride({ realm: "auth", screen: payload.state });
     }
 
     const user = payload.user;
@@ -71,10 +71,10 @@ export const resolveAppStateFromPayload = (payload: Partial<AppStatePayload>): A
       };
     }
 
-    return applyAuthUrlOverride({ realm: "auth", screen: "login" });
+    return applyAuthQueryOverride({ realm: "auth", screen: "login" });
   }
 
-  return applyAuthUrlOverride({ realm: "auth", screen: "setup" });
+  return applyAuthQueryOverride({ realm: "auth", screen: "setup" });
 };
 
 export const resolveInitialAppState = (snapshot: InitialBootstrapSnapshot): AppState => {
@@ -91,7 +91,7 @@ export const resolveInitialAppState = (snapshot: InitialBootstrapSnapshot): AppS
       ? (snapshot.payload as Partial<AppStatePayload>)
       : {};
 
-  if (!isApiState(payload.state)) {
+  if (!isBootstrapState(payload.state)) {
     return { realm: "critical", screen: "server-down" };
   }
 

@@ -21,12 +21,12 @@ export const StudioShell = ({ screen, user }: StudioShellProps) => {
     void handleLogout();
   };
 
-  const content = <Dashboard />;
-
   return (
     <div className="admin-shell" data-route={screen} data-scheme={resolved}>
       <StudioHeader accountPanel={<StudioAccountPanel user={user} onLogout={handleLogoutClick} />} />
-      <StudioMain>{content}</StudioMain>
+      <StudioMain>
+        <Dashboard />
+      </StudioMain>
     </div>
   );
 };

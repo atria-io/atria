@@ -10,7 +10,7 @@ const getStartMode = (request: IncomingMessage): "login" | "create" => {
   return mode === "create" ? "create" : "login";
 };
 
-const getProviderFromStartPath = (pathname: string): AuthProvider | null => {
+const resolveStartProvider = (pathname: string): AuthProvider | null => {
   if (pathname === "/api/auth/start/google") {
     return "google";
   }
@@ -22,7 +22,7 @@ const getProviderFromStartPath = (pathname: string): AuthProvider | null => {
   return null;
 };
 
-const handleProviderStartRoute = async (
+const sendStartRoute = async (
   request: IncomingMessage,
   response: ServerResponse,
   provider: AuthProvider
@@ -42,12 +42,12 @@ export const handleAuthRoutes = async (
   const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
 
   if (request.method === "GET") {
-    const provider = getProviderFromStartPath(pathname);
+    const provider = resolveStartProvider(pathname);
     if (!provider) {
       return false;
     }
 
-    await handleProviderStartRoute(request, response, provider);
+    await sendStartRoute(request, response, provider);
     return true;
   }
 

@@ -3,7 +3,7 @@ import { getAppState } from "./getAppState.js";
 import { getRuntimeFatalState, RUNTIME_FATAL_EVENT } from "../runtime/runtimeFatal.js";
 import type { AppState, CriticalScreen } from "../runtime/runtimeTypes.js";
 
-const areAppStatesEqual = (left: AppState | null, right: AppState): boolean => {
+const isSameAppState = (left: AppState | null, right: AppState): boolean => {
   if (!left || left.realm !== right.realm || left.screen !== right.screen) {
     return false;
   }
@@ -42,7 +42,7 @@ export const useAppState = (basePath: string, initialAppState?: AppState): AppSt
       try {
         const nextAppState = await getAppState(basePath);
         if (isActive) {
-          setAppState((current) => (areAppStatesEqual(current, nextAppState) ? current : nextAppState));
+          setAppState((current) => (isSameAppState(current, nextAppState) ? current : nextAppState));
         }
       } catch {
         if (!window.navigator.onLine) {
