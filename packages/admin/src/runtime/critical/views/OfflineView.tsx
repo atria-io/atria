@@ -1,4 +1,4 @@
-export const OfflineScreen = () => {
+export const OfflineView = () => {
   const handleRetry = (): void => {
     window.location.reload();
   };

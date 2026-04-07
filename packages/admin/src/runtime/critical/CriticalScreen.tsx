@@ -1,19 +1,20 @@
+import type { CriticalScreen as CriticalState } from "../../system/runtimeTypes.js";
+import { OfflineView } from "./views/OfflineView.js";
+import { ServerDownView } from "./views/ServerDownView.js";
+import { CriticalErrorView } from "./views/CriticalErrorView.js";
+
 export interface CriticalScreenProps {
-  message: string;
+  screen: CriticalState;
 }
 
-export const CriticalScreen = ({ message }: CriticalScreenProps) => {
-  const handleRetry = (): void => {
-    window.location.reload();
-  };
+export const CriticalScreen = ({ screen }: CriticalScreenProps) => {
+  if (screen === "offline") {
+    return <OfflineView />;
+  }
 
-  return (
-    <section>
-      <h1>Critical Error</h1>
-      <p>{message}</p>
-      <button type="button" onClick={handleRetry}>
-        Retry
-      </button>
-    </section>
-  );
+  if (screen === "server-down") {
+    return <ServerDownView />;
+  }
+
+  return <CriticalErrorView />;
 };

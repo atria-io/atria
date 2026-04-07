@@ -1,4 +1,4 @@
-export const ServerDownScreen = () => {
+export const ServerDownView = () => {
   const handleRetry = (): void => {
     window.location.reload();
   };
