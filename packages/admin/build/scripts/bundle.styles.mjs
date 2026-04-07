@@ -21,7 +21,7 @@ const getPaths = (entryUrl) => {
   const modulesDir = path.join(packageRoot, "src", "modules");
   const shellStylesDir = path.join(packageRoot, "src", "app", "shell", "styles");
   const outputFile = path.join(packageRoot, "dist", "runtime", "static", "styles", "globals.css");
-  const baseFile = path.join(packageRoot, "studio", "static", "styles", "globals.css");
+  const baseFile = path.join(packageRoot, "public", "static", "styles", "globals.css");
 
   return { modulesDir, shellStylesDir, outputFile, baseFile };
 };
