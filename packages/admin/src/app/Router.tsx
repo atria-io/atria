@@ -3,11 +3,11 @@ import { AuthShell } from "./auth/AuthShell.js";
 import { StudioShell } from "./studio/StudioShell.js";
 import { CriticalShell } from "./critical/CriticalShell.js";
 
-export interface AdminRouterProps {
+export interface RouterProps {
   appState: AppState;
 }
 
-export const AdminRouter = ({ appState }: AdminRouterProps) => {
+export const Router = ({ appState }: RouterProps) => {
   if (appState.realm === "critical") {
     return <CriticalShell screen={appState.screen} />;
   }
