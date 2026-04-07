@@ -1,5 +1,5 @@
-import { Auth } from "./auth/Auth.js";
-import type { AuthScreen } from "../system/runtime/runtimeTypes.js";
+import { Auth } from "./Auth.js";
+import type { AuthScreen } from "../../system/runtime/runtimeTypes.js";
 
 export interface AuthShellProps {
   screen: AuthScreen;

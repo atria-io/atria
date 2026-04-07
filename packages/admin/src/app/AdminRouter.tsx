@@ -1,7 +1,7 @@
 import type { AppState } from "../system/runtime/runtimeTypes.js";
-import { AuthShell } from "./AuthShell.js";
-import { StudioShell } from "./StudioShell.js";
-import { CriticalShell } from "./CriticalShell.js";
+import { AuthShell } from "./auth/AuthShell.js";
+import { StudioShell } from "./studio/StudioShell.js";
+import { CriticalShell } from "./critical/CriticalShell.js";
 
 export interface AdminRouterProps {
   appState: AppState;
