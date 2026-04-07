@@ -1,4 +1,4 @@
-import type { AppUser, StudioScreen } from "../../system/runtime/runtimeTypes.js";
+import type { AppUser, StudioScreen } from "../../system/runtimeTypes.js";
 import { Dashboard } from "./modules/dashboard/Dashboard.js";
 import { StudioAccountPanel } from "./components/StudioAccountPanel.js";
 import { StudioHeader } from "./components/StudioHeader.js";

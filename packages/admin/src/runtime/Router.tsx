@@ -1,4 +1,4 @@
-import type { AppState } from "../system/runtime/runtimeTypes.js";
+import type { AppState } from "../system/runtimeTypes.js";
 import { AuthShell } from "./auth/AuthShell.js";
 import { StudioShell } from "./studio/StudioShell.js";
 import { CriticalShell } from "./critical/CriticalShell.js";

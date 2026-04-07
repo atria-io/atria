@@ -1,4 +1,4 @@
-import type { CriticalScreen as CriticalRealmScreen } from "../../system/runtime/runtimeTypes.js";
+import type { CriticalScreen as CriticalRealmScreen } from "../../system/runtimeTypes.js";
 import { CriticalScreen } from "./screens/CriticalScreen.js";
 import { OfflineScreen } from "./screens/OfflineScreen.js";
 import { ServerDownScreen } from "./screens/ServerDownScreen.js";

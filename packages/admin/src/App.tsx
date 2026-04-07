@@ -1,7 +1,7 @@
-import type { AppState } from "./system/runtime/runtimeTypes.js";
+import type { AppState } from "./system/runtimeTypes.js";
+import { useRuntimeScheme } from "./system/runtimeScheme.js";
 import { useAppState } from "./system/state/useAppState.js";
-import { useRuntimeScheme } from "./system/runtime/runtimeScheme.js";
-import { Router } from "./app/Router.js";
+import { Router } from "./runtime/Router.js";
 
 export interface AdminAppProps {
   basePath: string;
