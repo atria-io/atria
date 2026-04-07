@@ -8,7 +8,7 @@ export interface AuthProps {
   state: AuthState;
 }
 
-export const Auth = ({ state }: AuthProps) => {
+export const AuthScreen = ({ state }: AuthProps) => {
   switch (state) {
     case "setup":
       return <SetupView />;

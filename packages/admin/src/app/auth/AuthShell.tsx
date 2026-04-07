@@ -1,15 +1,15 @@
-import { Auth } from "./Auth.js";
-import type { AuthScreen } from "../../system/runtime/runtimeTypes.js";
+import { AuthScreen } from "./AuthScreen.js";
+import type { AuthScreen as AuthStateScreen } from "../../system/runtime/runtimeTypes.js";
 
 export interface AuthShellProps {
-  screen: AuthScreen;
+  screen: AuthStateScreen;
 }
 
 export const AuthShell = ({ screen }: AuthShellProps) => {
   return (
     <main className="admin-shell__main">
       <section className="auth-screen">
-        <Auth state={screen} />
+        <AuthScreen state={screen} />
       </section>
     </main>
   );
