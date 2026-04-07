@@ -1,8 +1,8 @@
-import type { CriticalScreen as CriticalRealmScreen } from "../runtime/runtimeTypes.js";
-import { useRuntimeScheme } from "../runtime/runtimeScheme.js";
-import { CriticalScreen } from "./screens/CriticalScreen.js";
-import { OfflineScreen } from "./screens/OfflineScreen.js";
-import { ServerDownScreen } from "./screens/ServerDownScreen.js";
+import type { CriticalScreen as CriticalRealmScreen } from "../system/runtime/runtimeTypes.js";
+import { useRuntimeScheme } from "../system/runtime/runtimeScheme.js";
+import { CriticalScreen } from "../realms/critical/screens/CriticalScreen.js";
+import { OfflineScreen } from "../realms/critical/screens/OfflineScreen.js";
+import { ServerDownScreen } from "../realms/critical/screens/ServerDownScreen.js";
 
 export interface CriticalShellProps {
   screen: CriticalRealmScreen;

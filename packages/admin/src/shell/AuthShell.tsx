@@ -1,6 +1,6 @@
-import { Auth } from "../../modules/auth/Auth.js";
-import type { AuthScreen } from "../runtime/runtimeTypes.js";
-import { useRuntimeScheme } from "../runtime/runtimeScheme.js";
+import { Auth } from "../realms/auth/Auth.js";
+import type { AuthScreen } from "../system/runtime/runtimeTypes.js";
+import { useRuntimeScheme } from "../system/runtime/runtimeScheme.js";
 
 export interface AuthShellProps {
   screen: AuthScreen;

@@ -18,8 +18,8 @@ const getPaths = (entryUrl) => {
     path.basename(entryDir) === "scripts"
       ? path.resolve(entryDir, "..", "..")
       : path.resolve(entryDir, "..");
-  const modulesDir = path.join(packageRoot, "src", "modules");
-  const shellStylesDir = path.join(packageRoot, "src", "app", "shell", "styles");
+  const modulesDir = path.join(packageRoot, "src", "realms");
+  const shellStylesDir = path.join(packageRoot, "src", "shell", "styles");
   const outputFile = path.join(packageRoot, "dist", "runtime", "static", "styles", "globals.css");
   const baseFile = path.join(packageRoot, "root", "static", "styles", "globals.css");
 

@@ -1,6 +1,6 @@
-import type { AppUser, StudioScreen } from "../runtime/runtimeTypes.js";
-import { useRuntimeScheme } from "../runtime/runtimeScheme.js";
-import { Dashboard } from "../../modules/dashboard/Dashboard.js";
+import type { AppUser, StudioScreen } from "../system/runtime/runtimeTypes.js";
+import { useRuntimeScheme } from "../system/runtime/runtimeScheme.js";
+import { Dashboard } from "../realms/studio/modules/dashboard/Dashboard.js";
 import { StudioAccountPanel } from "./components/StudioAccountPanel.js";
 import { StudioHeader } from "./components/StudioHeader.js";
 import { StudioMain } from "./layout/StudioMain.js";
