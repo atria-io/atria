@@ -1,8 +1,8 @@
 import type { AuthState } from "./Auth.types.js";
 import { SetupView } from "./views/SetupView.js";
+import { LoginView } from "./views/LoginView.js";
 import { CreateOwnerView } from "./views/CreateOwnerView.js";
 import { BrokerConsentView } from "./views/BrokerConsentView.js";
-import { LoginView } from "./views/LoginView.js";
 
 export interface AuthProps {
   state: AuthState;
