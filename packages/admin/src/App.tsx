@@ -1,8 +1,8 @@
 import type { AppState } from "./system/runtime/runtimeTypes.js";
 import { useAppState } from "./system/state/useAppState.js";
-import { AuthShell } from "./shell/AuthShell.js";
-import { StudioShell } from "./shell/StudioShell.js";
-import { CriticalShell } from "./shell/CriticalShell.js";
+import { AuthShell } from "./realms/auth/AuthShell.js";
+import { StudioShell } from "./realms/studio/StudioShell.js";
+import { CriticalShell } from "./realms/critical/CriticalShell.js";
 
 export interface AdminAppProps {
   basePath: string;
