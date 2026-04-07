@@ -25,7 +25,11 @@ export default {
   },
   plugins: [
     forceProductionNodeEnv(),
-    resolve({ browser: true }),
+    resolve({
+      browser: true,
+      preferBuiltins: false,
+      dedupe: ['react', 'react-dom', 'react/jsx-runtime']
+    }),
     commonjs(),
     terser({
       compress: true,
