@@ -17,7 +17,7 @@ const getBuildPaths = (entryUrl) => {
   const buildDir = path.dirname(fileURLToPath(entryUrl));
   const packageRoot = path.resolve(buildDir, "..");
   const distDir = path.join(packageRoot, "dist");
-  const runtimeSourceDir = path.join(packageRoot, "public");
+  const runtimeSourceDir = path.join(packageRoot, "root");
   const runtimeDistDir = path.join(distDir, "runtime");
   const tscEntry = path.resolve(
     packageRoot,
