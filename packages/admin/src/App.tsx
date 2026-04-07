@@ -1,8 +1,7 @@
 import type { AppState } from "./system/runtime/runtimeTypes.js";
 import { useAppState } from "./system/state/useAppState.js";
-import { AuthShell } from "./app/AuthShell.js";
-import { StudioShell } from "./app/StudioShell.js";
-import { CriticalShell } from "./app/CriticalShell.js";
+import { useRuntimeScheme } from "./system/runtime/runtimeScheme.js";
+import { AdminRouter } from "./app/AdminRouter.js";
 
 export interface AdminAppProps {
   basePath: string;
@@ -11,17 +10,14 @@ export interface AdminAppProps {
 
 export const AdminApp = ({ basePath, initialAppState }: AdminAppProps) => {
   const appState = useAppState(basePath, initialAppState);
+  const resolved = useRuntimeScheme();
   if (!appState) {
     return null;
   }
 
-  if (appState.realm === "critical") {
-    return <CriticalShell screen={appState.screen} />;
-  }
-
-  if (appState.realm === "studio") {
-    return <StudioShell screen={appState.screen} user={appState.user} />;
-  }
-
-  return <AuthShell screen={appState.screen} />;
+  return (
+    <div className="admin-shell" data-scheme={resolved}>
+      <AdminRouter appState={appState} />
+    </div>
+  );
 };
