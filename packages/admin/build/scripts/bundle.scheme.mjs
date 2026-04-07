@@ -17,8 +17,8 @@ const getPaths = (entryUrl) => {
       ? path.resolve(entryDir, "..", "..")
       : path.resolve(entryDir, "..");
 
-  const schemeCssFile = path.join(packageRoot, "root", "static", "styles", "scheme.css");
-  const outputFile = path.join(packageRoot, "root", "static", "js", "scheme.js");
+  const schemeCssFile = path.join(packageRoot, "boot", "static", "styles", "scheme.css");
+  const outputFile = path.join(packageRoot, "boot", "static", "js", "scheme.js");
 
   return { schemeCssFile, outputFile };
 };

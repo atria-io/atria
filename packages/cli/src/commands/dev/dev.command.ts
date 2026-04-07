@@ -327,10 +327,10 @@ const resolveAdminPackagePaths = (): {
     runtimeAppFile: path.join(adminRoot, "dist", "runtime", "app.js"),
   };
   const sourceCandidate = {
-    staticRoot: path.join(adminRoot, "root", "static"),
+    staticRoot: path.join(adminRoot, "boot", "static"),
     bundleFile: path.join(adminRoot, "dist", "app.js"),
-    runtimeIndexFile: path.join(adminRoot, "root", "index.htm"),
-    runtimeAppFile: path.join(adminRoot, "root", "app.js"),
+    runtimeIndexFile: path.join(adminRoot, "boot", "index.htm"),
+    runtimeAppFile: path.join(adminRoot, "boot", "app.js"),
   };
 
   if (hasRequiredAdminRuntimeFiles(buildCandidate)) {
