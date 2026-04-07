@@ -1,4 +1,4 @@
-import type { AuthState } from "./auth.types.js";
+import type { AuthState } from "./Auth.types.js";
 import { SetupView } from "./views/SetupView.js";
 import { CreateOwnerView } from "./views/CreateOwnerView.js";
 import { BrokerConsentView } from "./views/BrokerConsentView.js";
