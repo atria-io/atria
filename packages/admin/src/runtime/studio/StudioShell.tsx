@@ -1,8 +1,7 @@
 import type { AppUser } from "./StudioTypes.js";
 import type { StudioState } from "./StudioTypes.js";
-import { StudioScreen } from "./StudioScreen.js";
-import { StudioAccountPanel } from "./components/StudioAccountPanel.js";
-import { StudioHeader } from "./components/StudioHeader.js";
+import { StudioHeader } from "./header/StudioHeader.js";
+import { StudioMain } from "./main/StudioMain.js";
 
 export interface StudioShellProps {
   screen: StudioState;
@@ -20,10 +19,8 @@ export const StudioShell = ({ screen, user }: StudioShellProps) => {
 
   return (
     <>
-      <StudioHeader accountPanel={<StudioAccountPanel user={user} onLogout={handleLogoutClick} />} />
-      <main className="admin-shell__main">
-        <StudioScreen state={screen} />
-      </main>
+      <StudioHeader user={user} onLogout={handleLogoutClick} />
+      <StudioMain state={screen} />
     </>
   );
 };
