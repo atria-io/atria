@@ -1,12 +1,12 @@
-import type { AppUser } from "../../system/runtimeTypes.js";
-import type { StudioScreen } from "./Studio.types.js";
+import type { StudioState } from "./Studio.types.js";
+import type { AppUser } from "./Studio.types.js";
 import { Dashboard } from "./modules/dashboard/Dashboard.js";
 import { StudioAccountPanel } from "./components/StudioAccountPanel.js";
 import { StudioHeader } from "./components/StudioHeader.js";
 import { StudioMain } from "./layout/StudioMain.js";
 
 export interface StudioShellProps {
-  screen: StudioScreen;
+  screen: StudioState;
   user: AppUser;
 }
 

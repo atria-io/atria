@@ -1,5 +1,5 @@
-import type { CriticalState } from "./Critical.types.js";
 import { CriticalScreen } from "./CriticalScreen.js";
+import type { CriticalState } from "./Critical.types.js";
 
 export interface CriticalShellProps {
   screen: CriticalState;

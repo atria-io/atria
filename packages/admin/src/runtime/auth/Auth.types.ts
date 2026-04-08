@@ -4,6 +4,11 @@ export type AuthState =
   | "login"
   | "broker-consent";
 
+export interface AuthAppState {
+  realm: "auth";
+  screen: AuthState;
+}
+
 export interface AuthProps {
   state: AuthState;
 }
