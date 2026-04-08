@@ -5,6 +5,7 @@
 
   --spacing: 0.25rem;
   --layout-inset: 0.5rem 0.75rem;
+  --layout-gap: 0.5rem;
 
   --duration-fast: 120ms;
   --duration-base: 180ms;

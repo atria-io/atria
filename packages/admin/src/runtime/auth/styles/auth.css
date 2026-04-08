@@ -9,15 +9,15 @@
   display: grid;
   place-items: center;
   padding: var(--layout-inset);
-  gap: 1rem;
+  gap: calc(var(--layout-gap) * 4);
 }
 
 .auth-card {
   display: flex;
   flex-direction: column;
   transition: opacity var(--duration-fast) var(--easing);
+  gap: calc(var(--layout-gap) * 8);
   width: 17.5rem;
-  gap: 2rem;
 }
 
 .auth-card__header-text {
@@ -71,7 +71,7 @@
 
 .auth-card__actions {
   display: grid;
-  gap: 0.5rem;
+  gap: calc(var(--layout-gap) * 2);
 }
 
 .auth-provider-button {
@@ -83,11 +83,11 @@
   background: var(--button-muted);
   transition: background var(--duration-fast) var(--easing),
     color var(--duration-fast) var(--easing);
+  gap: calc(var(--layout-gap) * 2);
+  padding: calc(var(--spacing) * 3);
   border: var(--border);
   position: relative;
-  padding: calc(var(--spacing) * 3);
   width: stretch;
-  gap: 0.5rem;
 }
 
 .auth-provider-button:hover {
