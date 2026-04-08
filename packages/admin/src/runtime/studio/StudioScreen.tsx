@@ -1,11 +1,7 @@
-import type { StudioState } from "./StudioTypes.js";
+import type { StudioProps } from "./StudioTypes.js";
 import { Dashboard } from "./modules/dashboard/Dashboard.js";
 
-export interface StudioScreenProps {
-  state: StudioState;
-}
-
-export const StudioScreen = ({ state }: StudioScreenProps) => {
+export const StudioScreen = ({ state }: StudioProps) => {
   switch (state) {
     case "dashboard":
       return <Dashboard />;

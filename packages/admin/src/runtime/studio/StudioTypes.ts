@@ -13,3 +13,7 @@ export interface StudioAppState {
   screen: StudioState;
   user: AppUser;
 }
+
+export interface StudioProps {
+  state: StudioState;
+}
