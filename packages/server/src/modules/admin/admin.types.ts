@@ -1,4 +1,9 @@
-export type AdminBootstrapState = "setup" | "create" | "login" | "broker-consent" | "authenticated";
+export type AdminBootstrapState =
+  | "setup"
+  | "create"
+  | "login"
+  | "broker-consent"
+  | "authenticated";
 
 export interface AdminBootstrapUserSummary {
   name: string;
