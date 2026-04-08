@@ -1,1 +1,4 @@
-.admin-shell__sidebar {}
+.admin-shell__sidebar {
+  padding: var(--layout-inset);
+  border-right: var(--border);
+}

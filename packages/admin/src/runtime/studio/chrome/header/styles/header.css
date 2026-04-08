@@ -1,6 +1,6 @@
 .admin-shell__header {
   flex: 0 0 auto;
-  padding: 0.5rem 0.75rem;
+  padding: var(--layout-inset);
   border-bottom: var(--border);
 }
 

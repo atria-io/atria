@@ -232,7 +232,7 @@ const startDevServer = () => {
 
   devProcess = spawnProcess(
     "node",
-    [path.join("..", "packages", "cli", "dist", "bin.js"), "dev"],
+    [path.join("..", "packages", "atria", "dist", "bin.js"), "dev"],
     workspaceDir
   );
 
