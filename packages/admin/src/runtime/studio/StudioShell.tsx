@@ -12,7 +12,7 @@ export const StudioShell = ({ screen, user }: StudioShellProps) => {
   return (
     <>
       <StudioHeader account={user} />
-      <StudioSidebar />
+      <StudioSidebar state={screen} />
       <StudioContent state={screen} />
     </>
   );
