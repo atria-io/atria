@@ -1,5 +1,4 @@
-import type { AppUser } from "./StudioTypes.js";
-import type { StudioState } from "./StudioTypes.js";
+import type { AppUser, StudioState } from "./StudioTypes.js";
 import { StudioHeader } from "./chrome/header/StudioHeader.js";
 import { StudioMain } from "./chrome/main/StudioMain.js";
 
@@ -9,17 +8,9 @@ export interface StudioShellProps {
 }
 
 export const StudioShell = ({ screen, user }: StudioShellProps) => {
-  const handleLogout = async (): Promise<void> => {
-    await fetch("/auth/logout", { method: "POST", credentials: "include" });
-    window.location.reload();
-  };
-  const handleLogoutClick = (): void => {
-    void handleLogout();
-  };
-
   return (
     <>
-      <StudioHeader user={user} onLogout={handleLogoutClick} />
+      <StudioHeader account={user} />
       <StudioMain state={screen} />
     </>
   );
