@@ -24,7 +24,7 @@ export const mountAdminApp = (options: MountAdminOptions = {}): void => {
   const root = createRoot(mountElement);
   const initialAppState =
     options.initialBootstrap !== undefined
-      ? resolveInitialAppState(options.initialBootstrap)
+      ? resolveInitialAppState(options.initialBootstrap, basePath)
       : options.initialAppState;
   const app = <App basePath={basePath} initialAppState={initialAppState} />;
 

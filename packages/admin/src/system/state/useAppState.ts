@@ -27,19 +27,7 @@ export const useAppState = (basePath: string, initialAppState?: AppState): AppSt
   useEffect(() => {
     let isActive = true;
 
-    const setCritical = (screen: CriticalState): void => {
-      if (isActive) {
-        setAppState({ realm: "critical", screen });
-      }
-    };
-
-    const handleRuntimeFatal = (event: Event): void => {
-      setCritical(getRuntimeFatalState(event));
-    };
-
-    window.addEventListener(RUNTIME_FATAL_EVENT, handleRuntimeFatal);
-
-    void (async () => {
+    const syncAppState = async (): Promise<void> => {
       try {
         const nextAppState = await getAppState(basePath);
         if (isActive) {
@@ -53,10 +41,30 @@ export const useAppState = (basePath: string, initialAppState?: AppState): AppSt
 
         setCritical("server-down");
       }
-    })();
+    };
+
+    const setCritical = (screen: CriticalState): void => {
+      if (isActive) {
+        setAppState({ realm: "critical", screen });
+      }
+    };
+
+    const handleRuntimeFatal = (event: Event): void => {
+      setCritical(getRuntimeFatalState(event));
+    };
+
+    const handlePopState = (): void => {
+      void syncAppState();
+    };
+
+    window.addEventListener(RUNTIME_FATAL_EVENT, handleRuntimeFatal);
+    window.addEventListener("popstate", handlePopState);
+
+    void syncAppState();
 
     return () => {
       window.removeEventListener(RUNTIME_FATAL_EVENT, handleRuntimeFatal);
+      window.removeEventListener("popstate", handlePopState);
       isActive = false;
     };
   }, [basePath]);

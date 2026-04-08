@@ -1,6 +1,6 @@
 import type { AppState } from "../runtimeTypes.js";
 import type { AuthState } from "../../runtime/auth/AuthTypes.js";
-import type { AppUser } from "../../runtime/studio/StudioTypes.js";
+import type { AppUser, StudioState } from "../../runtime/studio/StudioTypes.js";
 
 export interface AppStatePayload {
   state: AuthState | "authenticated";
@@ -52,7 +52,28 @@ const applyAuthQueryOverride = (state: AppState): AppState => {
   return state;
 };
 
-export const resolveAppStateFromPayload = (payload: Partial<AppStatePayload>): AppState => {
+const resolveStudioScreenFromLocation = (basePath: string): StudioState => {
+  if (typeof window === "undefined") {
+    return "dashboard";
+  }
+
+  const normalizedBasePath = basePath === "/" ? "" : basePath.replace(/\/+$/, "");
+  const rawPathname = window.location.pathname;
+  const pathname = normalizedBasePath && rawPathname.startsWith(normalizedBasePath)
+    ? rawPathname.slice(normalizedBasePath.length) || "/"
+    : rawPathname;
+
+  if (pathname === "/pages") {
+    return "pages";
+  }
+
+  return "dashboard";
+};
+
+export const resolveAppStateFromPayload = (
+  payload: Partial<AppStatePayload>,
+  basePath: string
+): AppState => {
   if (isBootstrapState(payload.state)) {
     if (payload.state !== "authenticated") {
       return applyAuthQueryOverride({ realm: "auth", screen: payload.state });
@@ -68,7 +89,7 @@ export const resolveAppStateFromPayload = (payload: Partial<AppStatePayload>): A
     ) {
       return {
         realm: "studio",
-        screen: "dashboard",
+        screen: resolveStudioScreenFromLocation(basePath),
         user,
       };
     }
@@ -79,7 +100,7 @@ export const resolveAppStateFromPayload = (payload: Partial<AppStatePayload>): A
   return applyAuthQueryOverride({ realm: "auth", screen: "setup" });
 };
 
-export const resolveInitialAppState = (snapshot: InitialBootstrapSnapshot): AppState => {
+export const resolveInitialAppState = (snapshot: InitialBootstrapSnapshot, basePath = "/"): AppState => {
   if (!snapshot.ok) {
     if (snapshot.failed === "network" && snapshot.online === false) {
       return { realm: "critical", screen: "offline" };
@@ -97,15 +118,15 @@ export const resolveInitialAppState = (snapshot: InitialBootstrapSnapshot): AppS
     return { realm: "critical", screen: "server-down" };
   }
 
-  return resolveAppStateFromPayload(payload);
+  return resolveAppStateFromPayload(payload, basePath);
 };
 
-export const getAppState = async (_basePath: string): Promise<AppState> => {
+export const getAppState = async (basePath: string): Promise<AppState> => {
   const response = await fetch("/api/state", { method: "GET" });
   if (!response.ok) {
     throw new Error(`Api request failed with status ${response.status}`);
   }
 
   const payload = (await response.json()) as Partial<AppStatePayload>;
-  return resolveAppStateFromPayload(payload);
+  return resolveAppStateFromPayload(payload, basePath);
 };
