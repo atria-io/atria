@@ -4,7 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const runtimeSourceDir = path.join(packageRoot, "..", "admin", "studio");
+const runtimeSourceDir = path.join(packageRoot, "..", "admin", "boot");
 const runtimeTargetDir = path.join(packageRoot, "dist", "runtime");
 
 if (!existsSync(runtimeSourceDir)) {

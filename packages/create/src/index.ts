@@ -18,7 +18,7 @@ const CURRENT_MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const BUNDLED_ADMIN_RUNTIME_SOURCE_DIR = path.resolve(CURRENT_MODULE_DIR, "./runtime");
 const ADMIN_RUNTIME_SOURCE_DIR = existsSync(BUNDLED_ADMIN_RUNTIME_SOURCE_DIR)
   ? BUNDLED_ADMIN_RUNTIME_SOURCE_DIR
-  : path.resolve(CURRENT_MODULE_DIR, "../../admin/studio");
+  : path.resolve(CURRENT_MODULE_DIR, "../../admin/boot");
 
 const DEFAULT_PROJECT_LABEL = "My Studio Project";
 const DEFAULT_PROJECT_DIR = "my-project";
