@@ -1,5 +1,5 @@
-import type { StudioState } from "./Studio.types.js";
-import type { AppUser } from "./Studio.types.js";
+import type { AppUser } from "./StudioTypes.js";
+import type { StudioState } from "./StudioTypes.js";
 import { Dashboard } from "./modules/dashboard/Dashboard.js";
 import { StudioAccountPanel } from "./components/StudioAccountPanel.js";
 import { StudioHeader } from "./components/StudioHeader.js";

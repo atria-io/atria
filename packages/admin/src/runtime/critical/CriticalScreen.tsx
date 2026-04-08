@@ -1,4 +1,4 @@
-import type { CriticalProps } from "./Critical.types.js";
+import type { CriticalProps } from "./CriticalTypes.js";
 import { OfflineView } from "./views/OfflineView.js";
 import { ServerDownView } from "./views/ServerDownView.js";
 import { CriticalErrorView } from "./views/CriticalErrorView.js";

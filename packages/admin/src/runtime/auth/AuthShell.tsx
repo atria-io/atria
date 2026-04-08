@@ -1,5 +1,5 @@
+import type { AuthState } from "./AuthTypes.js";
 import { AuthScreen } from "./AuthScreen.js";
-import type { AuthState } from "./Auth.types.js";
 
 export interface AuthShellProps {
   screen: AuthState;
