@@ -1,14 +1,14 @@
-import type { CriticalScreen as CriticalScreenState } from "./Critical.types.js";
+import type { CriticalState } from "./Critical.types.js";
 import { CriticalScreen } from "./CriticalScreen.js";
 
 export interface CriticalShellProps {
-  screen: CriticalScreenState;
+  screen: CriticalState;
 }
 
 export const CriticalShell = ({ screen }: CriticalShellProps) => {
   return (
     <main className="admin-shell__main">
-      <CriticalScreen screen={screen} />
+      <CriticalScreen state={screen} />
     </main>
   );
 };

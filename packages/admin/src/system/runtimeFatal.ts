@@ -1,13 +1,13 @@
-import type { CriticalScreen } from "./runtimeTypes.js";
+import type { CriticalState } from "./runtimeTypes.js";
 
 export const RUNTIME_FATAL_EVENT = "atria:runtime:fatal";
 
 export interface RuntimeFatalDetail {
-  state?: CriticalScreen;
+  state?: CriticalState;
   message?: string;
 }
 
-const readRuntimeFatalStateKind = (event: Event): CriticalScreen | null => {
+const readRuntimeFatalStateKind = (event: Event): CriticalState | null => {
   const detail = (event as CustomEvent<RuntimeFatalDetail | undefined>).detail;
   if (!detail || typeof detail !== "object") {
     return null;
@@ -20,6 +20,6 @@ const readRuntimeFatalStateKind = (event: Event): CriticalScreen | null => {
   return null;
 };
 
-export const getRuntimeFatalState = (event: Event): CriticalScreen => {
+export const getRuntimeFatalState = (event: Event): CriticalState => {
   return readRuntimeFatalStateKind(event) ?? "critical";
 };

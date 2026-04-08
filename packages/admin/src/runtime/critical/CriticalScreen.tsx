@@ -1,18 +1,14 @@
-import type { CriticalScreen as CriticalScreenState } from "./Critical.types.js";
+import type { CriticalProps } from "./Critical.types.js";
 import { OfflineView } from "./views/OfflineView.js";
 import { ServerDownView } from "./views/ServerDownView.js";
 import { CriticalErrorView } from "./views/CriticalErrorView.js";
 
-export interface CriticalScreenProps {
-  screen: CriticalScreenState;
-}
-
-export const CriticalScreen = ({ screen }: CriticalScreenProps) => {
-  if (screen === "offline") {
+export const CriticalScreen = ({ state }: CriticalProps) => {
+  if (state === "offline") {
     return <OfflineView />;
   }
 
-  if (screen === "server-down") {
+  if (state === "server-down") {
     return <ServerDownView />;
   }
 

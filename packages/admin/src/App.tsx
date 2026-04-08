@@ -11,6 +11,7 @@ export interface AdminAppProps {
 export const AdminApp = ({ basePath, initialAppState }: AdminAppProps) => {
   const appState = useAppState(basePath, initialAppState);
   const resolved = useRuntimeScheme();
+
   if (!appState) {
     return null;
   }
