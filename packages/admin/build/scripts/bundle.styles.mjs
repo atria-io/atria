@@ -6,7 +6,7 @@ import { minifyCss } from "./css.minify.mjs";
 export const runStyleBundle = async (entryUrl) => {
   const paths = getPaths(entryUrl);
   const files = await collectModuleStyleFiles(paths.modulesDir);
-  const css = await concatCss(paths.baseFile, files);
+  const css = await concatCss(paths.baseAdminFile, files);
   const minified = minifyCss(css);
   await writeFile(paths.outputFile, minified, "utf-8");
 };
@@ -19,9 +19,9 @@ const getPaths = (entryUrl) => {
       : path.resolve(entryDir, "..");
   const modulesDir = path.join(packageRoot, "src", "runtime");
   const outputFile = path.join(packageRoot, "dist", "runtime", "static", "styles", "globals.css");
-  const baseFile = path.join(packageRoot, "boot", "static", "styles", "globals.css");
+  const baseAdminFile = path.join(packageRoot, "boot", "static", "styles", "admin.css");
 
-  return { modulesDir, outputFile, baseFile };
+  return { modulesDir, outputFile, baseAdminFile };
 };
 
 const collectModuleStyleFiles = async (dir) => {
@@ -49,9 +49,9 @@ const walk = async (dir, out, insideStyleDir) => {
   }
 };
 
-const concatCss = async (baseFile, files) => {
+const concatCss = async (baseAdminFile, files) => {
   const parts = [];
-  parts.push(await readFile(baseFile, "utf-8"));
+  parts.push(await readFile(baseAdminFile, "utf-8"));
 
   for (const file of files) {
     parts.push(await readFile(file, "utf-8"));
