@@ -1,8 +1,8 @@
-import type { CriticalScreen as CriticalRealmScreen } from "../../system/runtimeTypes.js";
+import type { CriticalScreen as CriticalScreenState } from "./Critical.types.js";
 import { CriticalScreen } from "./CriticalScreen.js";
 
 export interface CriticalShellProps {
-  screen: CriticalRealmScreen;
+  screen: CriticalScreenState;
 }
 
 export const CriticalShell = ({ screen }: CriticalShellProps) => {

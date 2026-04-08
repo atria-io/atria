@@ -1,10 +1,10 @@
-import type { CriticalScreen as CriticalState } from "../../system/runtimeTypes.js";
+import type { CriticalScreen as CriticalScreenState } from "./Critical.types.js";
 import { OfflineView } from "./views/OfflineView.js";
 import { ServerDownView } from "./views/ServerDownView.js";
 import { CriticalErrorView } from "./views/CriticalErrorView.js";
 
 export interface CriticalScreenProps {
-  screen: CriticalState;
+  screen: CriticalScreenState;
 }
 
 export const CriticalScreen = ({ screen }: CriticalScreenProps) => {
