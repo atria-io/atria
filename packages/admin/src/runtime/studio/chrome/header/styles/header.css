@@ -1,0 +1,9 @@
+.admin-shell__header {
+  flex: 0 0 auto;
+  padding: 0.5rem 0.75rem;
+  border-bottom: var(--border);
+}
+
+.studio-account {
+  display: none;
+}

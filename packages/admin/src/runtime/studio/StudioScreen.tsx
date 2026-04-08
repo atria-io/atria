@@ -1,13 +1,13 @@
 import type { StudioProps } from "./StudioTypes.js";
-import { Dashboard } from "./modules/dashboard/Dashboard.js";
-import { Pages } from "./modules/pages/Pages.js";
+import { DashboardView } from "./modules/dashboard/DashboardView.js";
+import { PagesView } from "./modules/pages/PagesView.js";
 
 export const StudioScreen = ({ state }: StudioProps) => {
   switch (state) {
     case "dashboard":
-      return <Dashboard />;
+      return <DashboardView />;
 
     case "pages":
-      return <Pages />;
+      return <PagesView />;
   }
 };
