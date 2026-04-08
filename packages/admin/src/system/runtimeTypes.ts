@@ -2,10 +2,6 @@ import type { AuthState } from "../runtime/auth/Auth.types.js";
 import type { CriticalState } from "../runtime/critical/Critical.types.js";
 import type { StudioScreen } from "../runtime/studio/Studio.types.js";
 
-export type { AuthState } from "../runtime/auth/Auth.types.js";
-export type { CriticalState } from "../runtime/critical/Critical.types.js";
-export type { StudioScreen } from "../runtime/studio/Studio.types.js";
-
 export interface AppUser {
   name: string;
   email: string;
