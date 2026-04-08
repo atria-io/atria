@@ -1,7 +1,8 @@
-import type { AppState, AppUser, AuthScreen } from "../runtimeTypes.js";
+import type { AppState, AppUser } from "../runtimeTypes.js";
+import type { AuthState } from "../../runtime/auth/Auth.types.js";
 
 export interface AppStatePayload {
-  state: AuthScreen | "authenticated";
+  state: AuthState | "authenticated";
   user?: AppUser;
 }
 

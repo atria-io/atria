@@ -1,10 +1,10 @@
-import type { AuthScreen as RuntimeAuthScreen } from "../runtime/auth/Auth.types.js";
-import type { CriticalScreen as RuntimeCriticalScreen } from "../runtime/critical/Critical.types.js";
-import type { StudioScreen as RuntimeStudioScreen } from "../runtime/studio/Studio.types.js";
+import type { AuthState } from "../runtime/auth/Auth.types.js";
+import type { CriticalScreen } from "../runtime/critical/Critical.types.js";
+import type { StudioScreen } from "../runtime/studio/Studio.types.js";
 
-export type CriticalScreen = RuntimeCriticalScreen;
-export type AuthScreen = RuntimeAuthScreen;
-export type StudioScreen = RuntimeStudioScreen;
+export type { AuthState } from "../runtime/auth/Auth.types.js";
+export type { CriticalScreen } from "../runtime/critical/Critical.types.js";
+export type { StudioScreen } from "../runtime/studio/Studio.types.js";
 
 export interface AppUser {
   name: string;
@@ -20,7 +20,7 @@ export interface CriticalAppState {
 
 export interface AuthAppState {
   realm: "auth";
-  screen: AuthScreen;
+  screen: AuthState;
 }
 
 export interface StudioAppState {

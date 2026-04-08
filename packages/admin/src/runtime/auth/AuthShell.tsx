@@ -1,8 +1,8 @@
 import { AuthScreen } from "./AuthScreen.js";
-import type { AuthScreen as AuthStateScreen } from "../../system/runtimeTypes.js";
+import type { AuthState } from "./Auth.types.js";
 
 export interface AuthShellProps {
-  screen: AuthStateScreen;
+  screen: AuthState;
 }
 
 export const AuthShell = ({ screen }: AuthShellProps) => {

@@ -1,5 +1,5 @@
-export type AuthScreen = "setup" | "create" | "login" | "broker-consent";
+export type AuthState = "setup" | "create" | "login" | "broker-consent";
 
 export interface AuthProps {
-  state: AuthScreen;
+  state: AuthState;
 }
