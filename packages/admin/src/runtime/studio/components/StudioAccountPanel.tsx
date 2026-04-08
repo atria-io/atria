@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { AppUser } from "../../../system/runtimeTypes.js";
+import type { AppUser } from "../StudioTypes.js";
 import { useRuntimeScheme } from "../../../system/runtimeScheme.js";
 
 type SchemeMode = "system" | "light" | "dark";
