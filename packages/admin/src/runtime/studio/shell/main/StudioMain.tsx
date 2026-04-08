@@ -1,4 +1,4 @@
-import type { StudioProps } from "../StudioTypes.js";
+import type { StudioProps } from "../../StudioTypes.js";
 import { StudioSidebar } from "./StudioSidebar.js";
 import { StudioContent } from "./StudioContent.js";
 

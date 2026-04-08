@@ -1,4 +1,4 @@
-import type { AppUser } from "../StudioTypes.js";
+import type { AppUser } from "../../StudioTypes.js";
 import { StudioAccountPanel } from "./StudioAccountPanel.js";
 
 export interface StudioHeaderProps {
