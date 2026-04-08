@@ -1,7 +1,7 @@
 import type { AppUser } from "./StudioTypes.js";
 import type { StudioState } from "./StudioTypes.js";
-import { StudioHeader } from "./shell/header/StudioHeader.js";
-import { StudioMain } from "./shell/main/StudioMain.js";
+import { StudioHeader } from "./chrome/header/StudioHeader.js";
+import { StudioMain } from "./chrome/main/StudioMain.js";
 
 export interface StudioShellProps {
   screen: StudioState;
