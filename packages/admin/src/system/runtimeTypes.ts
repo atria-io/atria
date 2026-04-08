@@ -1,5 +1,7 @@
+import type { AuthScreen as RuntimeAuthScreen } from "../runtime/auth/Auth.types.js";
+
 export type CriticalScreen = "critical" | "offline" | "server-down";
-export type AuthScreen = "setup" | "create" | "login" | "broker-consent";
+export type AuthScreen = RuntimeAuthScreen;
 export type StudioScreen = "dashboard";
 
 export interface AppUser {

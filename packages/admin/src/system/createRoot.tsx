@@ -1,9 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { AdminApp } from "../App.js";
 import type { AppState } from "./runtimeTypes.js";
-import { resolveInitialAppState } from "./state/getAppState.js";
 import type { InitialBootstrapSnapshot } from "./state/getAppState.js";
+import { resolveInitialAppState } from "./state/getAppState.js";
+import { AdminApp } from "../App.js";
 
 export interface MountAdminOptions {
   mountElement?: Element | null;
