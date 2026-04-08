@@ -1,9 +1,10 @@
 import type { AuthScreen as RuntimeAuthScreen } from "../runtime/auth/Auth.types.js";
 import type { CriticalScreen as RuntimeCriticalScreen } from "../runtime/critical/Critical.types.js";
+import type { StudioScreen as RuntimeStudioScreen } from "../runtime/studio/Studio.types.js";
 
 export type CriticalScreen = RuntimeCriticalScreen;
 export type AuthScreen = RuntimeAuthScreen;
-export type StudioScreen = "dashboard";
+export type StudioScreen = RuntimeStudioScreen;
 
 export interface AppUser {
   name: string;
