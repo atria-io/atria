@@ -1,10 +1,16 @@
 import type { StudioProps } from "../StudioTypes.js";
-import { StudioScreen } from "../StudioScreen.js";
+import { Dashboard } from "../modules/dashboard/Dashboard.js";
+import { Pages } from "../modules/pages/Pages.js";
 
 export const StudioContent = ({ state }: StudioProps) => {
-  return (
-    <main className="admin-shell__main">
-      <StudioScreen state={state} />
-    </main>
-  );
+  switch (state) {
+    case "dashboard":
+      return <Dashboard />;
+
+    case "pages":
+      return <Pages />;
+
+    default:
+      return null;
+  }
 };
