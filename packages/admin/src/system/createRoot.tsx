@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import type { AppState } from "./runtimeTypes.js";
 import type { InitialBootstrapSnapshot } from "./state/getAppState.js";
 import { resolveInitialAppState } from "./state/getAppState.js";
-import { AdminApp } from "../App.js";
+import { App } from "../App.js";
 
 export interface MountAdminOptions {
   mountElement?: Element | null;
@@ -26,7 +26,7 @@ export const mountAdminApp = (options: MountAdminOptions = {}): void => {
     options.initialBootstrap !== undefined
       ? resolveInitialAppState(options.initialBootstrap)
       : options.initialAppState;
-  const app = <AdminApp basePath={basePath} initialAppState={initialAppState} />;
+  const app = <App basePath={basePath} initialAppState={initialAppState} />;
 
   if (options.reactStrictMode === true) {
     root.render(<StrictMode>{app}</StrictMode>);

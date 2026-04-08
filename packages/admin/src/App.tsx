@@ -2,14 +2,14 @@ import type { AppState } from "./system/runtimeTypes.js";
 import { useRuntimeScheme } from "./system/runtimeScheme.js";
 import { useAppState } from "./system/state/useAppState.js";
 
-import { AdminRouter } from "./runtime/Router.js";
+import { Router } from "./runtime/Router.js";
 
-export interface AdminAppProps {
+export interface AppProps {
   basePath: string;
   initialAppState?: AppState;
 }
 
-export const AdminApp = ({ basePath, initialAppState }: AdminAppProps) => {
+export const App = ({ basePath, initialAppState }: AppProps) => {
   const appState = useAppState(basePath, initialAppState);
   const resolved = useRuntimeScheme();
 
@@ -19,7 +19,7 @@ export const AdminApp = ({ basePath, initialAppState }: AdminAppProps) => {
 
   return (
     <div className="admin-shell" data-scheme={resolved}>
-      <AdminRouter appState={appState} />
+      <Router appState={appState} />
     </div>
   );
 };

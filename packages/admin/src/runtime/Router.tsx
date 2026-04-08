@@ -7,7 +7,7 @@ export interface RouterProps {
   appState: AppState;
 }
 
-export const AdminRouter = ({ appState }: RouterProps) => {
+export const Router = ({ appState }: RouterProps) => {
   if (appState.realm === "critical") {
     return <CriticalShell screen={appState.screen} />;
   }
