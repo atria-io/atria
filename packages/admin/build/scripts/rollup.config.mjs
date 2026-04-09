@@ -2,15 +2,9 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import { createRequire } from 'node:module';
-import { createHash } from 'node:crypto';
+import { md5 } from '../../../shared/src/hash/md5.ts';
 
 const require = createRequire(import.meta.url);
-
-const md5 = (value) =>
-  createHash('md5')
-    .update(value || '')
-    .digest('hex')
-    .slice(0, 8);
 
 const lowercaseChunkNames = () => ({
   name: 'lowercase-chunk-names',
@@ -24,7 +18,7 @@ const lowercaseChunkNames = () => ({
 
       const previousFileName = file.fileName;
       const original = file.fileName;
-      const nextFileName = `${md5(original)}.js`;
+      const nextFileName = `${md5(original).slice(0, 8)}.js`;
 
       file.fileName = nextFileName;
       renamed.set(previousFileName, nextFileName);
