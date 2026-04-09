@@ -2,8 +2,16 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 
 const require = createRequire(import.meta.url);
+
+const hashName = (name) => {
+  return createHash('md5')
+    .update(name)
+    .digest('hex')
+    .slice(0, 8);
+};
 
 const forceProductionNodeEnv = () => ({
   name: 'force-production-node-env',
@@ -42,7 +50,12 @@ export default {
     format: 'esm',
     sourcemap: 'hidden',
     entryFileNames: 'app.js',
-    chunkFileNames: '[name]-[hash].js',
+    chunkFileNames(chunk) {
+      const name = chunk.name || 'chunk';
+      const md5 = hashName(name);
+
+      return `${md5}[hash].js`;
+    },
     manualChunks(id) {
       if (id.includes('/node_modules/')) {
         return 'vendor';
