@@ -3,11 +3,13 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { mkdir, rm, cp, readFile } from "node:fs/promises";
 import { writeMinifiedCss } from "./css.minify.mjs";
+import { transformRuntimeBoundaries } from "./transform.runtime-boundaries.mjs";
 
 export const runAdminBuild = async (entryUrl) => {
   const paths = getBuildPaths(entryUrl);
   await prepareDistDirectory(paths.distDir);
   await buildSource(paths.packageRoot, paths.tscEntry);
+  await transformRuntimeBoundaries(paths.packageRoot);
   await bundleApp(paths.packageRoot, paths.rollupEntry, paths.rollupConfig);
   await copyRuntime(paths.runtimeSourceDir, paths.runtimeDistDir);
   await minifyRuntimeStyles(paths.runtimeDistDir);

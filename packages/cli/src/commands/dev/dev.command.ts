@@ -77,6 +77,7 @@ const resolveRuntimeFilePath = (
   adminRuntimeIndexFile: string,
   adminStaticRoot: string,
   adminBundleFile: string,
+  adminBundleRoot: string,
   urlPath: string
 ): string | null => {
   const runtimeIndexFile = path.join(runtimeRoot, "index.htm");
@@ -100,7 +101,18 @@ const resolveRuntimeFilePath = (
       candidatePath === adminStaticRootPath ||
       candidatePath.startsWith(`${adminStaticRootPath}${path.sep}`)
     ) {
-      return candidatePath;
+      if (existsSync(candidatePath)) {
+        return candidatePath;
+      }
+    }
+
+    const bundleCandidatePath = path.resolve(adminBundleRoot, `.${urlPath.slice("/static".length)}`);
+    const adminBundleRootPath = path.resolve(adminBundleRoot);
+    if (
+      bundleCandidatePath === adminBundleRootPath ||
+      bundleCandidatePath.startsWith(`${adminBundleRootPath}${path.sep}`)
+    ) {
+      return bundleCandidatePath;
     }
   }
 
@@ -184,6 +196,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const adminPackagePaths = resolveAdminPackagePaths();
   const adminStaticRoot = adminPackagePaths.staticRoot;
   const adminBundleFile = adminPackagePaths.bundleFile;
+  const adminBundleRoot = path.dirname(adminBundleFile);
   const adminRuntimeIndexFile = adminPackagePaths.runtimeIndexFile;
   const adminStudioAppFile = adminPackagePaths.runtimeAppFile;
   const internalApiPort = adminPort + 1;
@@ -245,6 +258,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
       adminRuntimeIndexFile,
       adminStaticRoot,
       adminBundleFile,
+      adminBundleRoot,
       pathname
     );
 
@@ -322,13 +336,13 @@ const resolveAdminPackagePaths = (): {
   const adminRoot = path.dirname(adminPackageJson);
   const buildCandidate = {
     staticRoot: path.join(adminRoot, "dist", "runtime", "static"),
-    bundleFile: path.join(adminRoot, "dist", "app.js"),
+    bundleFile: path.join(adminRoot, "dist", "static", "app.js"),
     runtimeIndexFile: path.join(adminRoot, "dist", "runtime", "index.htm"),
     runtimeAppFile: path.join(adminRoot, "dist", "runtime", "app.js"),
   };
   const sourceCandidate = {
     staticRoot: path.join(adminRoot, "boot", "static"),
-    bundleFile: path.join(adminRoot, "dist", "app.js"),
+    bundleFile: path.join(adminRoot, "dist", "static", "app.js"),
     runtimeIndexFile: path.join(adminRoot, "boot", "index.htm"),
     runtimeAppFile: path.join(adminRoot, "boot", "app.js"),
   };
@@ -342,6 +356,6 @@ const resolveAdminPackagePaths = (): {
   }
 
   throw new Error(
-    "Admin runtime not found in @atria/admin (expected runtime app.js, static assets and dist/app.js)."
+    "Admin runtime not found in @atria/admin (expected runtime app.js, static assets and dist/static/app.js)."
   );
 };

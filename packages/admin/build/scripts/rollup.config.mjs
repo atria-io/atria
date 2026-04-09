@@ -38,9 +38,38 @@ const resolveReactRuntime = () => ({
 export default {
   input: 'dist/system/createRoot.js',
   output: {
-    file: 'dist/app.js',
+    dir: 'dist/static',
     format: 'esm',
-    sourcemap: 'hidden'
+    sourcemap: 'hidden',
+    entryFileNames: 'app.js',
+    chunkFileNames: '[name]-[hash].js',
+    manualChunks(id) {
+      if (id.includes('/node_modules/')) {
+        return 'vendor';
+      }
+
+      const moduleMatch = id.match(/\/runtime\/studio\/modules\/([^/]+)\//);
+      if (moduleMatch) {
+        return moduleMatch[1];
+      }
+
+      const realmDirMatch = id.match(/\/runtime\/([^/.]+)\//);
+      if (realmDirMatch && realmDirMatch[1] !== 'studio') {
+        return realmDirMatch[1];
+      }
+
+      const screenMatch = id.match(/\/([A-Za-z]+)Screen\.js$/);
+      if (screenMatch) {
+        const realm = screenMatch[1].replace(/Screen$/, '').toLowerCase();
+        return realm === 'studio' ? 'studio' : realm;
+      }
+
+      if (id.includes('/runtime/studio/')) {
+        return 'studio';
+      }
+
+      return null;
+    }
   },
   plugins: [
     forceProductionNodeEnv(),
