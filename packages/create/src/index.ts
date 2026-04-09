@@ -18,7 +18,7 @@ const CURRENT_MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const BUNDLED_ADMIN_RUNTIME_SOURCE_DIR = path.resolve(CURRENT_MODULE_DIR, "./runtime");
 const ADMIN_RUNTIME_SOURCE_DIR = existsSync(BUNDLED_ADMIN_RUNTIME_SOURCE_DIR)
   ? BUNDLED_ADMIN_RUNTIME_SOURCE_DIR
-  : path.resolve(CURRENT_MODULE_DIR, "../../admin/boot");
+  : path.resolve(CURRENT_MODULE_DIR, "../../admin/dist");
 
 const DEFAULT_PROJECT_LABEL = "My Studio Project";
 const DEFAULT_PROJECT_DIR = "my-project";
@@ -187,7 +187,6 @@ const writeTargets = async (targets: WriteTarget[]): Promise<void> => {
 
 const copyAdminRuntime = async (projectRoot: string, force: boolean): Promise<void> => {
   const runtimeTargetDir = path.join(projectRoot, ATRIA_RUNTIME_DIR);
-  const runtimeTargetStaticDir = path.join(runtimeTargetDir, "static");
 
   if (!(await fileExists(ADMIN_RUNTIME_SOURCE_DIR))) {
     throw new Error(`Admin runtime source not found: ${ADMIN_RUNTIME_SOURCE_DIR}`);
@@ -203,7 +202,6 @@ const copyAdminRuntime = async (projectRoot: string, force: boolean): Promise<vo
 
   await ensureDirectory(path.dirname(runtimeTargetDir));
   await fs.cp(ADMIN_RUNTIME_SOURCE_DIR, runtimeTargetDir, { recursive: true });
-  await fs.rm(runtimeTargetStaticDir, { recursive: true, force: true });
 };
 
 const getPackageManager = (flags: Record<string, string | boolean>): PackageManager => {

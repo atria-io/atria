@@ -15,6 +15,7 @@ import { parseArgs } from "../../parseArgs.js";
 
 const DEFAULT_ADMIN_PORT = 3333;
 const DEFAULT_PUBLIC_PORT = 4444;
+const ATRIA_RUNTIME_DIR = path.join(".atria", "runtime");
 
 const printDevHelp = (): void => {
   console.log("Usage: atria dev [project-directory] [--admin-port 3333] [--public-port 4444]");
@@ -79,24 +80,20 @@ const resolvePathWithinRoot = (root: string, requestPath: string): string | null
 };
 
 const resolveRuntimeFilePath = (
-  adminDistRoot: string,
+  runtimeRoot: string,
   urlPath: string
 ): string | null => {
-  const indexFile = path.join(adminDistRoot, "index.htm");
+  const indexFile = path.join(runtimeRoot, "index.htm");
 
   if (urlPath === "/" || urlPath === "/index.html") {
     return indexFile;
-  }
-
-  if (urlPath.startsWith("/static/")) {
-    return resolvePathWithinRoot(path.join(adminDistRoot, "static"), urlPath.slice("/static".length));
   }
 
   if (path.extname(urlPath) === "") {
     return indexFile;
   }
 
-  return resolvePathWithinRoot(adminDistRoot, urlPath);
+  return resolvePathWithinRoot(runtimeRoot, urlPath);
 };
 
 const runAdminBuild = async (adminDistRoot: string): Promise<void> =>
@@ -118,32 +115,56 @@ const runAdminBuild = async (adminDistRoot: string): Promise<void> =>
     child.on("error", reject);
   });
 
-const ensureAdminDistRuntime = async (adminDistRoot: string): Promise<void> => {
-  const indexFile = path.join(adminDistRoot, "index.htm");
-  const hasHashedAssetDirectory = async () => {
-    try {
-      const entries = await fs.readdir(adminDistRoot, { withFileTypes: true });
-      return entries.some(
-        (entry) =>
-          entry.isDirectory() &&
-          /^[a-f0-9]{3}$/.test(entry.name)
-      );
-    } catch {
-      return false;
-    }
-  };
+const hasHashedAssetDirectory = async (root: string): Promise<boolean> => {
+  try {
+    const entries = await fs.readdir(root, { withFileTypes: true });
+    return entries.some((entry) => entry.isDirectory() && /^[a-f0-9]{3}$/.test(entry.name));
+  } catch {
+    return false;
+  }
+};
 
-  if ((await pathExists(indexFile)) && (await hasHashedAssetDirectory())) {
-    return;
+const hasRuntimePayload = async (runtimeRoot: string): Promise<boolean> => {
+  const indexFile = path.join(runtimeRoot, "index.htm");
+  const runtimeEntryFile = path.join(runtimeRoot, "runtime", "app.js");
+  return (
+    (await pathExists(indexFile)) &&
+    (await pathExists(runtimeEntryFile)) &&
+    (await hasHashedAssetDirectory(runtimeRoot))
+  );
+};
+
+const materializeWorkspaceRuntime = async (
+  adminDistRoot: string,
+  workspaceRuntimeRoot: string
+): Promise<void> => {
+  await fs.rm(workspaceRuntimeRoot, { recursive: true, force: true });
+  await fs.mkdir(path.dirname(workspaceRuntimeRoot), { recursive: true });
+  await fs.cp(adminDistRoot, workspaceRuntimeRoot, { recursive: true });
+};
+
+const ensureWorkspaceRuntime = async (projectRoot: string): Promise<string> => {
+  const workspaceRuntimeRoot = path.join(projectRoot, ATRIA_RUNTIME_DIR);
+  if (await hasRuntimePayload(workspaceRuntimeRoot)) {
+    return workspaceRuntimeRoot;
   }
 
-  await runAdminBuild(adminDistRoot);
-
-  if ((await pathExists(indexFile)) && (await hasHashedAssetDirectory())) {
-    return;
+  const adminDistRoot = resolveAdminDistRoot();
+  if (!(await hasRuntimePayload(adminDistRoot))) {
+    await runAdminBuild(adminDistRoot);
   }
 
-  throw new Error("Admin dist runtime is missing required files after build.");
+  if (!(await hasRuntimePayload(adminDistRoot))) {
+    throw new Error("Admin dist runtime is missing required files after build.");
+  }
+
+  await materializeWorkspaceRuntime(adminDistRoot, workspaceRuntimeRoot);
+
+  if (await hasRuntimePayload(workspaceRuntimeRoot)) {
+    return workspaceRuntimeRoot;
+  }
+
+  throw new Error("Workspace runtime is missing required files after materialization.");
 };
 
 const resolveAdminDistRoot = (): string => {
@@ -220,7 +241,6 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   const targetArgument = parsedArgs.positionals[0] ?? ".";
   const projectRoot = path.resolve(process.cwd(), targetArgument);
-  const adminDistRoot = resolveAdminDistRoot();
   const adminPort = parsePort(parsedArgs.flags["admin-port"], DEFAULT_ADMIN_PORT, "admin-port");
   const publicPort = parsePort(parsedArgs.flags["public-port"], DEFAULT_PUBLIC_PORT, "public-port");
   const internalApiPort = adminPort + 1;
@@ -234,7 +254,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   }
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
-  await ensureAdminDistRuntime(adminDistRoot);
+  const runtimeRoot = await ensureWorkspaceRuntime(projectRoot);
   internalApiServer = await startDevServer({ host: "0.0.0.0", port: internalApiPort });
 
   const server = createServer(async (request, response) => {
@@ -256,7 +276,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
       return;
     }
 
-    const runtimeFilePath = resolveRuntimeFilePath(adminDistRoot, pathname);
+    const runtimeFilePath = resolveRuntimeFilePath(runtimeRoot, pathname);
 
     if (!runtimeFilePath) {
       response.statusCode = 404;
