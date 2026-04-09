@@ -6,12 +6,58 @@ import { createHash } from 'node:crypto';
 
 const require = createRequire(import.meta.url);
 
-const hashName = (name) => {
-  return createHash('md5')
-    .update(name)
+const md5 = (value) =>
+  createHash('md5')
+    .update(value || '')
     .digest('hex')
     .slice(0, 8);
-};
+
+const lowercaseChunkNames = () => ({
+  name: 'lowercase-chunk-names',
+  generateBundle(_, bundle) {
+    const renamed = new Map();
+
+    for (const file of Object.values(bundle)) {
+      if (file.type !== 'chunk' || file.isEntry) {
+        continue;
+      }
+
+      const previousFileName = file.fileName;
+      const nameHash = md5(file.name || 'chunk');
+      const contentHash = md5(file.code || '');
+      const nextFileName = `${nameHash}${contentHash}.js`;
+
+      file.fileName = nextFileName;
+      renamed.set(previousFileName, nextFileName);
+    }
+
+    if (renamed.size === 0) {
+      return;
+    }
+
+    for (const file of Object.values(bundle)) {
+      if (file.type !== 'chunk') {
+        continue;
+      }
+
+      let nextCode = file.code;
+      let changed = false;
+
+      for (const [before, after] of renamed.entries()) {
+        if (!nextCode.includes(before)) {
+          continue;
+        }
+
+        nextCode = nextCode.split(before).join(after);
+        changed = true;
+      }
+
+      if (changed) {
+        file.code = nextCode;
+      }
+    }
+  }
+});
 
 const forceProductionNodeEnv = () => ({
   name: 'force-production-node-env',
@@ -50,12 +96,7 @@ export default {
     format: 'esm',
     sourcemap: 'hidden',
     entryFileNames: 'app.js',
-    chunkFileNames(chunk) {
-      const name = chunk.name || 'chunk';
-      const md5 = hashName(name);
-
-      return `${md5}[hash].js`;
-    },
+    chunkFileNames: '[name]-[hash].js',
     manualChunks(id) {
       if (id.includes('/node_modules/')) {
         return 'vendor';
@@ -101,6 +142,7 @@ export default {
         beautify: false,
         max_line_len: false
       }
-    })
+    }),
+    lowercaseChunkNames()
   ]
 };
