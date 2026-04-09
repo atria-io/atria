@@ -5,6 +5,7 @@ import {
   type Server,
   type ServerResponse
 } from "node:http";
+import { createRequire } from "node:module";
 import { promises as fs } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
@@ -14,7 +15,6 @@ import { parseArgs } from "../../parseArgs.js";
 
 const DEFAULT_ADMIN_PORT = 3333;
 const DEFAULT_PUBLIC_PORT = 4444;
-const ADMIN_DIST_ROOT = path.resolve(process.cwd(), "packages/admin/dist");
 
 const printDevHelp = (): void => {
   console.log("Usage: atria dev [project-directory] [--admin-port 3333] [--public-port 4444]");
@@ -68,47 +68,40 @@ const pathExists = async (target: string): Promise<boolean> => {
   }
 };
 
-const resolveRuntimeFilePath = (
-  adminDistRoot: string,
-  urlPath: string
-): string | null => {
-  const runtimeIndexFile = path.join(adminDistRoot, "index.htm");
-
-  if (urlPath === "/" || urlPath === "/index.html") {
-    return runtimeIndexFile;
-  }
-
-  if (urlPath === "/app.js") {
-    return path.join(adminDistRoot, "runtime", "app.js");
-  }
-
-  if (urlPath.startsWith("/static/")) {
-    const staticRoot = path.join(adminDistRoot, "static");
-    const candidatePath = path.resolve(staticRoot, `.${urlPath.slice("/static".length)}`);
-    const staticRootPath = path.resolve(staticRoot);
-    if (candidatePath === staticRootPath || candidatePath.startsWith(`${staticRootPath}${path.sep}`)) {
-      return candidatePath;
-    }
-
-    return null;
-  }
-
-  if (path.extname(urlPath) === "") {
-    return runtimeIndexFile;
-  }
-
-  const candidatePath = path.resolve(adminDistRoot, `.${urlPath}`);
-  const adminDistRootPath = path.resolve(adminDistRoot);
-  if (candidatePath === adminDistRootPath || candidatePath.startsWith(`${adminDistRootPath}${path.sep}`)) {
+const resolvePathWithinRoot = (root: string, requestPath: string): string | null => {
+  const resolvedRoot = path.resolve(root);
+  const candidatePath = path.resolve(root, `.${requestPath}`);
+  if (candidatePath === resolvedRoot || candidatePath.startsWith(`${resolvedRoot}${path.sep}`)) {
     return candidatePath;
   }
 
   return null;
 };
 
-const runAdminBuild = async (): Promise<void> =>
+const resolveRuntimeFilePath = (
+  adminDistRoot: string,
+  urlPath: string
+): string | null => {
+  const indexFile = path.join(adminDistRoot, "index.htm");
+
+  if (urlPath === "/" || urlPath === "/index.html") {
+    return indexFile;
+  }
+
+  if (urlPath.startsWith("/static/")) {
+    return resolvePathWithinRoot(path.join(adminDistRoot, "static"), urlPath.slice("/static".length));
+  }
+
+  if (path.extname(urlPath) === "") {
+    return indexFile;
+  }
+
+  return resolvePathWithinRoot(adminDistRoot, urlPath);
+};
+
+const runAdminBuild = async (adminDistRoot: string): Promise<void> =>
   new Promise((resolve, reject) => {
-    const buildEntry = path.join(ADMIN_DIST_ROOT, "..", "build", "dist.mjs");
+    const buildEntry = path.join(adminDistRoot, "..", "build", "dist.mjs");
     const child = spawn(process.execPath, [buildEntry], {
       cwd: process.cwd(),
       stdio: "inherit",
@@ -125,21 +118,27 @@ const runAdminBuild = async (): Promise<void> =>
     child.on("error", reject);
   });
 
-const ensureAdminDistRuntime = async (): Promise<void> => {
-  const indexFile = path.join(ADMIN_DIST_ROOT, "index.htm");
-  const appFile = path.join(ADMIN_DIST_ROOT, "runtime", "app.js");
-  const staticDir = path.join(ADMIN_DIST_ROOT, "static");
-  if ((await pathExists(indexFile)) && (await pathExists(appFile)) && (await pathExists(staticDir))) {
+const ensureAdminDistRuntime = async (adminDistRoot: string): Promise<void> => {
+  const indexFile = path.join(adminDistRoot, "index.htm");
+  const staticDir = path.join(adminDistRoot, "static");
+  if ((await pathExists(indexFile)) && (await pathExists(staticDir))) {
     return;
   }
 
-  await runAdminBuild();
+  await runAdminBuild(adminDistRoot);
 
-  if ((await pathExists(indexFile)) && (await pathExists(appFile)) && (await pathExists(staticDir))) {
+  if ((await pathExists(indexFile)) && (await pathExists(staticDir))) {
     return;
   }
 
   throw new Error("Admin dist runtime is missing required files after build.");
+};
+
+const resolveAdminDistRoot = (): string => {
+  const require = createRequire(import.meta.url);
+  const adminPackageFile = require.resolve("@atria/admin/package.json");
+  const adminPackageRoot = path.dirname(adminPackageFile);
+  return path.join(adminPackageRoot, "dist");
 };
 
 const readRequestBody = async (request: IncomingMessage): Promise<Buffer | undefined> => {
@@ -209,6 +208,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   const targetArgument = parsedArgs.positionals[0] ?? ".";
   const projectRoot = path.resolve(process.cwd(), targetArgument);
+  const adminDistRoot = resolveAdminDistRoot();
   const adminPort = parsePort(parsedArgs.flags["admin-port"], DEFAULT_ADMIN_PORT, "admin-port");
   const publicPort = parsePort(parsedArgs.flags["public-port"], DEFAULT_PUBLIC_PORT, "public-port");
   const internalApiPort = adminPort + 1;
@@ -222,7 +222,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   }
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
-  await ensureAdminDistRuntime();
+  await ensureAdminDistRuntime(adminDistRoot);
   internalApiServer = await startDevServer({ host: "0.0.0.0", port: internalApiPort });
 
   const server = createServer(async (request, response) => {
@@ -244,7 +244,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
       return;
     }
 
-    const runtimeFilePath = resolveRuntimeFilePath(ADMIN_DIST_ROOT, pathname);
+    const runtimeFilePath = resolveRuntimeFilePath(adminDistRoot, pathname);
 
     if (!runtimeFilePath) {
       response.statusCode = 404;
