@@ -18,7 +18,7 @@ const getPaths = (entryUrl) => {
       ? path.resolve(entryDir, "..", "..")
       : path.resolve(entryDir, "..");
   const modulesDir = path.join(packageRoot, "src", "runtime");
-  const outputFile = path.join(packageRoot, "dist", "runtime", "static", "styles", "globals.css");
+  const outputFile = path.join(packageRoot, "dist", "frontend", "runtime", "static", "styles", "globals.css");
   const baseFiles = [
     path.join(packageRoot, "boot", "static", "styles", "globals.css"),
     path.join(packageRoot, "boot", "static", "styles", "admin.css")

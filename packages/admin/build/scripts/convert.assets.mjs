@@ -161,13 +161,14 @@ const resolveStaticSourceFile = async (roots, staticRelativePath) => {
 
 export const convertRuntimeAssets = async (packageRoot) => {
   const distDir = path.join(packageRoot, "dist");
-  const staticRoot = path.join(distDir, "static");
+  const frontendDir = path.join(distDir, "frontend");
+  const staticRoot = path.join(frontendDir, "static");
   const staticDirectoryHash = hashShort("static");
-  const hashedStaticRoot = path.join(distDir, staticDirectoryHash);
-  const manifestFile = path.join(distDir, "asset.manifest.json");
-  const staticLookupRoots = [staticRoot, path.join(distDir, "runtime", "static")];
-  const htmlTargets = await resolveExistingHtmlTargets(distDir);
-  const jsFiles = await collectJsFiles(distDir);
+  const hashedStaticRoot = path.join(frontendDir, staticDirectoryHash);
+  const manifestFile = path.join(frontendDir, "asset.manifest.json");
+  const staticLookupRoots = [staticRoot, path.join(frontendDir, "runtime", "static")];
+  const htmlTargets = await resolveExistingHtmlTargets(frontendDir);
+  const jsFiles = await collectJsFiles(frontendDir);
 
   const references = new Set();
   for (const htmlFile of htmlTargets) {

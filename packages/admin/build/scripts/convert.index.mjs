@@ -45,9 +45,10 @@ const normalizeRuntimeEntry = (html) =>
 
 export const convertRuntimeIndex = async (packageRoot) => {
   const distDir = path.join(packageRoot, "dist");
-  const manifestFile = path.join(distDir, "asset.manifest.json");
-  const primaryIndexFile = path.join(distDir, "index.htm");
-  const runtimeIndexFile = path.join(distDir, "runtime", "index.htm");
+  const frontendDir = path.join(distDir, "frontend");
+  const manifestFile = path.join(frontendDir, "asset.manifest.json");
+  const primaryIndexFile = path.join(frontendDir, "index.htm");
+  const runtimeIndexFile = path.join(frontendDir, "runtime", "index.htm");
 
   const manifestRaw = await readFile(manifestFile, "utf-8");
   const manifest = JSON.parse(manifestRaw);

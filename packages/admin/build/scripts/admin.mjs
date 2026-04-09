@@ -19,8 +19,9 @@ const getBuildPaths = (entryUrl) => {
   const buildDir = path.dirname(fileURLToPath(entryUrl));
   const packageRoot = path.resolve(buildDir, "..");
   const distDir = path.join(packageRoot, "dist");
+  const frontendDir = path.join(distDir, "frontend");
   const runtimeSourceDir = path.join(packageRoot, "boot");
-  const runtimeDistDir = path.join(distDir, "runtime");
+  const runtimeDistDir = path.join(frontendDir, "runtime");
   const tscEntry = path.resolve(
     packageRoot,
     "..",
@@ -40,7 +41,16 @@ const getBuildPaths = (entryUrl) => {
   );
   const rollupConfig = path.join(packageRoot, "build", "scripts", "rollup.config.mjs");
 
-  return { packageRoot, distDir, runtimeSourceDir, runtimeDistDir, tscEntry, rollupEntry, rollupConfig };
+  return {
+    packageRoot,
+    distDir,
+    frontendDir,
+    runtimeSourceDir,
+    runtimeDistDir,
+    tscEntry,
+    rollupEntry,
+    rollupConfig
+  };
 };
 
 const prepareDistDirectory = async (distDir) => {

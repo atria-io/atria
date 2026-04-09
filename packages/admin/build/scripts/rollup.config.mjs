@@ -85,7 +85,7 @@ const resolveReactRuntime = () => ({
 export default {
   input: 'dist/system/createRoot.js',
   output: {
-    dir: 'dist/static',
+    dir: 'dist/frontend/static',
     format: 'esm',
     sourcemap: false,
     entryFileNames: 'app.js',

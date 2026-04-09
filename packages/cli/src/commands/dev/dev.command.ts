@@ -171,7 +171,7 @@ const resolveAdminDistRoot = (): string => {
   const require = createRequire(import.meta.url);
   const adminPackageFile = require.resolve("@atria/admin/package.json");
   const adminPackageRoot = path.dirname(adminPackageFile);
-  return path.join(adminPackageRoot, "dist");
+  return path.join(adminPackageRoot, "dist", "frontend");
 };
 
 const readRequestBody = async (request: IncomingMessage): Promise<Buffer | undefined> => {
