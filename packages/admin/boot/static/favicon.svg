@@ -3,21 +3,21 @@
     rect {
       fill: #fff;
     }
-    .st0 {
+    .adc {
       fill: #fa573d;
     }
     @media (prefers-color-scheme: dark) {
       rect {
         fill: transparent;
       }
-      .st0 {
+      .adc {
         fill: #fff;
       }
     }
   </style>
   <rect width="16" height="16"/>
-  <rect class="st0" x="5" y="5" width="2.5" height="2.5"/>
-  <rect class="st0" x="8.5" y="8.5" width="2.5" height="2.5"/>
-  <rect class="st0" x="9" y="5" width="2" height="2"/>
-  <rect class="st0" x="5" y="9" width="2" height="2"/>
+  <rect class="adc" x="5" y="5" width="2.5" height="2.5"/>
+  <rect class="adc" x="8.5" y="8.5" width="2.5" height="2.5"/>
+  <rect class="adc" x="9" y="5" width="2" height="2"/>
+  <rect class="adc" x="5" y="9" width="2" height="2"/>
 </svg>

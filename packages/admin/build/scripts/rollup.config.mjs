@@ -23,9 +23,8 @@ const lowercaseChunkNames = () => ({
       }
 
       const previousFileName = file.fileName;
-      const nameHash = md5(file.name || 'chunk');
-      const contentHash = md5(file.code || '');
-      const nextFileName = `${nameHash}${contentHash}.js`;
+      const original = file.fileName;
+      const nextFileName = `${md5(original)}.js`;
 
       file.fileName = nextFileName;
       renamed.set(previousFileName, nextFileName);
