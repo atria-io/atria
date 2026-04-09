@@ -188,3 +188,6 @@ export const transformRuntime = async (packageRoot) => {
     await transformScreenFile(screenFile, runtimeRoot);
   }
 };
+
+export const transformRuntimeBoundaries = transformRuntime;
+export const transformRuntimeBandouris = transformRuntime;

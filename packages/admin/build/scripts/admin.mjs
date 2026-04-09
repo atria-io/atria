@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { mkdir, rm, cp, readFile } from "node:fs/promises";
 import { writeMinifiedCss } from "./css.minify.mjs";
-import { transformRuntime } from "./transform.runtime.mjs";
+import { transformRuntime } from "./runtime.load.mjs";
 
 export const runAdminBuild = async (entryUrl) => {
   const paths = getBuildPaths(entryUrl);
