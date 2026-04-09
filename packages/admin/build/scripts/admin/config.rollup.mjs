@@ -2,14 +2,14 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import { createRequire } from 'node:module';
-import { md5 } from '../../../shared/src/hash/md5.ts';
+import { md5 } from '../../../../shared/src/hash/md5.ts';
 
 const require = createRequire(import.meta.url);
 
 const lowercaseChunkNames = () => ({
   name: 'lowercase-chunk-names',
   generateBundle(_, bundle) {
-    const renamed = new Map();
+    const renamed = [];
 
     for (const file of Object.values(bundle)) {
       if (file.type !== 'chunk' || file.isEntry) {
@@ -18,13 +18,22 @@ const lowercaseChunkNames = () => ({
 
       const previousFileName = file.fileName;
       const original = file.fileName;
-      const nextFileName = `${md5(original).slice(0, 8)}.js`;
+      const originalDir = original.includes('/') ? original.slice(0, original.lastIndexOf('/')) : '';
+      const nextBaseName = `${md5(original).slice(0, 8)}.js`;
+      const nextFileName = originalDir === '' ? nextBaseName : `${originalDir}/${nextBaseName}`;
 
       file.fileName = nextFileName;
-      renamed.set(previousFileName, nextFileName);
+      renamed.push({
+        previousFileName,
+        nextFileName,
+        previousBaseName: previousFileName.includes('/')
+          ? previousFileName.slice(previousFileName.lastIndexOf('/') + 1)
+          : previousFileName,
+        nextBaseName,
+      });
     }
 
-    if (renamed.size === 0) {
+    if (renamed.length === 0) {
       return;
     }
 
@@ -36,13 +45,16 @@ const lowercaseChunkNames = () => ({
       let nextCode = file.code;
       let changed = false;
 
-      for (const [before, after] of renamed.entries()) {
-        if (!nextCode.includes(before)) {
-          continue;
+      for (const renamedChunk of renamed) {
+        if (nextCode.includes(renamedChunk.previousFileName)) {
+          nextCode = nextCode.split(renamedChunk.previousFileName).join(renamedChunk.nextFileName);
+          changed = true;
         }
 
-        nextCode = nextCode.split(before).join(after);
-        changed = true;
+        if (nextCode.includes(renamedChunk.previousBaseName)) {
+          nextCode = nextCode.split(renamedChunk.previousBaseName).join(renamedChunk.nextBaseName);
+          changed = true;
+        }
       }
 
       if (changed) {
@@ -88,8 +100,8 @@ export default {
     dir: 'dist/frontend/static',
     format: 'esm',
     sourcemap: false,
-    entryFileNames: 'app.js',
-    chunkFileNames: '[name]-[hash].js',
+    entryFileNames: 'js/app.js',
+    chunkFileNames: 'js/[name]-[hash].js',
     manualChunks(id) {
       if (id.includes('/node_modules/')) {
         return 'vendor';

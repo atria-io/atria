@@ -1,5 +1,4 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 const TOKEN_MAP = {
@@ -10,15 +9,10 @@ const TOKEN_MAP = {
   text_muted: "--text-muted",
 };
 
-const getPaths = (entryUrl) => {
-  const entryDir = path.dirname(fileURLToPath(entryUrl));
-  const packageRoot =
-    path.basename(entryDir) === "scripts"
-      ? path.resolve(entryDir, "..", "..")
-      : path.resolve(entryDir, "..");
+const getPaths = (packageRoot) => {
 
   const schemeCssFile = path.join(packageRoot, "boot", "static", "styles", "scheme.css");
-  const outputFile = path.join(packageRoot, "dist", "frontend", "runtime", "static", "js", "scheme.js");
+  const outputFile = path.join(packageRoot, "dist", "frontend", "static", "js", "scheme.js");
 
   return { schemeCssFile, outputFile };
 };
@@ -217,8 +211,8 @@ const buildRuntimeSource = (tokenMap) => `// This file is auto-generated from "a
 })();
 `;
 
-export const runSchemeBundle = async (entryUrl) => {
-  const paths = getPaths(entryUrl);
+export const runSchemeBundle = async (packageRoot) => {
+  const paths = getPaths(packageRoot);
   const source = await readFile(paths.schemeCssFile, "utf-8");
 
   const darkTokens = extractTokens(extractSchemeBlock(source, "dark"), "dark");

@@ -1,4 +1,4 @@
-import { mountAdminApp } from "/static/app.js";
+import { mountAdminApp } from "/static/js/app.js";
 
 const rootElement = document.getElementById("atria");
 

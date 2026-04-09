@@ -1,27 +1,23 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { mkdir, rm, cp, readFile } from "node:fs/promises";
-import { writeMinifiedCss } from "./css.minify.mjs";
-import { transformRuntime } from "./runtime.load.mjs";
+import { writeMinifiedCss } from "../shared/minifycss.mjs";
+import { applyLazyImports } from "../runtime/lazy.imports.mjs";
 
-export const runAdminBuild = async (entryUrl) => {
-  const paths = getBuildPaths(entryUrl);
+export const runAdminBuild = async (packageRoot) => {
+  const paths = getBuildPaths(packageRoot);
   await prepareDistDirectory(paths.distDir);
   await buildSource(paths.packageRoot, paths.tscEntry);
-  await transformRuntime(paths.packageRoot);
+  await applyLazyImports(paths.packageRoot);
   await bundleApp(paths.packageRoot, paths.rollupEntry, paths.rollupConfig);
-  await copyRuntime(paths.runtimeSourceDir, paths.runtimeDistDir);
-  await minifyRuntimeStyles(paths.runtimeDistDir);
+  await copyRuntime(paths.runtimeSourceDir, paths.frontendDir);
+  await minifyRuntimeStyles(paths.frontendDir);
 };
 
-const getBuildPaths = (entryUrl) => {
-  const buildDir = path.dirname(fileURLToPath(entryUrl));
-  const packageRoot = path.resolve(buildDir, "..");
+const getBuildPaths = (packageRoot) => {
   const distDir = path.join(packageRoot, "dist");
   const frontendDir = path.join(distDir, "frontend");
   const runtimeSourceDir = path.join(packageRoot, "boot");
-  const runtimeDistDir = path.join(frontendDir, "runtime");
   const tscEntry = path.resolve(
     packageRoot,
     "..",
@@ -39,14 +35,13 @@ const getBuildPaths = (entryUrl) => {
     "bin",
     "rollup"
   );
-  const rollupConfig = path.join(packageRoot, "build", "scripts", "rollup.config.mjs");
+  const rollupConfig = path.join(packageRoot, "build", "scripts", "admin", "config.rollup.mjs");
 
   return {
     packageRoot,
     distDir,
     frontendDir,
     runtimeSourceDir,
-    runtimeDistDir,
     tscEntry,
     rollupEntry,
     rollupConfig
@@ -58,9 +53,9 @@ const prepareDistDirectory = async (distDir) => {
   await mkdir(distDir, { recursive: true });
 };
 
-const buildSource = async (packageRoot, tscEntry) =>
+const runNodeCommand = async (packageRoot, entry, args, errorPrefix) =>
   new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [tscEntry, "-p", "tsconfig.json"], {
+    const child = spawn(process.execPath, [entry, ...args], {
       cwd: packageRoot,
       stdio: "inherit",
     });
@@ -70,29 +65,17 @@ const buildSource = async (packageRoot, tscEntry) =>
         resolve();
         return;
       }
-      reject(new Error(`admin build failed with exit code ${code ?? 1}`));
+      reject(new Error(`${errorPrefix} failed with exit code ${code ?? 1}`));
     });
 
     child.on("error", reject);
   });
 
-const bundleApp = async (packageRoot, rollupEntry, rollupConfig) =>
-  new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [rollupEntry, "--config", rollupConfig], {
-      cwd: packageRoot,
-      stdio: "inherit",
-    });
+const buildSource = (packageRoot, tscEntry) =>
+  runNodeCommand(packageRoot, tscEntry, ["-p", "tsconfig.json"], "admin build");
 
-    child.on("exit", (code) => {
-      if (code === 0) {
-        resolve();
-        return;
-      }
-      reject(new Error(`admin rollup failed with exit code ${code ?? 1}`));
-    });
-
-    child.on("error", reject);
-  });
+const bundleApp = (packageRoot, rollupEntry, rollupConfig) =>
+  runNodeCommand(packageRoot, rollupEntry, ["--config", rollupConfig], "admin rollup");
 
 const copyRuntime = async (runtimeSourceDir, runtimeDistDir) => {
   await cp(runtimeSourceDir, runtimeDistDir, { recursive: true });

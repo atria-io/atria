@@ -60,14 +60,16 @@ export const useAppState = (basePath: string, initialAppState?: AppState): AppSt
     window.addEventListener(RUNTIME_FATAL_EVENT, handleRuntimeFatal);
     window.addEventListener("popstate", handlePopState);
 
-    void syncAppState();
+    if (initialAppState === undefined) {
+      void syncAppState();
+    }
 
     return () => {
       window.removeEventListener(RUNTIME_FATAL_EVENT, handleRuntimeFatal);
       window.removeEventListener("popstate", handlePopState);
       isActive = false;
     };
-  }, [basePath]);
+  }, [basePath, initialAppState]);
 
   return appState;
 };

@@ -15,7 +15,6 @@ import { parseArgs } from "../../parseArgs.js";
 
 const DEFAULT_ADMIN_PORT = 3333;
 const DEFAULT_PUBLIC_PORT = 4444;
-const ATRIA_RUNTIME_DIR = path.join(".atria", "runtime");
 
 const printDevHelp = (): void => {
   console.log("Usage: atria dev [project-directory] [--admin-port 3333] [--public-port 4444]");
@@ -81,6 +80,8 @@ const resolvePathWithinRoot = (root: string, requestPath: string): string | null
 
 const resolveRuntimeFilePath = (
   runtimeRoot: string,
+  adminDistRoot: string,
+  adminAssetDirectory: string,
   urlPath: string
 ): string | null => {
   const indexFile = path.join(runtimeRoot, "index.htm");
@@ -93,12 +94,16 @@ const resolveRuntimeFilePath = (
     return indexFile;
   }
 
+  if (urlPath.startsWith(`/${adminAssetDirectory}/`)) {
+    return resolvePathWithinRoot(adminDistRoot, urlPath);
+  }
+
   return resolvePathWithinRoot(runtimeRoot, urlPath);
 };
 
 const runAdminBuild = async (adminDistRoot: string): Promise<void> =>
   new Promise((resolve, reject) => {
-    const buildEntry = path.join(adminDistRoot, "..", "build", "dist.mjs");
+    const buildEntry = path.join(adminDistRoot, "..", "..", "build", "dist.mjs");
     const child = spawn(process.execPath, [buildEntry], {
       cwd: process.cwd(),
       stdio: "inherit",
@@ -115,56 +120,69 @@ const runAdminBuild = async (adminDistRoot: string): Promise<void> =>
     child.on("error", reject);
   });
 
-const hasHashedAssetDirectory = async (root: string): Promise<boolean> => {
+const hasIndexFile = (runtimeRoot: string): Promise<boolean> =>
+  pathExists(path.join(runtimeRoot, "index.htm"));
+
+const resolveAdminAssetDirectory = async (adminDistRoot: string): Promise<string | null> => {
   try {
-    const entries = await fs.readdir(root, { withFileTypes: true });
-    return entries.some((entry) => entry.isDirectory() && /^[a-f0-9]{3}$/.test(entry.name));
+    const entries = await fs.readdir(adminDistRoot, { withFileTypes: true });
+    const matched = entries.find((entry) => entry.isDirectory() && /^[a-f0-9]{3}$/.test(entry.name));
+    return matched?.name ?? null;
   } catch {
-    return false;
+    return null;
   }
 };
 
-const hasRuntimePayload = async (runtimeRoot: string): Promise<boolean> => {
-  const indexFile = path.join(runtimeRoot, "index.htm");
-  const runtimeEntryFile = path.join(runtimeRoot, "runtime", "app.js");
-  return (
-    (await pathExists(indexFile)) &&
-    (await pathExists(runtimeEntryFile)) &&
-    (await hasHashedAssetDirectory(runtimeRoot))
-  );
-};
+const hasRuntimePayload = async (adminDistRoot: string): Promise<boolean> =>
+  (await hasIndexFile(adminDistRoot)) && (await resolveAdminAssetDirectory(adminDistRoot)) !== null;
 
 const materializeWorkspaceRuntime = async (
   adminDistRoot: string,
   workspaceRuntimeRoot: string
 ): Promise<void> => {
   await fs.rm(workspaceRuntimeRoot, { recursive: true, force: true });
-  await fs.mkdir(path.dirname(workspaceRuntimeRoot), { recursive: true });
-  await fs.cp(adminDistRoot, workspaceRuntimeRoot, { recursive: true });
+  await fs.mkdir(workspaceRuntimeRoot, { recursive: true });
+
+  const adminEntries = await fs.readdir(adminDistRoot, { withFileTypes: true });
+  for (const entry of adminEntries) {
+    if (!entry.isFile()) {
+      continue;
+    }
+
+    if (entry.name === "index.htm" || entry.name.endsWith(".js")) {
+      await fs.cp(
+        path.join(adminDistRoot, entry.name),
+        path.join(workspaceRuntimeRoot, entry.name)
+      );
+    }
+  }
 };
 
-const ensureWorkspaceRuntime = async (projectRoot: string): Promise<string> => {
-  const workspaceRuntimeRoot = path.join(projectRoot, ATRIA_RUNTIME_DIR);
-  if (await hasRuntimePayload(workspaceRuntimeRoot)) {
-    return workspaceRuntimeRoot;
-  }
-
+const ensureWorkspaceRuntime = async (
+  projectRoot: string
+): Promise<{ runtimeRoot: string; adminDistRoot: string; adminAssetDirectory: string }> => {
+  const workspaceRuntimeRoot = path.join(projectRoot, path.join(".atria", "runtime"));
   const adminDistRoot = resolveAdminDistRoot();
-  if (!(await hasRuntimePayload(adminDistRoot))) {
-    await runAdminBuild(adminDistRoot);
-  }
-
-  if (!(await hasRuntimePayload(adminDistRoot))) {
+  const adminReady = (await hasRuntimePayload(adminDistRoot)) || ((await runAdminBuild(adminDistRoot)), await hasRuntimePayload(adminDistRoot));
+  if (!adminReady) {
     throw new Error("Admin dist runtime is missing required files after build.");
+  }
+  const adminAssetDirectory = await resolveAdminAssetDirectory(adminDistRoot);
+  if (!adminAssetDirectory) {
+    throw new Error("Admin dist runtime asset directory is missing after build.");
   }
 
   await materializeWorkspaceRuntime(adminDistRoot, workspaceRuntimeRoot);
 
-  if (await hasRuntimePayload(workspaceRuntimeRoot)) {
-    return workspaceRuntimeRoot;
+  if (!(await hasIndexFile(workspaceRuntimeRoot))) {
+    throw new Error("Workspace runtime is missing required files after materialization.");
   }
 
-  throw new Error("Workspace runtime is missing required files after materialization.");
+  return {
+    runtimeRoot: workspaceRuntimeRoot,
+    adminDistRoot,
+    adminAssetDirectory
+  };
 };
 
 const resolveAdminDistRoot = (): string => {
@@ -254,7 +272,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   }
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
-  const runtimeRoot = await ensureWorkspaceRuntime(projectRoot);
+  const { runtimeRoot, adminDistRoot, adminAssetDirectory } = await ensureWorkspaceRuntime(projectRoot);
   internalApiServer = await startDevServer({ host: "0.0.0.0", port: internalApiPort });
 
   const server = createServer(async (request, response) => {
@@ -276,8 +294,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
       return;
     }
 
-    const runtimeFilePath = resolveRuntimeFilePath(runtimeRoot, pathname);
-
+    const runtimeFilePath = resolveRuntimeFilePath(runtimeRoot, adminDistRoot, adminAssetDirectory, pathname);
     if (!runtimeFilePath) {
       response.statusCode = 404;
       response.end("Not Found");

@@ -20,7 +20,12 @@ const BROWSER_RELOAD_MODE = (() => {
 const BROWSER_RELOAD_DELAY_MS = 700;
 const RESTART_DEBOUNCE_MS = 350;
 const WATCH_DEBOUNCE_MS = 200;
-const WORKSPACE_IGNORED_PREFIXES = [".atria/data/", ".atria/runtime/", "node_modules/", ".git/"];
+const WORKSPACE_IGNORED_PREFIXES = [
+  ".atria/data",
+  ".atria/runtime",
+  "node_modules",
+  ".git"
+];
 const TSC_WATCH_NOISE_LINES = new Set([
   "Starting compilation in watch mode...",
   "Found 0 errors. Watching for file changes."
@@ -492,7 +497,8 @@ const watchWorkspaceSources = () => {
     if (filename.length > 0) {
       const normalizedFilename = filename.replace(/\\/g, "/");
       const isIgnored = WORKSPACE_IGNORED_PREFIXES.some((prefix) =>
-        normalizedFilename.startsWith(prefix)
+        normalizedFilename === prefix ||
+        normalizedFilename.startsWith(`${prefix}/`)
       );
       if (isIgnored) {
         return;

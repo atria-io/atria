@@ -1,24 +1,18 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { readdir, readFile, writeFile } from "node:fs/promises";
-import { minifyCss } from "./css.minify.mjs";
+import { minifyCss } from "../shared/minifycss.mjs";
 
-export const runStyleBundle = async (entryUrl) => {
-  const paths = getPaths(entryUrl);
+export const runStyleBundle = async (packageRoot) => {
+  const paths = getPaths(packageRoot);
   const runtimeFiles = await collectModuleStyleFiles(paths.modulesDir);
   const css = await concatCss(paths.baseFiles, runtimeFiles);
   const minified = minifyCss(css);
   await writeFile(paths.outputFile, minified, "utf-8");
 };
 
-const getPaths = (entryUrl) => {
-  const entryDir = path.dirname(fileURLToPath(entryUrl));
-  const packageRoot =
-    path.basename(entryDir) === "scripts"
-      ? path.resolve(entryDir, "..", "..")
-      : path.resolve(entryDir, "..");
+const getPaths = (packageRoot) => {
   const modulesDir = path.join(packageRoot, "src", "runtime");
-  const outputFile = path.join(packageRoot, "dist", "frontend", "runtime", "static", "styles", "globals.css");
+  const outputFile = path.join(packageRoot, "dist", "frontend", "static", "styles", "globals.css");
   const baseFiles = [
     path.join(packageRoot, "boot", "static", "styles", "globals.css"),
     path.join(packageRoot, "boot", "static", "styles", "admin.css")

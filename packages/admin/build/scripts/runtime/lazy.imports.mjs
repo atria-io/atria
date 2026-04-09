@@ -176,7 +176,7 @@ const collectScreenFiles = async (runtimeRoot) => {
   return files;
 };
 
-export const transformRuntime = async (packageRoot) => {
+export const applyLazyImports = async (packageRoot) => {
   const runtimeRoot = path.join(packageRoot, "dist", "runtime");
   const routerFile = path.join(runtimeRoot, "Router.js");
 
@@ -189,5 +189,5 @@ export const transformRuntime = async (packageRoot) => {
   }
 };
 
-export const transformRuntimeBoundaries = transformRuntime;
-export const transformRuntimeBandouris = transformRuntime;
+export const applyLazyImportsBoundaries = applyLazyImports;
+export const applyLazyImportsBandouris = applyLazyImports;
