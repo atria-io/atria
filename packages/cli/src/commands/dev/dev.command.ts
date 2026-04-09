@@ -5,9 +5,8 @@ import {
   type Server,
   type ServerResponse
 } from "node:http";
-import { createRequire } from "node:module";
-import { existsSync } from "node:fs";
 import { promises as fs } from "node:fs";
+import { spawn } from "node:child_process";
 import path from "node:path";
 import { terminal } from "@atria/shared";
 import { startDevServer } from "@atria/server";
@@ -15,7 +14,7 @@ import { parseArgs } from "../../parseArgs.js";
 
 const DEFAULT_ADMIN_PORT = 3333;
 const DEFAULT_PUBLIC_PORT = 4444;
-type AssetManifest = Record<string, string>;
+const ADMIN_DIST_ROOT = path.resolve(process.cwd(), "packages/admin/dist");
 
 const printDevHelp = (): void => {
   console.log("Usage: atria dev [project-directory] [--admin-port 3333] [--public-port 4444]");
@@ -60,98 +59,87 @@ const mimeTypeByExtension: Record<string, string> = {
   ".woff2": "font/woff2"
 };
 
-const hasRequiredAdminRuntimeFiles = (paths: {
-  staticRoot: string;
-  bundleRoot: string;
-  runtimeIndexFile: string;
-  runtimeAppFile: string;
-}): boolean => {
-  return (
-    existsSync(paths.runtimeAppFile) &&
-    existsSync(paths.staticRoot) &&
-    existsSync(paths.bundleRoot) &&
-    existsSync(paths.runtimeIndexFile)
-  );
+const pathExists = async (target: string): Promise<boolean> => {
+  try {
+    await fs.access(target);
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 const resolveRuntimeFilePath = (
-  runtimeRoot: string,
-  adminRuntimeIndexFile: string,
-  adminStaticRoot: string,
-  adminBundleRoot: string,
-  urlPath: string,
-  assetManifest: AssetManifest
+  adminDistRoot: string,
+  urlPath: string
 ): string | null => {
-  const runtimeIndexFile = path.join(runtimeRoot, "index.htm");
+  const runtimeIndexFile = path.join(adminDistRoot, "index.htm");
 
   if (urlPath === "/" || urlPath === "/index.html") {
-    return existsSync(runtimeIndexFile) ? runtimeIndexFile : adminRuntimeIndexFile;
+    return runtimeIndexFile;
   }
 
   if (urlPath === "/app.js") {
-    return path.join(runtimeRoot, "app.js");
+    return path.join(adminDistRoot, "runtime", "app.js");
   }
 
   if (urlPath.startsWith("/static/")) {
-    const manifestTarget = assetManifest[urlPath];
-    const resolvedUrlPath =
-      typeof manifestTarget === "string" && manifestTarget.startsWith("/static/")
-        ? manifestTarget
-        : urlPath;
-    const staticSuffix = resolvedUrlPath.slice("/static".length);
-    const candidatePath = path.resolve(adminStaticRoot, `.${staticSuffix}`);
-    const adminStaticRootPath = path.resolve(adminStaticRoot);
-    if (
-      candidatePath === adminStaticRootPath ||
-      candidatePath.startsWith(`${adminStaticRootPath}${path.sep}`)
-    ) {
-      if (existsSync(candidatePath)) {
-        return candidatePath;
-      }
+    const staticRoot = path.join(adminDistRoot, "static");
+    const candidatePath = path.resolve(staticRoot, `.${urlPath.slice("/static".length)}`);
+    const staticRootPath = path.resolve(staticRoot);
+    if (candidatePath === staticRootPath || candidatePath.startsWith(`${staticRootPath}${path.sep}`)) {
+      return candidatePath;
     }
 
-    const bundleCandidatePath = path.resolve(adminBundleRoot, `.${staticSuffix}`);
-    const adminBundleRootPath = path.resolve(adminBundleRoot);
-    if (
-      bundleCandidatePath === adminBundleRootPath ||
-      bundleCandidatePath.startsWith(`${adminBundleRootPath}${path.sep}`)
-    ) {
-      if (existsSync(bundleCandidatePath)) {
-        return bundleCandidatePath;
-      }
-    }
+    return null;
   }
 
   if (path.extname(urlPath) === "") {
-    return existsSync(runtimeIndexFile) ? runtimeIndexFile : adminRuntimeIndexFile;
+    return runtimeIndexFile;
+  }
+
+  const candidatePath = path.resolve(adminDistRoot, `.${urlPath}`);
+  const adminDistRootPath = path.resolve(adminDistRoot);
+  if (candidatePath === adminDistRootPath || candidatePath.startsWith(`${adminDistRootPath}${path.sep}`)) {
+    return candidatePath;
   }
 
   return null;
 };
 
-const loadAssetManifest = async (manifestFile: string): Promise<AssetManifest> => {
-  try {
-    const raw = await fs.readFile(manifestFile, "utf-8");
-    const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== "object") {
-      return {};
-    }
+const runAdminBuild = async (): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const buildEntry = path.join(ADMIN_DIST_ROOT, "..", "build", "dist.mjs");
+    const child = spawn(process.execPath, [buildEntry], {
+      cwd: process.cwd(),
+      stdio: "inherit",
+    });
 
-    const manifest: AssetManifest = {};
-    for (const [key, value] of Object.entries(parsed)) {
-      if (
-        key.startsWith("/static/") &&
-        typeof value === "string" &&
-        value.startsWith("/static/")
-      ) {
-        manifest[key] = value;
+    child.on("exit", (code) => {
+      if (code === 0) {
+        resolve();
+        return;
       }
-    }
 
-    return manifest;
-  } catch {
-    return {};
+      reject(new Error(`admin build failed with exit code ${code ?? 1}`));
+    });
+    child.on("error", reject);
+  });
+
+const ensureAdminDistRuntime = async (): Promise<void> => {
+  const indexFile = path.join(ADMIN_DIST_ROOT, "index.htm");
+  const appFile = path.join(ADMIN_DIST_ROOT, "runtime", "app.js");
+  const staticDir = path.join(ADMIN_DIST_ROOT, "static");
+  if ((await pathExists(indexFile)) && (await pathExists(appFile)) && (await pathExists(staticDir))) {
+    return;
   }
+
+  await runAdminBuild();
+
+  if ((await pathExists(indexFile)) && (await pathExists(appFile)) && (await pathExists(staticDir))) {
+    return;
+  }
+
+  throw new Error("Admin dist runtime is missing required files after build.");
 };
 
 const readRequestBody = async (request: IncomingMessage): Promise<Buffer | undefined> => {
@@ -223,15 +211,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   const projectRoot = path.resolve(process.cwd(), targetArgument);
   const adminPort = parsePort(parsedArgs.flags["admin-port"], DEFAULT_ADMIN_PORT, "admin-port");
   const publicPort = parsePort(parsedArgs.flags["public-port"], DEFAULT_PUBLIC_PORT, "public-port");
-  const runtimeRoot = path.join(projectRoot, ".atria", "runtime");
-  const adminPackagePaths = resolveAdminPackagePaths();
-  const adminStaticRoot = adminPackagePaths.staticRoot;
-  const adminBundleRoot = adminPackagePaths.bundleRoot;
-  const adminRuntimeIndexFile = adminPackagePaths.runtimeIndexFile;
-  const adminStudioAppFile = adminPackagePaths.runtimeAppFile;
-  const assetManifest = await loadAssetManifest(adminPackagePaths.assetManifestFile);
   const internalApiPort = adminPort + 1;
-  const runtimeAppFile = path.join(runtimeRoot, "app.js");
   let internalApiServer: Server | null = null;
 
   if (!process.env.ATRIA_PROJECT_ID) {
@@ -242,6 +222,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
   }
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
+  await ensureAdminDistRuntime();
   internalApiServer = await startDevServer({ host: "0.0.0.0", port: internalApiPort });
 
   const server = createServer(async (request, response) => {
@@ -263,35 +244,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
       return;
     }
 
-    if (pathname === "/app.js" && !existsSync(runtimeAppFile)) {
-      try {
-        const content = await fs.readFile(adminStudioAppFile);
-        response.statusCode = 200;
-        response.setHeader("Content-Type", "text/javascript; charset=utf-8");
-        response.end(content);
-        return;
-      } catch (error) {
-        const code = (error as NodeJS.ErrnoException).code;
-        if (code === "ENOENT") {
-          response.statusCode = 404;
-          response.end("Not Found");
-          return;
-        }
-
-        response.statusCode = 500;
-        response.end("Internal Server Error");
-        return;
-      }
-    }
-
-    const runtimeFilePath = resolveRuntimeFilePath(
-      runtimeRoot,
-      adminRuntimeIndexFile,
-      adminStaticRoot,
-      adminBundleRoot,
-      pathname,
-      assetManifest
-    );
+    const runtimeFilePath = resolveRuntimeFilePath(ADMIN_DIST_ROOT, pathname);
 
     if (!runtimeFilePath) {
       response.statusCode = 404;
@@ -300,6 +253,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
     }
 
     try {
+      await fs.access(runtimeFilePath);
       const content = await fs.readFile(runtimeFilePath);
       const extension = path.extname(runtimeFilePath).toLowerCase();
       const contentType = mimeTypeByExtension[extension] ?? "application/octet-stream";
@@ -354,42 +308,4 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
-};
-
-const resolveAdminPackagePaths = (): {
-  staticRoot: string;
-  bundleRoot: string;
-  runtimeIndexFile: string;
-  runtimeAppFile: string;
-  assetManifestFile: string;
-} => {
-  const require = createRequire(import.meta.url);
-  const adminPackageJson = require.resolve("@atria/admin/package.json");
-  const adminRoot = path.dirname(adminPackageJson);
-  const buildCandidate = {
-    staticRoot: path.join(adminRoot, "dist", "runtime", "static"),
-    bundleRoot: path.join(adminRoot, "dist", "static"),
-    runtimeIndexFile: path.join(adminRoot, "dist", "runtime", "index.htm"),
-    runtimeAppFile: path.join(adminRoot, "dist", "runtime", "app.js"),
-    assetManifestFile: path.join(adminRoot, "dist", "asset.manifest.json"),
-  };
-  const sourceCandidate = {
-    staticRoot: path.join(adminRoot, "boot", "static"),
-    bundleRoot: path.join(adminRoot, "dist", "static"),
-    runtimeIndexFile: path.join(adminRoot, "boot", "index.htm"),
-    runtimeAppFile: path.join(adminRoot, "boot", "app.js"),
-    assetManifestFile: path.join(adminRoot, "dist", "asset.manifest.json"),
-  };
-
-  if (hasRequiredAdminRuntimeFiles(buildCandidate)) {
-    return buildCandidate;
-  }
-
-  if (hasRequiredAdminRuntimeFiles(sourceCandidate)) {
-    return sourceCandidate;
-  }
-
-  throw new Error(
-    "Admin runtime not found in @atria/admin (expected runtime app.js and static assets)."
-  );
 };
