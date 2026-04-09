@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readFile, writeFile, access } from "node:fs/promises";
+import { readFile, writeFile, access, rm } from "node:fs/promises";
 import { constants as fsConstants } from "node:fs";
 
 const exists = async (target) => {
@@ -36,6 +36,13 @@ const replaceAllWithManifest = (html, manifest) => {
   return next;
 };
 
+const normalizeRuntimeEntry = (html) =>
+  html
+    .split('src="app.js"')
+    .join('src="/runtime/app.js"')
+    .split("src='app.js'")
+    .join("src='/runtime/app.js'");
+
 export const convertRuntimeIndex = async (packageRoot) => {
   const distDir = path.join(packageRoot, "dist");
   const manifestFile = path.join(distDir, "asset.manifest.json");
@@ -47,13 +54,15 @@ export const convertRuntimeIndex = async (packageRoot) => {
 
   const sourceIndexFile = (await exists(primaryIndexFile)) ? primaryIndexFile : runtimeIndexFile;
   const sourceHtml = await readFile(sourceIndexFile, "utf-8");
-  const rewrittenHtml = replaceAllWithManifest(sourceHtml, manifest);
+  const rewrittenHtml = normalizeRuntimeEntry(replaceAllWithManifest(sourceHtml, manifest));
 
   await writeFile(primaryIndexFile, rewrittenHtml, "utf-8");
 
   if (await exists(runtimeIndexFile)) {
     await writeFile(runtimeIndexFile, rewrittenHtml, "utf-8");
   }
+
+  await rm(manifestFile, { force: true });
 
   return {
     rewritten: sourceHtml !== rewrittenHtml,

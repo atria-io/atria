@@ -120,14 +120,26 @@ const runAdminBuild = async (adminDistRoot: string): Promise<void> =>
 
 const ensureAdminDistRuntime = async (adminDistRoot: string): Promise<void> => {
   const indexFile = path.join(adminDistRoot, "index.htm");
-  const staticDir = path.join(adminDistRoot, "static");
-  if ((await pathExists(indexFile)) && (await pathExists(staticDir))) {
+  const hasHashedAssetDirectory = async () => {
+    try {
+      const entries = await fs.readdir(adminDistRoot, { withFileTypes: true });
+      return entries.some(
+        (entry) =>
+          entry.isDirectory() &&
+          /^[a-f0-9]{3}$/.test(entry.name)
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  if ((await pathExists(indexFile)) && (await hasHashedAssetDirectory())) {
     return;
   }
 
   await runAdminBuild(adminDistRoot);
 
-  if ((await pathExists(indexFile)) && (await pathExists(staticDir))) {
+  if ((await pathExists(indexFile)) && (await hasHashedAssetDirectory())) {
     return;
   }
 

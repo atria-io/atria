@@ -87,7 +87,7 @@ export default {
   output: {
     dir: 'dist/static',
     format: 'esm',
-    sourcemap: 'hidden',
+    sourcemap: false,
     entryFileNames: 'app.js',
     chunkFileNames: '[name]-[hash].js',
     manualChunks(id) {

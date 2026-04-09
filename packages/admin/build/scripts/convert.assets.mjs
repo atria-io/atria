@@ -1,6 +1,6 @@
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { access, readFile, rename, unlink, writeFile, readdir } from "node:fs/promises";
+import { access, readFile, rename, unlink, writeFile, readdir, rm } from "node:fs/promises";
 import { constants as fsConstants } from "node:fs";
 
 const SUPPORTED_EXTENSIONS = new Set([".css", ".woff", ".woff2", ".ico", ".svg", ".js"]);
@@ -64,6 +64,7 @@ const collectStaticReferencesFromSource = (content) => {
 };
 
 const hashFile = (buffer) => createHash("md5").update(buffer).digest("hex").slice(0, 8);
+const hashShort = (value) => createHash("md5").update(value).digest("hex").slice(0, 3);
 
 const createReplacementEntries = (mapping) => {
   const entries = [];
@@ -161,6 +162,8 @@ const resolveStaticSourceFile = async (roots, staticRelativePath) => {
 export const convertRuntimeAssets = async (packageRoot) => {
   const distDir = path.join(packageRoot, "dist");
   const staticRoot = path.join(distDir, "static");
+  const staticDirectoryHash = hashShort("static");
+  const hashedStaticRoot = path.join(distDir, staticDirectoryHash);
   const manifestFile = path.join(distDir, "asset.manifest.json");
   const staticLookupRoots = [staticRoot, path.join(distDir, "runtime", "static")];
   const htmlTargets = await resolveExistingHtmlTargets(distDir);
@@ -196,7 +199,7 @@ export const convertRuntimeAssets = async (packageRoot) => {
     const extension = path.extname(reference).toLowerCase();
     const digest = hashFile(content);
     const hashedName = `${digest}${extension}`;
-    const hashedPath = `/static/${hashedName}`;
+    const hashedPath = `/${staticDirectoryHash}/${hashedName}`;
     const targetFile = path.join(staticRoot, hashedName);
 
     const existingTarget = hashedTargets.get(hashedName);
@@ -236,6 +239,13 @@ export const convertRuntimeAssets = async (packageRoot) => {
     manifest[from] = to;
   }
   await writeFile(manifestFile, JSON.stringify(manifest, null, 2), "utf-8");
+
+  if (await exists(hashedStaticRoot)) {
+    await rm(hashedStaticRoot, { recursive: true, force: true });
+  }
+  if (await exists(staticRoot)) {
+    await rename(staticRoot, hashedStaticRoot);
+  }
 
   return {
     transformedAssets,
