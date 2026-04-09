@@ -176,7 +176,7 @@ const collectScreenFiles = async (runtimeRoot) => {
   return files;
 };
 
-export const transformRuntimeBoundaries = async (packageRoot) => {
+export const transformRuntime = async (packageRoot) => {
   const runtimeRoot = path.join(packageRoot, "dist", "runtime");
   const routerFile = path.join(runtimeRoot, "Router.js");
 
