@@ -1,8 +1,11 @@
 .admin-header {
   width: 100%;
-  position: relative;
+  position: sticky;
   height: var(--header);
   border-bottom: var(--border);
+  background: var(--background);
+  z-index: 1;
+  top: 0;
 }
 
 .admin-header__container {
@@ -15,10 +18,14 @@
   height: inherit;
   display: inline-flex;
   align-items: center;
+  font-size: var(--text-sm);
 }
 
 .admin-header__profile {
-  top: 0;
+  top: 50%;
   right: 0;
+  cursor: pointer;
+  transform: translateY(-50%);
   position: absolute;
+  padding: 0.4378em;
 }

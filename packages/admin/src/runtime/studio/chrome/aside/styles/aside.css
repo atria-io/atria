@@ -1,4 +1,7 @@
 .admin-shell__sidebar {
+  --sidebar-icon-size: 1.125rem;
+  --sidebar-icon-stroke-width: 1.75;
+  --sidebar-icon-color: currentColor;
   top: var(--header);
   width: var(--sidebar);
   height: calc(100% - var(--header));
@@ -14,7 +17,20 @@
 }
 
 .admin-shell__sidebar button {
-  display: block;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
+  color: var(--sidebar-icon-color);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.admin-shell__sidebar-icon {
+  width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
+  stroke-width: var(--sidebar-icon-stroke-width);
 }

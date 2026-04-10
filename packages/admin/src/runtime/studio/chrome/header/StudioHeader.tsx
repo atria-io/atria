@@ -20,7 +20,7 @@ export const StudioHeader = ({ account }: StudioHeaderProps) => {
       <div className="admin-header__container">
         <div className="admin-header__atria"></div>
         <div className="admin-header__path" aria-label="Current path">
-          <strong>Studio</strong><span>&nbsp;/&nbsp;</span>
+          <strong>@studio</strong><span>&nbsp;/&nbsp;</span>
         </div>
         <div className="admin-header__profile">
           <AccountPanel user={account} onLogout={handleLogoutClick} />

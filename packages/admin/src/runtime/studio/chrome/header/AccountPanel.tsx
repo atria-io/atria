@@ -52,7 +52,7 @@ export const AccountPanel = ({ user, onLogout }: StudioAccountPanelProps) => {
       <div className="studio-account__profile" aria-label="User info">
         {user.avatarUrl ? (
           <img className="studio-account__avatar-image" src={user.avatarUrl}
-            alt={user.name} width={18} height={18} />
+            alt={user.name} width={22} height={22} />
         ) : (
           <span className="studio-account__avatar" aria-label="Avatar" />
         )}

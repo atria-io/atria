@@ -23,16 +23,17 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "lucide-react": "^1.8.0",
     "react": "latest",
     "react-dom": "latest"
   },
   "devDependencies": {
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "rollup": "latest",
     "@rollup/plugin-commonjs": "latest",
     "@rollup/plugin-node-resolve": "latest",
-    "@rollup/plugin-terser": "latest"
+    "@rollup/plugin-terser": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "rollup": "latest"
   },
   "repository": {
     "type": "git",

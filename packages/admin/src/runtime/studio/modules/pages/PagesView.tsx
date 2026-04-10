@@ -1,3 +1,3 @@
 export const PagesView = () => {
-  return <section>Pages</section>;
+  return <>Pages</>;
 };

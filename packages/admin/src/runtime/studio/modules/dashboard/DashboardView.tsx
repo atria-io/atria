@@ -1,3 +1,3 @@
 export const DashboardView = () => {
-  return <div>Dashboard</div>;
+  return <>No properties</>;
 };
