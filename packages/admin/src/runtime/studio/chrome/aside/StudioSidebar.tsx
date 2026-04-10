@@ -9,7 +9,7 @@ export const StudioSidebar = ({ state }: StudioProps) => {
   return (
     <aside className="admin-shell__sidebar">
       <nav>
-        <button data-active={state === "dashboard"}></button>
+        {/* <button data-active={state === "dashboard"}></button> */}
         <button data-active={state === "pages"} onClick={navigateToPages}></button>
       </nav>
     </aside>

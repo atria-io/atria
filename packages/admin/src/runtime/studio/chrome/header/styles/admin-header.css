@@ -1,0 +1,24 @@
+.admin-header {
+  width: 100%;
+  position: relative;
+  height: var(--header);
+  border-bottom: var(--border);
+}
+
+.admin-header__container {
+  height: inherit;
+  position: relative;
+  margin-inline: var(--space-x);
+}
+
+.admin-header__path {
+  height: inherit;
+  display: inline-flex;
+  align-items: center;
+}
+
+.admin-header__profile {
+  top: 0;
+  right: 0;
+  position: absolute;
+}

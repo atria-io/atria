@@ -7,7 +7,7 @@ export interface CriticalShellProps {
 
 export const CriticalShell = ({ screen }: CriticalShellProps) => {
   return (
-    <main className="admin-shell__main">
+    <main className="admin-main">
       <CriticalScreen state={screen} />
     </main>
   );

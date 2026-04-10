@@ -28,9 +28,6 @@
   --boot-spinner: #8a8a8a;
 
   --shadow: #00000033;
-
-  --border: 1px solid var(--color-border);
-  --box-shadow: 0 .25rem .75rem var(--shadow);
 }
 
 [data-scheme="light"] {
@@ -62,7 +59,4 @@
   --boot-spinner:#1f2937;
 
   --shadow: #0000001a;
-
-  --border: 1px solid var(--color-border);
-  --box-shadow: 0 .25rem .75rem var(--shadow);
 }

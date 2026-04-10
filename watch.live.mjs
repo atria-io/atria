@@ -20,6 +20,9 @@ const BROWSER_RELOAD_MODE = (() => {
 const BROWSER_RELOAD_DELAY_MS = 700;
 const RESTART_DEBOUNCE_MS = 350;
 const WATCH_DEBOUNCE_MS = 200;
+const ADMIN_PORT = 3333;
+const INTERNAL_API_PORT = 3334;
+const ADMIN_WATCH_IGNORED_PREFIXES = ["dist", "node_modules"];
 const WORKSPACE_IGNORED_PREFIXES = [
   ".atria/data",
   ".atria/runtime",
@@ -62,6 +65,14 @@ const spawnProcess = (command, args, cwd, stdio = "inherit") =>
     env: process.env
   });
 
+const spawnBackgroundProcess = (command, args, cwd, stdio = "inherit") =>
+  spawn(command, args, {
+    cwd,
+    stdio,
+    env: process.env,
+    detached: true
+  });
+
 const runCommand = (command, args, cwd, stdio = "inherit") =>
   new Promise((resolve) => {
     const child = spawnProcess(command, args, cwd, stdio);
@@ -71,6 +82,162 @@ const runCommand = (command, args, cwd, stdio = "inherit") =>
     child.on("error", () => {
       resolve(1);
     });
+  });
+
+const runCommandCapture = (command, args, cwd) =>
+  new Promise((resolve) => {
+    const child = spawn(command, args, {
+      cwd,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: process.env
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout?.on("data", (chunk) => {
+      stdout += String(chunk);
+    });
+    child.stderr?.on("data", (chunk) => {
+      stderr += String(chunk);
+    });
+
+    child.on("exit", (code) => {
+      resolve({ code: code ?? 0, stdout, stderr });
+    });
+    child.on("error", () => {
+      resolve({ code: 1, stdout: "", stderr: "" });
+    });
+  });
+
+const listListeningPids = async (port) => {
+  const result = await runCommandCapture(
+    "lsof",
+    ["-nP", "-t", `-iTCP:${port}`, "-sTCP:LISTEN"],
+    rootDir
+  );
+  if (result.code !== 0 || result.stdout.trim() === "") {
+    return [];
+  }
+
+  return result.stdout
+    .split("\n")
+    .map((line) => Number.parseInt(line.trim(), 10))
+    .filter((pid) => Number.isInteger(pid) && pid > 0);
+};
+
+const isNodeProcess = async (pid) => {
+  const result = await runCommandCapture("ps", ["-p", String(pid), "-o", "comm="], rootDir);
+  if (result.code !== 0) {
+    return false;
+  }
+
+  const command = result.stdout.trim().toLowerCase();
+  return command.includes("node");
+};
+
+const terminatePid = (pid, signal) => {
+  try {
+    process.kill(pid, signal);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const ensureDevPortsAvailable = async () => {
+  const ports = [ADMIN_PORT, INTERNAL_API_PORT];
+  let killed = 0;
+
+  for (const port of ports) {
+    const pids = await listListeningPids(port);
+    for (const pid of pids) {
+      if (pid === process.pid) {
+        continue;
+      }
+
+      if (!(await isNodeProcess(pid))) {
+        continue;
+      }
+
+      if (terminatePid(pid, "SIGTERM")) {
+        killed += 1;
+      }
+    }
+  }
+
+  if (killed === 0) {
+    return;
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  for (const port of ports) {
+    const pids = await listListeningPids(port);
+    for (const pid of pids) {
+      if (pid === process.pid) {
+        continue;
+      }
+
+      if (!(await isNodeProcess(pid))) {
+        continue;
+      }
+
+      terminatePid(pid, "SIGKILL");
+    }
+  }
+};
+
+const terminateChildProcess = async (child) =>
+  new Promise((resolve) => {
+    let exited = false;
+    const finish = () => {
+      if (exited) {
+        return;
+      }
+      exited = true;
+      resolve();
+    };
+
+    const killByGroup = (signal) => {
+      if (!child.pid) {
+        return false;
+      }
+
+      try {
+        process.kill(-child.pid, signal);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    const killByPid = (signal) => {
+      try {
+        child.kill(signal);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    const killTimeout = setTimeout(() => {
+      if (!killByGroup("SIGKILL")) {
+        killByPid("SIGKILL");
+      }
+    }, 3000);
+
+    child.once("exit", () => {
+      clearTimeout(killTimeout);
+      finish();
+    });
+
+    if (!killByGroup("SIGTERM")) {
+      if (!killByPid("SIGTERM")) {
+        clearTimeout(killTimeout);
+        finish();
+      }
+    }
   });
 
 /**
@@ -198,36 +365,7 @@ const stopDevServer = async () => {
 
   const current = devProcess;
   devProcess = null;
-
-  await new Promise((resolve) => {
-    let exited = false;
-    const finish = () => {
-      if (exited) {
-        return;
-      }
-      exited = true;
-      resolve();
-    };
-
-    const killTimeout = setTimeout(() => {
-      try {
-        current.kill("SIGKILL");
-      } catch {
-      }
-    }, 3000);
-
-    current.once("exit", () => {
-      clearTimeout(killTimeout);
-      finish();
-    });
-
-    try {
-      current.kill("SIGTERM");
-    } catch {
-      clearTimeout(killTimeout);
-      finish();
-    }
-  });
+  await terminateChildProcess(current);
 };
 
 const startDevServer = () => {
@@ -235,7 +373,7 @@ const startDevServer = () => {
     return;
   }
 
-  devProcess = spawnProcess(
+  devProcess = spawnBackgroundProcess(
     "node",
     [path.join("..", "packages", "atria", "dist", "bin.js"), "dev"],
     workspaceDir
@@ -282,15 +420,7 @@ const queueAdminBuild = () => {
   if (shuttingDown) {
     return;
   }
-
-  if (adminBuildTimer) {
-    clearTimeout(adminBuildTimer);
-  }
-
-  adminBuildTimer = setTimeout(() => {
-    adminBuildTimer = null;
-    void runAdminBuild();
-  }, WATCH_DEBOUNCE_MS);
+  requestRestart();
 };
 
 /**
@@ -430,36 +560,7 @@ const shutdown = async (exitCode) => {
   if (tscWatchProcess) {
     const current = tscWatchProcess;
     tscWatchProcess = null;
-
-    await new Promise((resolve) => {
-      let exited = false;
-      const finish = () => {
-        if (exited) {
-          return;
-        }
-        exited = true;
-        resolve();
-      };
-
-      const killTimeout = setTimeout(() => {
-        try {
-          current.kill("SIGKILL");
-        } catch {
-        }
-      }, 3000);
-
-      current.once("exit", () => {
-        clearTimeout(killTimeout);
-        finish();
-      });
-
-      try {
-        current.kill("SIGTERM");
-      } catch {
-        clearTimeout(killTimeout);
-        finish();
-      }
-    });
+    await terminateChildProcess(current);
   }
 
   process.exit(exitCode);
@@ -486,8 +587,21 @@ const watchDistOutputs = () => {
 };
 
 const watchBuildOnlySources = () => {
-  addRecursiveWatcher(path.join(packagesDir, "admin", "src"), queueAdminBuild);
-  addRecursiveWatcher(path.join(packagesDir, "admin", "build"), queueAdminBuild);
+  addRecursiveWatcher(path.join(packagesDir, "admin"), (_eventType, filename) => {
+    if (filename.length === 0) {
+      return;
+    }
+
+    const normalized = filename.replace(/\\/g, "/");
+    const isIgnored = ADMIN_WATCH_IGNORED_PREFIXES.some((prefix) =>
+      normalized === prefix || normalized.startsWith(`${prefix}/`)
+    );
+    if (isIgnored) {
+      return;
+    }
+
+    queueAdminBuild();
+  });
   addRecursiveWatcher(path.join(packagesDir, "shared", "src", "runtime"), queueSharedBuild);
   addRecursiveWatcher(path.join(packagesDir, "shared", "build"), queueSharedBuild);
 };
@@ -535,7 +649,7 @@ const main = async () => {
   }
 
   console.log("[live] Starting TypeScript watch...");
-  tscWatchProcess = spawnProcess(
+  tscWatchProcess = spawnBackgroundProcess(
     "corepack",
     [
       "pnpm",
@@ -576,6 +690,7 @@ const main = async () => {
   watchWorkspaceSources();
 
   console.log("[live] Starting workspace dev server...");
+  await ensureDevPortsAvailable();
   startDevServer();
 };
 

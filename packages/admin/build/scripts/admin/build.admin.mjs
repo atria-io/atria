@@ -2,15 +2,16 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { mkdir, rm, cp, readFile } from "node:fs/promises";
 import { writeMinifiedCss } from "../shared/minifycss.mjs";
-import { applyLazyImports } from "../runtime/lazy.imports.mjs";
+import { applyLazyImports } from "../runtime/react.mjs";
 
 export const runAdminBuild = async (packageRoot) => {
   const paths = getBuildPaths(packageRoot);
   await prepareDistDirectory(paths.distDir);
   await buildSource(paths.packageRoot, paths.tscEntry);
   await applyLazyImports(paths.packageRoot);
-  await bundleApp(paths.packageRoot, paths.rollupEntry, paths.rollupConfig);
+  await bundleApp(paths.packageRoot, paths.rollupEntry, paths.reactRollupConfig);
   await copyRuntime(paths.runtimeSourceDir, paths.frontendDir);
+  await bundleBoot(paths.packageRoot, paths.rollupEntry, paths.bootRollupConfig);
   await minifyRuntimeStyles(paths.frontendDir);
 };
 
@@ -35,7 +36,8 @@ const getBuildPaths = (packageRoot) => {
     "bin",
     "rollup"
   );
-  const rollupConfig = path.join(packageRoot, "build", "scripts", "admin", "config.rollup.mjs");
+  const reactRollupConfig = path.join(packageRoot, "build", "scripts", "admin", "config.react.rollup.mjs");
+  const bootRollupConfig = path.join(packageRoot, "build", "scripts", "admin", "config.boot.rollup.mjs");
 
   return {
     packageRoot,
@@ -44,7 +46,8 @@ const getBuildPaths = (packageRoot) => {
     runtimeSourceDir,
     tscEntry,
     rollupEntry,
-    rollupConfig
+    reactRollupConfig,
+    bootRollupConfig
   };
 };
 
@@ -75,7 +78,10 @@ const buildSource = (packageRoot, tscEntry) =>
   runNodeCommand(packageRoot, tscEntry, ["-p", "tsconfig.json"], "admin build");
 
 const bundleApp = (packageRoot, rollupEntry, rollupConfig) =>
-  runNodeCommand(packageRoot, rollupEntry, ["--config", rollupConfig], "admin rollup");
+  runNodeCommand(packageRoot, rollupEntry, ["--config", rollupConfig], "admin react rollup");
+
+const bundleBoot = (packageRoot, rollupEntry, rollupConfig) =>
+  runNodeCommand(packageRoot, rollupEntry, ["--config", rollupConfig], "admin boot rollup");
 
 const copyRuntime = async (runtimeSourceDir, runtimeDistDir) => {
   await cp(runtimeSourceDir, runtimeDistDir, { recursive: true });

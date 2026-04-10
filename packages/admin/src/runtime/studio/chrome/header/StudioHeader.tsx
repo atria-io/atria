@@ -1,5 +1,5 @@
 import type { AppUser } from "../../StudioTypes.js";
-import { StudioAccountPanel } from "./StudioAccountPanel.js";
+import { AccountPanel } from "./AccountPanel.js";
 
 export interface StudioHeaderProps {
   account: AppUser;
@@ -16,9 +16,16 @@ export const StudioHeader = ({ account }: StudioHeaderProps) => {
   };
 
   return (
-    <header className="admin-shell__header">
-      <div>Studio</div>
-      <StudioAccountPanel user={account} onLogout={handleLogoutClick} />
+    <header className="admin-header">
+      <div className="admin-header__container">
+        <div className="admin-header__atria"></div>
+        <div className="admin-header__path" aria-label="Current path">
+          <strong>Studio</strong><span>&nbsp;/&nbsp;</span>
+        </div>
+        <div className="admin-header__profile">
+          <AccountPanel user={account} onLogout={handleLogoutClick} />
+        </div>
+      </div>
     </header>
   );
 };

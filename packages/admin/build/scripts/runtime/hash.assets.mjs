@@ -256,9 +256,10 @@ export const hashAssets = async (packageRoot) => {
     await rm(hashedStaticRoot, { recursive: true, force: true });
   }
 
-  const { references, jsFiles } = await collectReferences(indexFile, frontendDir, staticRoot);
+  const { references } = await collectReferences(indexFile, frontendDir, staticRoot);
   const assetMapping = await relocateAssets(references, staticRoot, staticDirHash);
   const finalMapping = await rewriteRootAppEntry(frontendDir, new Map(assetMapping));
+  const jsFiles = await collectJsFiles(frontendDir);
 
   await rewriteRuntimeFiles(indexFile, jsFiles, finalMapping);
 

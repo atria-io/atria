@@ -1,9 +1,0 @@
-.admin-shell__header {
-  flex: 0 0 auto;
-  padding: var(--layout-inset);
-  border-bottom: var(--border);
-}
-
-.studio-account {
-  display: none;
-}

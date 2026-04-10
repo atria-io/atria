@@ -4,6 +4,7 @@ import { runAdminBuild } from "./scripts/admin/build.admin.mjs";
 import { runStyleBundle } from "./scripts/admin/build.styles.mjs";
 import { runSchemeBundle } from "./scripts/admin/build.scheme.mjs";
 import { hashAssets } from "./scripts/runtime/hash.assets.mjs";
+import { minifyRuntimeHtml } from "./scripts/runtime/minify.html.mjs";
 
 const resolvePackageRoot = (entryUrl) => {
   const buildDir = path.dirname(fileURLToPath(entryUrl));
@@ -16,3 +17,4 @@ await runAdminBuild(packageRoot);
 await runSchemeBundle(packageRoot);
 await runStyleBundle(packageRoot);
 await hashAssets(packageRoot);
+await minifyRuntimeHtml(packageRoot);

@@ -7,7 +7,7 @@ export interface AuthShellProps {
 
 export const AuthShell = ({ screen }: AuthShellProps) => {
   return (
-    <main className="admin-shell__main">
+    <main className="admin-main">
       <section className="auth-screen">
         <AuthScreen state={screen} />
       </section>

@@ -1,6 +1,10 @@
 .admin-shell__sidebar {
-  padding: var(--layout-inset);
+  top: var(--header);
+  width: var(--sidebar);
+  height: calc(100% - var(--header));
   border-right: var(--border);
+  padding: var(--layout-inset);
+  position: absolute;
 }
 
 .admin-shell__sidebar nav {

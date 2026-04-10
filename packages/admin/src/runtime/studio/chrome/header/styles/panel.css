@@ -1,0 +1,8 @@
+.studio-account__profile img {
+  border-radius: 999px;
+  vertical-align: top;
+}
+
+.studio-account__panel {
+  display: none;
+}

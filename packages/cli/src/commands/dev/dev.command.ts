@@ -163,7 +163,8 @@ const ensureWorkspaceRuntime = async (
 ): Promise<{ runtimeRoot: string; adminDistRoot: string; adminAssetDirectory: string }> => {
   const workspaceRuntimeRoot = path.join(projectRoot, path.join(".atria", "runtime"));
   const adminDistRoot = resolveAdminDistRoot();
-  const adminReady = (await hasRuntimePayload(adminDistRoot)) || ((await runAdminBuild(adminDistRoot)), await hasRuntimePayload(adminDistRoot));
+  await runAdminBuild(adminDistRoot);
+  const adminReady = await hasRuntimePayload(adminDistRoot);
   if (!adminReady) {
     throw new Error("Admin dist runtime is missing required files after build.");
   }
