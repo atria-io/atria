@@ -74,7 +74,8 @@ const collectRelativeStaticJsReferences = (source, jsFile, staticRoot) => {
       }
 
       const specifierPath = rawSpecifier.split("?")[0].split("#")[0];
-      if (path.extname(specifierPath).toLowerCase() !== ".js") {
+      const extension = path.extname(specifierPath).toLowerCase();
+      if (extension !== ".js" && extension !== ".css") {
         continue;
       }
 
