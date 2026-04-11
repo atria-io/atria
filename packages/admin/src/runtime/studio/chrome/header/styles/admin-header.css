@@ -1,24 +1,22 @@
 .admin-header {
-  width: 100%;
-  position: sticky;
-  height: var(--header);
-  border-bottom: var(--border);
-  background: var(--background);
-  z-index: 1;
   top: 0;
+  flex: 0;
+  width: 100%;
+  height: calc(var(--header) - 1px);
+  background: var(--background);
+  border-bottom: var(--border);
+  position: sticky;
+  z-index: 1;
 }
 
 .admin-header__container {
-  height: inherit;
   position: relative;
   margin-inline: var(--space-x);
 }
 
 .admin-header__path {
-  height: inherit;
-  display: inline-flex;
-  align-items: center;
-  font-size: var(--text-sm);
+  line-height: calc(var(--header) - 1px);
+  display: inline;
 }
 
 .admin-header__profile {

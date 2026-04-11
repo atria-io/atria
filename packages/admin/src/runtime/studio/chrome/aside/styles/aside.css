@@ -5,11 +5,13 @@
 }
 
 .admin-shell__sidebar {
+  float: left;
   top: var(--header);
   width: var(--sidebar);
-  height: calc(100% - var(--header));
+  height: calc(100vh - var(--header));
   border-right: var(--border);
-  position: absolute;
+  position: sticky;
+  z-index: 0;
 }
 
 .admin-shell__sidebar button {

@@ -3,14 +3,13 @@
 }
 
 html {
-  height: 100%;
   line-height: 1.15;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  height: 100%;
+  height: max-content;
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   font-family: var(--font-family);
@@ -22,7 +21,6 @@ body > div {
   min-height: 100%;
   flex-direction: column;
   position: relative;
-  height: 100%;
 }
 
 a {

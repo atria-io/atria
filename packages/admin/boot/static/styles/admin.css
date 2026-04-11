@@ -1,6 +1,10 @@
-.admin-shell,
+.admin-shell {
+  display: flex;
+  flex-direction: column;
+}
+
 .admin-main {
-  min-height: 100%;
+  flex: 1;
 }
 
 .atria-tooltip__content {
