@@ -3,9 +3,35 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import { md5 } from "../../../../shared/dist/hash/md5.js";
 
 const ENABLE_CSS_TOKEN_MD5 = true;
-const TOKEN_HASH_PREFIX = "t_";
+const TOKEN_HASH_LENGTH = 4;
+const TOKEN_HASH_ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+const TOKEN_HASH_SPACE = TOKEN_HASH_ALPHABET.length ** TOKEN_HASH_LENGTH;
 
-const toTokenHash = (name) => `${TOKEN_HASH_PREFIX}${md5(name).slice(0, 8)}`;
+const toAlphaTokenBase = (value) => {
+  let next = value % TOKEN_HASH_SPACE;
+  let output = "";
+
+  for (let index = 0; index < TOKEN_HASH_LENGTH; index += 1) {
+    output = TOKEN_HASH_ALPHABET[next % TOKEN_HASH_ALPHABET.length] + output;
+    next = Math.floor(next / TOKEN_HASH_ALPHABET.length);
+  }
+
+  return output;
+};
+
+const toTokenHash = (name, usedTokens) => {
+  const hashHex = md5(name).slice(0, 8);
+  let probe = Number.parseInt(hashHex, 16);
+  let candidate = toAlphaTokenBase(probe);
+
+  while (usedTokens.has(candidate)) {
+    probe += 1;
+    candidate = toAlphaTokenBase(probe);
+  }
+
+  usedTokens.add(candidate);
+  return candidate;
+};
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -97,8 +123,9 @@ export const hashCssTokens = async (packageRoot) => {
   }
 
   const tokenMap = new Map();
+  const usedTokens = new Set();
   for (const tokenName of tokenNames) {
-    tokenMap.set(tokenName, toTokenHash(tokenName));
+    tokenMap.set(tokenName, toTokenHash(tokenName, usedTokens));
   }
 
   for (const cssFile of cssFiles) {

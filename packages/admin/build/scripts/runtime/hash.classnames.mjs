@@ -3,9 +3,35 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import { md5 } from "../../../../shared/dist/hash/md5.js";
 
 const ENABLE_CLASSNAME_MD5 = true;
-const CLASS_HASH_PREFIX = "c_";
+const CLASS_HASH_LENGTH = 4;
+const CLASS_HASH_ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+const CLASS_HASH_SPACE = CLASS_HASH_ALPHABET.length ** CLASS_HASH_LENGTH;
 
-const toClassHash = (name) => `${CLASS_HASH_PREFIX}${md5(name).slice(0, 8)}`;
+const toAlphaClassBase = (value) => {
+  let next = value % CLASS_HASH_SPACE;
+  let output = "";
+
+  for (let index = 0; index < CLASS_HASH_LENGTH; index += 1) {
+    output = CLASS_HASH_ALPHABET[next % CLASS_HASH_ALPHABET.length] + output;
+    next = Math.floor(next / CLASS_HASH_ALPHABET.length);
+  }
+
+  return output;
+};
+
+const toClassHash = (name, usedClasses) => {
+  const hashHex = md5(name).slice(0, 8);
+  let probe = Number.parseInt(hashHex, 16);
+  let candidate = toAlphaClassBase(probe);
+
+  while (usedClasses.has(candidate)) {
+    probe += 1;
+    candidate = toAlphaClassBase(probe);
+  }
+
+  usedClasses.add(candidate);
+  return candidate;
+};
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -86,6 +112,108 @@ const collectClassNamesFromJs = (source) => {
   return classNames;
 };
 
+const scanQuotedLiterals = (source, onValue) => {
+  let index = 0;
+  while (index < source.length) {
+    const char = source[index];
+    if (char !== '"' && char !== "'" && char !== "`") {
+      index += 1;
+      continue;
+    }
+
+    const quote = char;
+    let cursor = index + 1;
+    let escaped = false;
+    while (cursor < source.length) {
+      const next = source[cursor];
+      if (escaped) {
+        escaped = false;
+        cursor += 1;
+        continue;
+      }
+      if (next === "\\") {
+        escaped = true;
+        cursor += 1;
+        continue;
+      }
+      if (next === quote) {
+        onValue(source.slice(index + 1, cursor), index + 1, cursor);
+        cursor += 1;
+        break;
+      }
+      cursor += 1;
+    }
+
+    index = cursor;
+  }
+};
+
+const collectClassNamesFromClassNameExpressions = (source) => {
+  const classNames = new Set();
+  const marker = "className:";
+  let index = 0;
+
+  while (index < source.length) {
+    const start = source.indexOf(marker, index);
+    if (start === -1) {
+      break;
+    }
+
+    let cursor = start + marker.length;
+    let parenDepth = 0;
+    let braceDepth = 0;
+    let bracketDepth = 0;
+    let quote = "";
+    let escaped = false;
+
+    while (cursor < source.length) {
+      const char = source[cursor];
+      if (quote) {
+        if (escaped) {
+          escaped = false;
+        } else if (char === "\\") {
+          escaped = true;
+        } else if (char === quote) {
+          quote = "";
+        }
+        cursor += 1;
+        continue;
+      }
+
+      if (char === '"' || char === "'" || char === "`") {
+        quote = char;
+        cursor += 1;
+        continue;
+      }
+
+      if (char === "(") parenDepth += 1;
+      else if (char === ")") parenDepth = Math.max(parenDepth - 1, 0);
+      else if (char === "{") braceDepth += 1;
+      else if (char === "}") braceDepth = Math.max(braceDepth - 1, 0);
+      else if (char === "[") bracketDepth += 1;
+      else if (char === "]") bracketDepth = Math.max(bracketDepth - 1, 0);
+      else if (char === "," && parenDepth === 0 && braceDepth === 0 && bracketDepth === 0) {
+        break;
+      }
+
+      cursor += 1;
+    }
+
+    const expression = source.slice(start + marker.length, cursor);
+    scanQuotedLiterals(expression, (value) => {
+      for (const token of value.split(/\s+/).filter(Boolean)) {
+        if (/^[A-Za-z_][A-Za-z0-9_-]*$/.test(token)) {
+          classNames.add(token);
+        }
+      }
+    });
+
+    index = cursor + 1;
+  }
+
+  return classNames;
+};
+
 const rewriteCssSource = (source, classMap) => {
   let next = source;
 
@@ -127,8 +255,89 @@ const rewriteSelectorValue = (value, classMap) =>
     return next ? `.${next}` : full;
   });
 
+const rewriteClassNameExpression = (expression, classMap) => {
+  let output = "";
+  let cursor = 0;
+
+  scanQuotedLiterals(expression, (value, start, end) => {
+    output += expression.slice(cursor, start);
+    output += rewriteJsClassValue(value, classMap);
+    cursor = end;
+  });
+
+  output += expression.slice(cursor);
+  return output;
+};
+
+const rewriteClassNameExpressions = (source, classMap) => {
+  const marker = "className:";
+  let output = "";
+  let index = 0;
+
+  while (index < source.length) {
+    const start = source.indexOf(marker, index);
+    if (start === -1) {
+      output += source.slice(index);
+      break;
+    }
+
+    output += source.slice(index, start + marker.length);
+
+    let cursor = start + marker.length;
+    let parenDepth = 0;
+    let braceDepth = 0;
+    let bracketDepth = 0;
+    let quote = "";
+    let escaped = false;
+
+    while (cursor < source.length) {
+      const char = source[cursor];
+      if (quote) {
+        if (escaped) {
+          escaped = false;
+        } else if (char === "\\") {
+          escaped = true;
+        } else if (char === quote) {
+          quote = "";
+        }
+        cursor += 1;
+        continue;
+      }
+
+      if (char === '"' || char === "'" || char === "`") {
+        quote = char;
+        cursor += 1;
+        continue;
+      }
+
+      if (char === "(") parenDepth += 1;
+      else if (char === ")") parenDepth = Math.max(parenDepth - 1, 0);
+      else if (char === "{") braceDepth += 1;
+      else if (char === "}") braceDepth = Math.max(braceDepth - 1, 0);
+      else if (char === "[") bracketDepth += 1;
+      else if (char === "]") bracketDepth = Math.max(bracketDepth - 1, 0);
+      else if (char === "," && parenDepth === 0 && braceDepth === 0 && bracketDepth === 0) {
+        break;
+      }
+
+      cursor += 1;
+    }
+
+    const expression = source.slice(start + marker.length, cursor);
+    output += rewriteClassNameExpression(expression, classMap);
+    if (cursor < source.length && source[cursor] === ",") {
+      output += ",";
+      cursor += 1;
+    }
+
+    index = cursor;
+  }
+
+  return output;
+};
+
 const rewriteJsSource = (source, classMap) =>
-  source
+  rewriteClassNameExpressions(source, classMap)
     .replace(/(\bclassName\b\s*[:=]\s*["'])([^"']*)(["'])/g, (full, prefix, value, suffix) => `${prefix}${rewriteJsClassValue(value, classMap)}${suffix}`)
     .replace(/(\bsetAttribute\s*\(\s*["']class["']\s*,\s*["'])([^"']*)(["'])/g, (full, prefix, value, suffix) => `${prefix}${rewriteJsClassValue(value, classMap)}${suffix}`)
     .replace(/(\bclassList\.(?:add|remove|toggle)\s*\(\s*["'])([^"']*)(["'])/g, (full, prefix, value, suffix) => `${prefix}${rewriteJsClassValue(value, classMap)}${suffix}`)
@@ -169,11 +378,15 @@ export const hashClassNames = async (packageRoot) => {
     for (const className of collectClassNamesFromJs(source)) {
       classNames.add(className);
     }
+    for (const className of collectClassNamesFromClassNameExpressions(source)) {
+      classNames.add(className);
+    }
   }
 
   const classMap = new Map();
+  const usedClasses = new Set();
   for (const className of classNames) {
-    classMap.set(className, toClassHash(className));
+    classMap.set(className, toClassHash(className, usedClasses));
   }
 
   for (const cssFile of cssFiles) {

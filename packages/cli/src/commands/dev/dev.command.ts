@@ -141,21 +141,8 @@ const materializeWorkspaceRuntime = async (
   workspaceRuntimeRoot: string
 ): Promise<void> => {
   await fs.rm(workspaceRuntimeRoot, { recursive: true, force: true });
-  await fs.mkdir(workspaceRuntimeRoot, { recursive: true });
-
-  const adminEntries = await fs.readdir(adminDistRoot, { withFileTypes: true });
-  for (const entry of adminEntries) {
-    if (!entry.isFile()) {
-      continue;
-    }
-
-    if (entry.name === "index.htm" || entry.name.endsWith(".js")) {
-      await fs.cp(
-        path.join(adminDistRoot, entry.name),
-        path.join(workspaceRuntimeRoot, entry.name)
-      );
-    }
-  }
+  await fs.mkdir(path.dirname(workspaceRuntimeRoot), { recursive: true });
+  await fs.cp(adminDistRoot, workspaceRuntimeRoot, { recursive: true });
 };
 
 const ensureWorkspaceRuntime = async (
