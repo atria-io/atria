@@ -54,7 +54,7 @@ h1 {
 }
 
 button {
-  border-radius: 0.1875rem;
+  border-radius: var(--baseline);
 }
 
 button,
@@ -97,10 +97,10 @@ button:hover {
 [type=submit],
 button {
   padding: 0;
-  display: flex;
   color: inherit;
   white-space: nowrap;
   background: initial;
+  display: inline-block;
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;

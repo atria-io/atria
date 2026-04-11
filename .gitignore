@@ -36,5 +36,6 @@ AGENTS.md
 
 .atria-main/
 
-# Local code-search scratch file
-css.code-search
+# Local code-search scratch files
+cs.tsx.code-search
+cs.css.code-search

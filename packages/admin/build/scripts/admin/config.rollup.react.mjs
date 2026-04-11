@@ -3,6 +3,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import { createRequire } from 'node:module';
 import { md5 } from '../../../../shared/src/hash/md5.ts';
+import { stripLucideInternalClasses } from './config.lucide.mjs';
 
 const require = createRequire(import.meta.url);
 
@@ -149,6 +150,7 @@ export default {
       preferBuiltins: false,
       dedupe: ['react', 'react-dom', 'react/jsx-runtime']
     }),
+    stripLucideInternalClasses(),
     commonjs(),
     terser({
       compress: true,

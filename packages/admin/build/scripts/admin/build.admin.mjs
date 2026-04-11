@@ -36,8 +36,8 @@ const getBuildPaths = (packageRoot) => {
     "bin",
     "rollup"
   );
-  const reactRollupConfig = path.join(packageRoot, "build", "scripts", "admin", "config.react.rollup.mjs");
-  const bootRollupConfig = path.join(packageRoot, "build", "scripts", "admin", "config.boot.rollup.mjs");
+  const reactRollupConfig = path.join(packageRoot, "build", "scripts", "admin", "config.rollup.react.mjs");
+  const bootRollupConfig = path.join(packageRoot, "build", "scripts", "admin", "config.rollup.boot.mjs");
 
   return {
     packageRoot,

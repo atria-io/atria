@@ -3,6 +3,8 @@
 
   --radius: 0.25rem;
 
+  --baseline: 0.1875rem;
+
   --spacing: 0.25rem;
   --space-x: 0.75rem;
   --space-y: 0.5rem;
@@ -16,6 +18,9 @@
   --duration-fast: 120ms;
   --duration-base: 180ms;
   --easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --transition-fast: var(--duration-fast) var(--easing);
+  --transition-base: var(--duration-base) var(--easing);
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;

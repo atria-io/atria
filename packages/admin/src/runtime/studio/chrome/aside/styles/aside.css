@@ -1,37 +1,47 @@
 .admin-shell__sidebar {
   --sidebar-icon-size: 1.125rem;
   --sidebar-icon-stroke-width: 1.75;
-  --sidebar-icon-color: currentColor;
+  --sidebar-icon-background-hover: var(--text-hover);
+}
+
+.admin-shell__sidebar {
   top: var(--header);
   width: var(--sidebar);
   height: calc(100% - var(--header));
   border-right: var(--border);
-  padding: var(--layout-inset);
   position: absolute;
 }
 
-.admin-shell__sidebar nav {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: var(--layout-gap);
-}
-
 .admin-shell__sidebar button {
-  padding: 0;
-  border: 0;
-  width: var(--sidebar-icon-size);
-  height: var(--sidebar-icon-size);
-  color: var(--sidebar-icon-color);
+  width: var(--sidebar);
+  height: var(--sidebar);
   background: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
   cursor: pointer;
 }
 
+.admin-shell__sidebar button::after {
+  content: '';
+  position: absolute;
+  background: transparent;
+  transition: background var(--transition-fast);
+  opacity: 0.5;
+  z-index: 0;
+  inset: 0;
+}
+
+.admin-shell__sidebar button:hover::after {
+  background: var(--button-hover);
+}
+
 .admin-shell__sidebar-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: var(--sidebar-icon-stroke-width);
   width: var(--sidebar-icon-size);
   height: var(--sidebar-icon-size);
-  stroke-width: var(--sidebar-icon-stroke-width);
+  position: relative;
+  z-index: 1;
 }
