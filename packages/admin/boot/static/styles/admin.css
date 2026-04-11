@@ -2,3 +2,56 @@
 .admin-main {
   min-height: 100%;
 }
+
+.atria-tooltip__content {
+  background: var(--background);
+  box-shadow: var(--box-shadow);
+  padding: calc(var(--spacing) * 1.5)
+    calc(var(--spacing) * 2);
+  border-radius: var(--radius);
+  font-size: var(--text-xs);
+  border: var(--border);
+  transform-origin: center center;
+  animation: tooltip-pop var(--transition-base);
+}
+
+.atria-tooltip--closing .atria-tooltip__content {
+  animation: tooltip-pop-out 120ms ease-out forwards;
+}
+
+.atria-tooltip__text {
+  opacity: 0;
+  animation: tooltip-fade var(--transition-base) 150ms forwards;
+}
+
+@keyframes tooltip-pop {
+  from {
+    transform: scale(0.75);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes tooltip-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tooltip-pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}

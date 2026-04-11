@@ -11,7 +11,7 @@ export const StudioSidebar = ({ state }: StudioProps) => {
     <aside className="admin-shell__sidebar">
       <nav>
         {/* <button data-active={state === "dashboard"}></button> */}
-        <button aria-label="Pages" data-active={state === "pages"} onClick={navigateToPages} type="button">
+        <button aria-label="Pages" data-tooltip="Pages" data-active={state === "pages"} onClick={navigateToPages} type="button">
           <Layers2 className="admin-shell__sidebar-icon" />
         </button>
       </nav>

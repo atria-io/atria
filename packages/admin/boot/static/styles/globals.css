@@ -119,6 +119,7 @@ button:disabled,
 
 :focus-visible {
   outline: 1px solid var(--accent);
+  border-radius: inherit;
 }
 
 :after,

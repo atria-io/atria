@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { mkdir, rm, cp, readFile } from "node:fs/promises";
 import { writeMinifiedCss } from "../shared/minifycss.mjs";
 import { applyLazyImports } from "../runtime/react.mjs";
+import { buildTooltipRuntime } from "./build.tooltip.mjs";
 
 export const runAdminBuild = async (packageRoot) => {
   const paths = getBuildPaths(packageRoot);
@@ -12,6 +13,7 @@ export const runAdminBuild = async (packageRoot) => {
   await bundleApp(paths.packageRoot, paths.rollupEntry, paths.reactRollupConfig);
   await copyRuntime(paths.runtimeSourceDir, paths.frontendDir);
   await bundleBoot(paths.packageRoot, paths.rollupEntry, paths.bootRollupConfig);
+  await buildTooltipRuntime(paths.packageRoot);
   await minifyRuntimeStyles(paths.frontendDir);
 };
 
