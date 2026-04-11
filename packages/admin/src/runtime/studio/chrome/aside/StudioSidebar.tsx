@@ -1,5 +1,5 @@
-import { File } from "lucide-react";
 import type { StudioProps } from "../../StudioTypes.js";
+import { Layers2 } from "lucide-react";
 
 export const StudioSidebar = ({ state }: StudioProps) => {
   const navigateToPages = (): void => {
@@ -12,7 +12,7 @@ export const StudioSidebar = ({ state }: StudioProps) => {
       <nav>
         {/* <button data-active={state === "dashboard"}></button> */}
         <button aria-label="Pages" data-active={state === "pages"} onClick={navigateToPages} type="button">
-          <File className="admin-shell__sidebar-icon" />
+          <Layers2 className="admin-shell__sidebar-icon" />
         </button>
       </nav>
     </aside>
