@@ -96,6 +96,17 @@ const resolveReactRuntime = () => ({
 
 export default {
   input: 'dist/system/createRoot.js',
+  onwarn(warning, warn) {
+    if (
+      warning.code === 'MODULE_LEVEL_DIRECTIVE' &&
+      typeof warning.id === 'string' &&
+      warning.id.includes('/node_modules/lucide-react/dist/esm/')
+    ) {
+      return;
+    }
+
+    warn(warning);
+  },
   output: {
     dir: 'dist/frontend/static',
     format: 'esm',
