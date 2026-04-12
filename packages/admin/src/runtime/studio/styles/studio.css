@@ -1,9 +1,7 @@
 .studio-screen {
   width: 100%;
-  padding-left: var(--sidebar);
 }
 
 .studio-screen__view {
   padding: var(--layout-inset);
-  font-size: var(--text-sm);
 }

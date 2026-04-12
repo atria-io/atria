@@ -1,8 +1,3 @@
-.auth-card__content--route-transition,
-.auth-card__footer--route-transition {
-  animation: card-route-transition 0.18s var(--easing);
-}
-
 .auth-screen {
   width: 100%;
   height: 100%;

@@ -13,10 +13,12 @@ export const StudioShell = ({ screen, user }: StudioShellProps) => {
     <>
       <StudioHeader account={user} />
       <main className="admin-main">
-        <StudioSidebar state={screen} />
-        <div className="studio-screen" role="region">
-          <div className="studio-screen__view">
-            <StudioScreen state={screen} />
+        <div>
+          <StudioSidebar state={screen} />
+          <div className="studio-screen" role="region">
+            <div className="studio-screen__view">
+              <StudioScreen state={screen} />
+            </div>
           </div>
         </div>
       </main>

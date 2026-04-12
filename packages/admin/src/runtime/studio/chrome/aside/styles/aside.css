@@ -8,6 +8,7 @@
   border-right: var(--border);
   position: sticky;
   z-index: 0;
+  flex: 0;
 }
 
 .admin-shell__sidebar button {
