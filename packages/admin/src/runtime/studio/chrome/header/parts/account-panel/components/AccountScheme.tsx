@@ -1,6 +1,6 @@
 import type { AccountSchemeSwitcherProps } from "../AccountPanelTypes.js";
 
-export const AccountSchemeSwitcher = ({
+export const AccountScheme = ({
   mode,
   modes,
   onSetMode,

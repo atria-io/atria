@@ -1,3 +1,7 @@
+.studio-account__profile {
+  cursor: pointer;
+}
+
 .studio-account__profile img {
   border-radius: 999px;
   vertical-align: top;
@@ -6,12 +10,22 @@
 
 .studio-account__panel {
   width: 16rem;
+  position: absolute;
+  right: 0;
+}
+
+.studio-account__panel::before {
+  content: '';
+  height: 0.4rem;
+  display: block;
+}
+
+.studio-account__menu {
   border: var(--border);
   background: var(--background);
   border-radius: var(--radius);
   box-shadow: var(--box-shadow);
-  position: absolute;
-  right: 0;
+  padding: var(--layout-inset);
 }
 
 .studio-account__user {
