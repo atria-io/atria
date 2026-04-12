@@ -1,7 +1,11 @@
-import type { StudioHeaderProps } from "./HeaderTypes.js";
+import type { AppUser } from "@/runtime/studio/StudioTypes.js";
 import { useLogout } from "@/system/services/session/useLogout.js";
 import { AccountPanel } from "./parts/account-panel/AccountPanel.js";
 import { StudioBreadcrumbs } from "./parts/breadcrumbs/StudioBreadcrumbs.js";
+
+export interface StudioHeaderProps {
+  account: AppUser;
+}
 
 export const StudioHeader = ({ account }: StudioHeaderProps) => {
   const { logout } = useLogout();
@@ -13,7 +17,6 @@ export const StudioHeader = ({ account }: StudioHeaderProps) => {
   return (
     <header className="admin-header">
       <div className="admin-header__container">
-        <div className="admin-header__atria"></div>
         <div className="admin-header__path">
           <StudioBreadcrumbs />
         </div>
