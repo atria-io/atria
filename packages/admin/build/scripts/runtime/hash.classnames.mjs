@@ -34,6 +34,51 @@ const toClassHash = (name, usedClasses) => {
 };
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const RESERVED_CLASS_TOKENS = new Set([
+  "true",
+  "false",
+  "null",
+  "undefined",
+  "role",
+  "title",
+  "svg",
+  "path",
+  "g",
+  "circle",
+  "rect",
+  "line",
+  "polyline",
+  "polygon",
+  "ellipse",
+  "defs",
+  "symbol",
+  "use",
+  "mask",
+  "clipPath",
+  "linearGradient",
+  "radialGradient",
+  "stop",
+  "text",
+  "tspan",
+  "div",
+  "span",
+  "button",
+  "input",
+  "label",
+  "form",
+  "main",
+  "section",
+  "nav",
+  "aside",
+  "header",
+  "footer",
+  "img",
+  "a",
+]);
+
+const isReservedClassToken = (value) =>
+  RESERVED_CLASS_TOKENS.has(value) ||
+  value.startsWith("aria-");
 
 const collectFiles = async (rootDir, extension) => {
   const files = [];
@@ -192,7 +237,12 @@ const collectClassNamesFromClassNameExpressions = (source) => {
       else if (char === "}") braceDepth = Math.max(braceDepth - 1, 0);
       else if (char === "[") bracketDepth += 1;
       else if (char === "]") bracketDepth = Math.max(bracketDepth - 1, 0);
-      else if (char === "," && parenDepth === 0 && braceDepth === 0 && bracketDepth === 0) {
+      else if (
+        (char === "," || char === "}" || char === ")" || char === "]") &&
+        parenDepth === 0 &&
+        braceDepth === 0 &&
+        bracketDepth === 0
+      ) {
         break;
       }
 
@@ -316,7 +366,12 @@ const rewriteClassNameExpressions = (source, classMap) => {
       else if (char === "}") braceDepth = Math.max(braceDepth - 1, 0);
       else if (char === "[") bracketDepth += 1;
       else if (char === "]") bracketDepth = Math.max(bracketDepth - 1, 0);
-      else if (char === "," && parenDepth === 0 && braceDepth === 0 && bracketDepth === 0) {
+      else if (
+        (char === "," || char === "}" || char === ")" || char === "]") &&
+        parenDepth === 0 &&
+        braceDepth === 0 &&
+        bracketDepth === 0
+      ) {
         break;
       }
 
@@ -386,6 +441,9 @@ export const hashClassNames = async (packageRoot) => {
   const classMap = new Map();
   const usedClasses = new Set();
   for (const className of classNames) {
+    if (isReservedClassToken(className)) {
+      continue;
+    }
     classMap.set(className, toClassHash(className, usedClasses));
   }
 
