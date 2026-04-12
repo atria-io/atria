@@ -1,27 +1,20 @@
-import type { AppUser } from "../../StudioTypes.js";
-import { AccountPanel } from "./AccountPanel.js";
-
-export interface StudioHeaderProps {
-  account: AppUser;
-}
+import type { StudioHeaderProps } from "./HeaderTypes.js";
+import { useLogout } from "../../../../system/services/session/useLogout.js";
+import { AccountPanel } from "./parts/account-panel/AccountPanel.js";
+import { StudioBreadcrumbs } from "./parts/breadcrumbs/StudioBreadcrumbs.js";
 
 export const StudioHeader = ({ account }: StudioHeaderProps) => {
-  const handleLogout = async (): Promise<void> => {
-    await fetch("/auth/logout", { method: "POST", credentials: "include" });
-    window.location.reload();
-  };
+  const { logout } = useLogout();
 
   const handleLogoutClick = (): void => {
-    void handleLogout();
+    void logout();
   };
 
   return (
     <header className="admin-header">
       <div className="admin-header__container">
         <div className="admin-header__atria"></div>
-        <div className="admin-header__path" aria-label="Current path">
-          <strong>@studio</strong><span>&nbsp;/&nbsp;</span>
-        </div>
+        <StudioBreadcrumbs />
         <div className="admin-header__profile">
           <AccountPanel user={account} onLogout={handleLogoutClick} />
         </div>
