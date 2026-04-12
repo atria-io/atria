@@ -8,7 +8,24 @@ import { AccountScheme } from "./components/AccountScheme.js";
 export const StudioAccountPanel = ({ user, onLogout }: StudioAccountPanelProps) => {
   const { mode, modes, setMode } = useScheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
+
+  const openPanel = (): void => {
+    setIsClosing(false);
+    setIsMounted(true);
+    setIsOpen(true);
+  };
+
+  const closePanel = (): void => {
+    if (!isMounted) {
+      return;
+    }
+
+    setIsOpen(false);
+    setIsClosing(true);
+  };
 
   useEffect(() => {
     if (!isOpen) {
@@ -22,7 +39,7 @@ export const StudioAccountPanel = ({ user, onLogout }: StudioAccountPanelProps) 
       }
 
       if (!root.contains(event.target as Node)) {
-        setIsOpen(false);
+        closePanel();
       }
     };
 
@@ -39,13 +56,29 @@ export const StudioAccountPanel = ({ user, onLogout }: StudioAccountPanelProps) 
         className="studio-account__profile"
         aria-label="User info"
         aria-expanded={isOpen}
-        onClick={() => setIsOpen((value) => !value)}
+        onClick={() => {
+          if (isOpen || isClosing) {
+            closePanel();
+            return;
+          }
+          openPanel();
+        }}
         data-tooltip="Painel"
       >
         <AccountIdentity user={user} avatarSize={22} />
       </button>
-      {isOpen ? (
-        <div className="studio-account__panel">
+      {isMounted ? (
+        <div
+          className={isClosing ? "studio-account__panel studio-account__panel--closing" : "studio-account__panel"}
+          onAnimationEnd={() => {
+            if (!isClosing) {
+              return;
+            }
+
+            setIsClosing(false);
+            setIsMounted(false);
+          }}
+        >
           <div className="studio-account__menu">
             <div className="studio-account__menu--content">
               <AccountIdentity user={user} avatarSize={24} showDetails />

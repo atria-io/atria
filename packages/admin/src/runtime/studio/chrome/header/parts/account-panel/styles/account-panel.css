@@ -26,6 +26,10 @@
   display: block;
 }
 
+.studio-account__panel--closing {
+  animation: var(--card-pop-reverse);
+}
+
 .studio-account__menu {
   border: var(--border);
   background: var(--background);

@@ -36,5 +36,6 @@
   --transition-slow: var(--duration-slow) var(--easing);
 
   --card-pop: card-pop var(--transition-base) forwards;
+  --card-pop-reverse: card-pop var(--transition-fast) forwards reverse;
   --card-fade: card-fade var(--transition-base) var(--duration-fast) forwards;
 }
