@@ -1,10 +1,10 @@
-import type { AccountSchemeSwitcherProps } from "../AccountPanelTypes.js";
+import type { AccountSchemeProps } from "../AccountPanelTypes.js";
 
 export const AccountScheme = ({
   mode,
   modes,
   onSetMode,
-}: AccountSchemeSwitcherProps) => (
+}: AccountSchemeProps) => (
   <div className="studio-account__scheme" aria-label="Scheme actions">
     {modes.map((schemeMode) => (
       <button

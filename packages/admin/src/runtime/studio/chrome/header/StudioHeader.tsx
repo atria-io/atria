@@ -1,6 +1,6 @@
 import type { AppUser } from "@/runtime/studio/StudioTypes.js";
 import { useLogout } from "@/system/services/session/useLogout.js";
-import { StudioAccountPanel } from "./parts/account-panel/AccountPanel.js";
+import { AccountPanel } from "./parts/account-panel/AccountPanel.js";
 import { StudioBreadcrumbs } from "./parts/breadcrumbs/StudioBreadcrumbs.js";
 
 export interface StudioHeaderProps {
@@ -21,7 +21,7 @@ export const StudioHeader = ({ account }: StudioHeaderProps) => {
           <StudioBreadcrumbs />
         </div>
         <div className="admin-header__profile">
-          <StudioAccountPanel user={account} onLogout={handleLogoutClick} />
+          <AccountPanel user={account} onLogout={handleLogoutClick} />
         </div>
       </div>
     </header>

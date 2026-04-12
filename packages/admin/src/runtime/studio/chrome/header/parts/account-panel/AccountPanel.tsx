@@ -1,12 +1,12 @@
 import { useRef } from "react";
 import { useScheme } from "@/system/services/scheme/useScheme.js";
-import type { StudioAccountPanelProps } from "./AccountPanelTypes.js";
+import type { AccountPanelProps } from "./AccountPanelTypes.js";
 import { useAccountPanelActions } from "./AccountPanelActions.js";
 import { AccountIdentity } from "./components/AccountIdentity.js";
 import { AccountLogout } from "./components/AccountLogout.js";
 import { AccountScheme } from "./components/AccountScheme.js";
 
-export const StudioAccountPanel = ({ user, onLogout }: StudioAccountPanelProps) => {
+export const AccountPanel = ({ user, onLogout }: AccountPanelProps) => {
   const { mode, modes, setMode } = useScheme();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const { isOpen, isClosing, isMounted, togglePanel, onPanelAnimationEnd } = useAccountPanelActions(rootRef);
