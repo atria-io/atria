@@ -58,7 +58,7 @@ export const AccountPanel = ({ user, onLogout }: StudioAccountPanelProps) => {
         )}
       </div>
       <div className="studio-account__panel">
-        <div className="studio-account__user studio-account__group" aria-label="User info">
+        <div className="studio-account__user" aria-label="User info">
           {user.avatarUrl ? (
             <img className="studio-account__avatar-image" src={user.avatarUrl}
               alt={user.name} width={24} height={24} />
@@ -66,9 +66,11 @@ export const AccountPanel = ({ user, onLogout }: StudioAccountPanelProps) => {
             <span className="studio-account__avatar" aria-label="Avatar" />
           )}
           <span className="studio-account__name">{user.name}</span>
+          <span className="studio-account__name">{user.email}</span>
+          <noscript>{JSON.stringify(user, null, 2)}</noscript>
         </div>
 
-        <div className="studio-account__scheme studio-account__group" aria-label="Scheme actions">
+        <div className="studio-account__scheme" aria-label="Scheme actions">
           {schemeModes.map((schemeMode) => (
             <button
               key={schemeMode}

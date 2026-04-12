@@ -33,7 +33,7 @@
 }
 
 .admin-shell__sidebar button:hover::after {
-  background: var(--button-hover);
+  background: var(--button-muted-hover);
 }
 
 .admin-shell__sidebar-icon {

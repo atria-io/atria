@@ -10,13 +10,12 @@
 .atria-tooltip__content {
   background: var(--background);
   box-shadow: var(--box-shadow);
-  padding: calc(var(--spacing) * 1.5)
-    calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  animation: tooltip-pop var(--transition-base);
+  transform-origin: center center;
   border-radius: var(--radius);
   font-size: var(--text-xs);
   border: var(--border);
-  transform-origin: center center;
-  animation: tooltip-pop var(--transition-base);
 }
 
 .atria-tooltip--closing .atria-tooltip__content {

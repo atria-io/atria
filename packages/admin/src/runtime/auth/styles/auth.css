@@ -92,7 +92,7 @@
 
 .auth-provider-button:hover {
   color: var(--text-hover);
-  background: var(--button-hover-muted);
+  background: var(--button-muted-hover);
 }
 
 .auth-provider-button__icon {

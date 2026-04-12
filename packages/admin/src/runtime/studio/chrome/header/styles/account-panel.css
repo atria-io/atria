@@ -5,5 +5,16 @@
 }
 
 .studio-account__panel {
-  display: none;
+  width: 16rem;
+  border: var(--border);
+  background: var(--background);
+  border-radius: var(--radius);
+  box-shadow: var(--box-shadow);
+  position: absolute;
+  right: 0;
+}
+
+.studio-account__user {
+  padding: var(--layout-inset);
+  border-bottom: var(--border);
 }

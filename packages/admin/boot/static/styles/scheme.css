@@ -15,10 +15,10 @@
   --button-hover: #eeeef2;
 
   --button-muted: #181820;
-  --button-hover-muted: #21212a;
+  --button-muted-hover: #21212a;
 
   --button-accent: #005fcc;
-  --button-hover-accent: #0071ff;
+  --button-accent-hover: #0071ff;
 
   --error: #f97373;
   --error-bg: #24161b;
@@ -47,10 +47,10 @@
   --button-hover: #eeeef2;
 
   --button-muted: #f6f6f8;
-  --button-hover-muted: #e4e5e9;
+  --button-muted-hover: #e4e5e9;
 
   --button-accent: #005fcc;
-  --button-hover-accent: #0071ff;
+  --button-accent-hover: #0071ff;
 
   --error: #f97373;
   --valid: #34d399;
