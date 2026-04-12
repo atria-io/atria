@@ -1,5 +1,5 @@
-import type { AppUser } from "../../../../StudioTypes.js";
-import type { SchemeMode } from "../../../../../../system/services/scheme/schemeTypes.js";
+import type { AppUser } from "@/runtime/studio/StudioTypes.js";
+import type { SchemeMode } from "@/system/services/scheme/schemeTypes.js";
 
 export interface StudioAccountPanelProps {
   user: AppUser;

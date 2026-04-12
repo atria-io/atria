@@ -1,5 +1,5 @@
 import type { StudioHeaderProps } from "./HeaderTypes.js";
-import { useLogout } from "../../../../system/services/session/useLogout.js";
+import { useLogout } from "@/system/services/session/useLogout.js";
 import { AccountPanel } from "./parts/account-panel/AccountPanel.js";
 import { StudioBreadcrumbs } from "./parts/breadcrumbs/StudioBreadcrumbs.js";
 

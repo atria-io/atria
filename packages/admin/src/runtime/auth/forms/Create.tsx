@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEventHandler } from "react";
 
 export interface CreateValues {
   name: string;
@@ -26,7 +26,7 @@ export const CreateForm = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (event): void => {
     event.preventDefault();
 
     if (password !== confirmPassword) {

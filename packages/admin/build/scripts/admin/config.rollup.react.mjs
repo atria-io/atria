@@ -2,6 +2,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import { createRequire } from 'node:module';
+import path from 'node:path';
 import { md5 } from '../../../../shared/src/hash/md5.ts';
 import { stripLucideInternalClasses } from './config.lucide.mjs';
 
@@ -95,6 +96,17 @@ const resolveReactRuntime = () => ({
   }
 });
 
+const resolveAdminSourceAlias = () => ({
+  name: 'resolve-admin-source-alias',
+  resolveId(source) {
+    if (!source.startsWith('@/')) {
+      return null;
+    }
+
+    return path.resolve('dist', source.slice(2));
+  }
+});
+
 export default {
   input: 'dist/system/createRoot.js',
   onwarn(warning, warn) {
@@ -144,6 +156,7 @@ export default {
   },
   plugins: [
     forceProductionNodeEnv(),
+    resolveAdminSourceAlias(),
     resolveReactRuntime(),
     resolve({
       browser: true,

@@ -1,4 +1,4 @@
-import { useScheme } from "../../../../../../system/services/scheme/useScheme.js";
+import { useScheme } from "@/system/services/scheme/useScheme.js";
 import type { StudioAccountPanelProps } from "./AccountPanelTypes.js";
 import { AccountIdentity } from "./components/AccountIdentity.js";
 import { AccountLogoutButton } from "./components/AccountLogoutButton.js";

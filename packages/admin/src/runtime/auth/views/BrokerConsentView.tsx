@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type SubmitEventHandler } from "react";
 
 interface BrokerConfirmErrorState {
   title: string;
@@ -8,6 +8,7 @@ interface BrokerConfirmErrorState {
 }
 
 export const BrokerConsentView = () => {
+  type BrokerSubmitEvent = Parameters<SubmitEventHandler<HTMLFormElement>>[0];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [failure, setFailure] = useState<BrokerConfirmErrorState | null>(null);
 
@@ -35,7 +36,7 @@ export const BrokerConsentView = () => {
     window.location.replace(cleanQuery === "" ? cleanPath : `${cleanPath}?${cleanQuery}`);
   };
 
-  const handleConfirm = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleConfirm = async (event: BrokerSubmitEvent): Promise<void> => {
     event.preventDefault();
     setFailure(null);
     setIsSubmitting(true);

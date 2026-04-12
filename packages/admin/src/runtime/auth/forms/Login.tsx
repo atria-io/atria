@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEventHandler } from "react";
 
 export interface LoginValues {
   email: string;
@@ -21,7 +21,7 @@ export const LoginForm = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (event): void => {
     event.preventDefault();
     void onSubmit({ email: email.trim(), password });
   };
