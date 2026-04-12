@@ -14,7 +14,9 @@ export const StudioHeader = ({ account }: StudioHeaderProps) => {
     <header className="admin-header">
       <div className="admin-header__container">
         <div className="admin-header__atria"></div>
-        <StudioBreadcrumbs />
+        <div className="admin-header__path">
+          <StudioBreadcrumbs />
+        </div>
         <div className="admin-header__profile">
           <AccountPanel user={account} onLogout={handleLogoutClick} />
         </div>
