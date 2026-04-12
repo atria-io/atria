@@ -1,7 +1,7 @@
 import type { AccountIdentityProps } from "../AccountPanelTypes.js";
 
 export const AccountIdentity = ({ user, avatarSize, showDetails = false }: AccountIdentityProps) => (
-  <>
+  <div className="studio-account__user" aria-label="User info">
     {user.avatarUrl ? (
       <img
         className="studio-account__avatar-image"
@@ -20,5 +20,5 @@ export const AccountIdentity = ({ user, avatarSize, showDetails = false }: Accou
         <noscript>{JSON.stringify(user, null, 2)}</noscript>
       </>
     ) : null}
-  </>
+  </div>
 );

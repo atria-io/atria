@@ -13,9 +13,7 @@ export const AccountPanel = ({ user, onLogout }: StudioAccountPanelProps) => {
         <AccountIdentity user={user} avatarSize={22} />
       </div>
       <div className="studio-account__panel">
-        <div className="studio-account__user" aria-label="User info">
-          <AccountIdentity user={user} avatarSize={24} showDetails />
-        </div>
+        <AccountIdentity user={user} avatarSize={24} showDetails />
         <AccountSchemeSwitcher mode={mode} resolved={resolved} modes={modes} onSetMode={setMode} />
         <AccountLogoutButton onLogout={onLogout} />
       </div>

@@ -2,7 +2,7 @@
   top: 0;
   flex: 0;
   width: 100%;
-  height: calc(var(--header) - 1px);
+  height: var(--header);
   background: var(--background);
   border-bottom: var(--border);
   position: sticky;
@@ -11,12 +11,12 @@
 
 .admin-header__container {
   position: relative;
-  height: var(--header);
+  height: calc(var(--header) - 1px);
   margin-inline: var(--space-x);
 }
 
 .admin-header__path {
-  line-height: calc(var(--header) - 1px);
+  line-height: var(--header);
   display: inline;
 }
 
