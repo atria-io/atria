@@ -1,3 +1,8 @@
+.studio-account__container {
+  display: block;
+  position: relative;
+}
+
 .studio-account__profile {
   border: 0;
   padding: 0;
@@ -7,7 +12,7 @@
 }
 
 .studio-account__profile-user {
-  display: inline;
+  display: block;
 }
 
 .studio-account__avatar {
@@ -17,17 +22,14 @@
 }
 
 .studio-account__panel {
-  width: 16rem;
+  top: calc(100% + 0.437em);
   position: absolute;
-  animation: var(--card-pop);
-  opacity: 0;
+  width: 16rem;
   right: 0;
 }
 
-.studio-account__panel::before {
-  content: '';
-  height: 0.4rem;
-  display: block;
+.studio-account__panel--open {
+  animation: var(--card-pop);
 }
 
 .studio-account__panel--closing {

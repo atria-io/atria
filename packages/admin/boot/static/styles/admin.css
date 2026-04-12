@@ -11,13 +11,18 @@
   background: var(--background);
   box-shadow: var(--box-shadow);
   padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
-  animation: var(--card-pop);
   border-radius: var(--radius);
   font-size: var(--text-xs);
   border: var(--border);
-  opacity: 0;
 }
 
+.atria-tooltip__content--open {
+  animation: var(--card-pop);
+}
+
+.atria-tooltip__content--closing {
+  animation: var(--card-pop-reverse);
+}
 
 .atria-tooltip__text {
   animation: var(--card-fade);
@@ -33,6 +38,16 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes card-pop-reverse {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
   }
 }
 

@@ -25,7 +25,11 @@ export const StudioAccountPanel = ({ user, onLogout }: StudioAccountPanelProps) 
       </button>
       {isMounted ? (
         <div
-          className={isClosing ? "studio-account__panel studio-account__panel--closing" : "studio-account__panel"}
+          className={
+            !isClosing ?
+            "studio-account__panel studio-account__panel--open" :
+            "studio-account__panel studio-account__panel--closing"
+          }
           onAnimationEnd={onPanelAnimationEnd}
         >
           <div className="studio-account__menu">
