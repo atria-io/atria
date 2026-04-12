@@ -11,7 +11,7 @@ export const AccountScheme = ({
         key={schemeMode}
         type="button"
         data-active={mode === schemeMode}
-        className={"studio-account__scheme-button"}
+        className="studio-account__scheme-button"
         onClick={() => onSetMode(schemeMode)}
       >
         {schemeMode[0].toUpperCase() + schemeMode.slice(1)}

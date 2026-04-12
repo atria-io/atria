@@ -4,14 +4,14 @@ export const AccountIdentity = ({ user, avatarSize, showDetails = false }: Accou
   <div className={showDetails ? "studio-account__user" : "studio-account__profile-user"} aria-label="User info">
     {user.avatarUrl ? (
       <img
-        className="studio-account__avatar-image"
+        className="studio-account__avatar"
         src={user.avatarUrl}
         alt={user.name}
         width={avatarSize}
         height={avatarSize}
       />
     ) : (
-      <span className="studio-account" aria-label="Avatar" />
+      <span className="studio-account__avatar" aria-label="Avatar" />
     )}
     {showDetails ? (
       <>

@@ -6,7 +6,11 @@
   cursor: pointer;
 }
 
-.studio-account__profile img {
+.studio-account__profile-user {
+  display: inline;
+}
+
+.studio-account__avatar {
   border-radius: 999px;
   vertical-align: top;
   border: var(--border);
@@ -41,9 +45,4 @@
 .studio-account__menu--content {
   animation: var(--card-fade);
   opacity: 0;
-}
-
-.studio-account__user {
-  padding: var(--layout-inset);
-  border-bottom: var(--border);
 }
