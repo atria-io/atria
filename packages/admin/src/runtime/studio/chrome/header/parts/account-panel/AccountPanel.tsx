@@ -5,7 +5,7 @@ import { AccountLogoutButton } from "./components/AccountLogoutButton.js";
 import { AccountSchemeSwitcher } from "./components/AccountSchemeSwitcher.js";
 
 export const AccountPanel = ({ user, onLogout }: StudioAccountPanelProps) => {
-  const { mode, resolved, modes, setMode } = useScheme();
+  const { mode, modes, setMode } = useScheme();
 
   return (
     <>
@@ -14,7 +14,7 @@ export const AccountPanel = ({ user, onLogout }: StudioAccountPanelProps) => {
       </div>
       <div className="studio-account__panel">
         <AccountIdentity user={user} avatarSize={24} showDetails />
-        <AccountSchemeSwitcher mode={mode} resolved={resolved} modes={modes} onSetMode={setMode} />
+        <AccountSchemeSwitcher mode={mode} modes={modes} onSetMode={setMode} />
         <AccountLogoutButton onLogout={onLogout} />
       </div>
     </>

@@ -14,7 +14,6 @@ export interface AccountIdentityProps {
 
 export interface AccountSchemeSwitcherProps {
   mode: SchemeMode;
-  resolved: "light" | "dark";
   modes: readonly SchemeMode[];
   onSetMode: (mode: SchemeMode) => void;
 }
