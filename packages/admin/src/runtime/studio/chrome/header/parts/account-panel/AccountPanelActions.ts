@@ -16,6 +16,10 @@ export const useAccountPanelActions = (rootRef: RefObject<HTMLDivElement | null>
     setPanelState((state) => (state === "open" ? "closing" : "open"));
   };
 
+  const closePanel = (): void => {
+    setPanelState((state) => (state === "open" ? "closing" : state));
+  };
+
   const onPanelAnimationEnd = (event: AnimationEvent<HTMLDivElement>): void => {
     if (event.target !== event.currentTarget || panelState !== "closing") {
       return;
@@ -36,7 +40,7 @@ export const useAccountPanelActions = (rootRef: RefObject<HTMLDivElement | null>
       }
 
       if (!root.contains(event.target as Node)) {
-        setPanelState((state) => (state === "open" ? "closing" : state));
+        closePanel();
       }
     };
 
@@ -46,6 +50,44 @@ export const useAccountPanelActions = (rootRef: RefObject<HTMLDivElement | null>
       window.removeEventListener("mousedown", handlePointerDown);
     };
   }, [isMounted, rootRef]);
+
+  useEffect(() => {
+    if (!isMounted) {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent): void => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      closePanel();
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) {
+      return;
+    }
+
+    const handleRouteChange = (_event: Event): void => {
+      closePanel();
+    };
+
+    window.addEventListener("popstate", handleRouteChange);
+    window.addEventListener("atria:route-change", handleRouteChange);
+
+    return () => {
+      window.removeEventListener("popstate", handleRouteChange);
+      window.removeEventListener("atria:route-change", handleRouteChange);
+    };
+  }, [isMounted]);
 
   useEffect(() => {
     if (!isClosing) {

@@ -44,7 +44,7 @@
   padding: var(--layout-inset);
 }
 
-.studio-account__menu--content {
+.studio-account__menu-content {
   animation: var(--card-fade);
   opacity: 0;
 }

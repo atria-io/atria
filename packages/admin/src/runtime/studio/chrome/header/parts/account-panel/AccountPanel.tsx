@@ -11,12 +11,16 @@ export const AccountPanel = ({ user, onLogout }: AccountPanelProps) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const { isOpen, isClosing, isMounted, togglePanel, onPanelAnimationEnd } = useAccountPanelActions(rootRef);
 
+  const PANEL_ID = "studio-account-panel-menu";
+
   return (
     <div className="studio-account__container" ref={rootRef}>
       <button
         type="button"
         className="studio-account__profile"
         aria-label="User info"
+        aria-haspopup="menu"
+        aria-controls={PANEL_ID}
         aria-expanded={isOpen}
         onClick={togglePanel}
         data-tooltip="Painel"
@@ -25,6 +29,7 @@ export const AccountPanel = ({ user, onLogout }: AccountPanelProps) => {
       </button>
       {isMounted ? (
         <div
+          id={PANEL_ID}
           className={
             !isClosing ?
             "studio-account__panel studio-account__panel--open" :
@@ -33,7 +38,7 @@ export const AccountPanel = ({ user, onLogout }: AccountPanelProps) => {
           onAnimationEnd={onPanelAnimationEnd}
         >
           <div className="studio-account__menu">
-            <div className="studio-account__menu--content">
+            <div className="studio-account__menu-content">
               <AccountIdentity user={user} avatarSize={24} showDetails />
               <AccountScheme mode={mode} modes={modes} onSetMode={setMode} />
               <AccountLogout onLogout={onLogout} />

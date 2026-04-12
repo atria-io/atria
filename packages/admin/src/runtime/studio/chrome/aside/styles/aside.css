@@ -1,7 +1,6 @@
 .admin-shell__sidebar {
   --sidebar-icon-size: 1.125rem;
   --sidebar-icon-stroke-width: 1.75;
-  --sidebar-icon-background-hover: var(--text-hover);
   float: left;
   top: var(--header);
   width: var(--sidebar);
