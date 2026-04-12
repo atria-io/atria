@@ -28,6 +28,7 @@
   --boot-spinner: #8a8a8a;
 
   --shadow: #00000033;
+  --box-shadow: 0 .25rem .75rem var(--shadow);
 }
 
 [data-scheme="light"] {
@@ -58,5 +59,6 @@
   --boot-track:#d7dde8;
   --boot-spinner:#1f2937;
 
-  --shadow: #0000001a;
+  --shadow: #0000000d;
+  --box-shadow: 0 .15rem .5rem var(--shadow);
 }
