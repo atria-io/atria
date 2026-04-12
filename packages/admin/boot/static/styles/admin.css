@@ -11,50 +11,37 @@
   background: var(--background);
   box-shadow: var(--box-shadow);
   padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
-  animation: tooltip-pop var(--transition-base);
-  transform-origin: center center;
+  animation: var(--card-pop);
   border-radius: var(--radius);
   font-size: var(--text-xs);
   border: var(--border);
+  opacity: 0;
 }
 
-.atria-tooltip--closing .atria-tooltip__content {
-  animation: tooltip-pop-out 120ms ease-out forwards;
-}
 
 .atria-tooltip__text {
+  animation: var(--card-fade);
   opacity: 0;
-  animation: tooltip-fade var(--transition-base) 150ms forwards;
 }
 
-@keyframes tooltip-pop {
+@keyframes card-pop {
   from {
+    opacity: 0;
     transform: scale(0.75);
   }
 
   to {
+    opacity: 1;
     transform: scale(1);
   }
 }
 
-@keyframes tooltip-fade {
+@keyframes card-fade {
   from {
     opacity: 0;
   }
 
   to {
     opacity: 1;
-  }
-}
-
-@keyframes tooltip-pop-out {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: scale(0.96);
   }
 }

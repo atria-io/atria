@@ -1,4 +1,8 @@
 .studio-account__profile {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  text-align: left;
   cursor: pointer;
 }
 
@@ -11,6 +15,8 @@
 .studio-account__panel {
   width: 16rem;
   position: absolute;
+  animation: var(--card-pop);
+  opacity: 0;
   right: 0;
 }
 
@@ -26,6 +32,11 @@
   border-radius: var(--radius);
   box-shadow: var(--box-shadow);
   padding: var(--layout-inset);
+}
+
+.studio-account__menu--content {
+  animation: var(--card-fade);
+  opacity: 0;
 }
 
 .studio-account__user {
