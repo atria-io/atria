@@ -76,12 +76,35 @@ const collectTokensFromCss = (source) => {
   return tokens;
 };
 
+const collectAnimationNamesFromCss = (source) => {
+  const animationNames = new Set();
+  const keyframesPattern = /@keyframes\s+([A-Za-z_][A-Za-z0-9_-]*)/g;
+  let match;
+
+  while ((match = keyframesPattern.exec(source)) !== null) {
+    animationNames.add(match[1]);
+  }
+
+  return animationNames;
+};
+
 const rewriteSourceWithTokens = (source, tokenMap) => {
   let next = source;
 
   for (const [fromToken, toToken] of tokenMap) {
     const pattern = new RegExp(`--${escapeRegex(fromToken)}(?![A-Za-z0-9_-])`, "g");
     next = next.replace(pattern, `--${toToken}`);
+  }
+
+  return next;
+};
+
+const rewriteSourceWithAnimationNames = (source, animationMap) => {
+  let next = source;
+
+  for (const [fromName, toName] of animationMap) {
+    const pattern = new RegExp(`(^|[^A-Za-z0-9_-])(${escapeRegex(fromName)})(?![A-Za-z0-9_-])`, "g");
+    next = next.replace(pattern, `$1${toName}`);
   }
 
   return next;
@@ -103,6 +126,7 @@ export const hashCssTokens = async (packageRoot) => {
     return {
       enabled: false,
       mappedTokens: 0,
+      mappedAnimationNames: 0,
       cssFiles: 0,
       htmlFiles: 0,
       jsFiles: 0,
@@ -128,9 +152,24 @@ export const hashCssTokens = async (packageRoot) => {
     tokenMap.set(tokenName, toTokenHash(tokenName, usedTokens));
   }
 
+  const animationNames = new Set();
   for (const cssFile of cssFiles) {
     const source = await readFile(cssFile, "utf-8");
-    const next = rewriteSourceWithTokens(source, tokenMap);
+    for (const animationName of collectAnimationNamesFromCss(source)) {
+      animationNames.add(animationName);
+    }
+  }
+
+  const animationMap = new Map();
+  const usedAnimationNames = new Set();
+  for (const animationName of animationNames) {
+    animationMap.set(animationName, toTokenHash(animationName, usedAnimationNames));
+  }
+
+  for (const cssFile of cssFiles) {
+    const source = await readFile(cssFile, "utf-8");
+    let next = rewriteSourceWithTokens(source, tokenMap);
+    next = rewriteSourceWithAnimationNames(next, animationMap);
     if (next !== source) {
       await writeFile(cssFile, next, "utf-8");
     }
@@ -138,7 +177,8 @@ export const hashCssTokens = async (packageRoot) => {
 
   for (const htmlFile of htmlFiles) {
     const source = await readFile(htmlFile, "utf-8");
-    const next = rewriteSourceWithTokens(source, tokenMap);
+    let next = rewriteSourceWithTokens(source, tokenMap);
+    next = rewriteSourceWithAnimationNames(next, animationMap);
     if (next !== source) {
       await writeFile(htmlFile, next, "utf-8");
     }
@@ -147,6 +187,7 @@ export const hashCssTokens = async (packageRoot) => {
   for (const jsFile of jsFiles) {
     const source = await readFile(jsFile, "utf-8");
     let next = rewriteSourceWithTokens(source, tokenMap);
+    next = rewriteSourceWithAnimationNames(next, animationMap);
 
     // Scheme runtime stores token names as object keys and builds --token at runtime.
     if (next.includes("STORAGE_KEY=\"atria:color-scheme\"") && next.includes("TOKENS=")) {
@@ -161,6 +202,7 @@ export const hashCssTokens = async (packageRoot) => {
   return {
     enabled: true,
     mappedTokens: tokenMap.size,
+    mappedAnimationNames: animationMap.size,
     cssFiles: cssFiles.length,
     htmlFiles: htmlFiles.length,
     jsFiles: jsFiles.length,
