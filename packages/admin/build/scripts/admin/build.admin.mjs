@@ -5,6 +5,10 @@ import { writeMinifiedCss } from "../shared/minifycss.mjs";
 import { applyLazyImports } from "../runtime/react.mjs";
 import { buildTooltipRuntime } from "./build.tooltip.mjs";
 
+const RM_RETRYABLE_CODES = new Set(["ENOTEMPTY", "EBUSY", "EPERM"]);
+const RM_MAX_ATTEMPTS = 6;
+const RM_RETRY_DELAY_MS = 80;
+
 export const runAdminBuild = async (packageRoot) => {
   const paths = getBuildPaths(packageRoot);
   await prepareDistDirectory(paths.distDir);
@@ -54,8 +58,26 @@ const getBuildPaths = (packageRoot) => {
 };
 
 const prepareDistDirectory = async (distDir) => {
-  await rm(distDir, { recursive: true, force: true });
+  await removeDirectoryRobust(distDir);
   await mkdir(distDir, { recursive: true });
+};
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const removeDirectoryRobust = async (target) => {
+  for (let attempt = 1; attempt <= RM_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      await rm(target, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      const code = error && typeof error === "object" && "code" in error ? error.code : "";
+      const canRetry = typeof code === "string" && RM_RETRYABLE_CODES.has(code);
+      if (!canRetry || attempt === RM_MAX_ATTEMPTS) {
+        throw error;
+      }
+      await sleep(RM_RETRY_DELAY_MS * attempt);
+    }
+  }
 };
 
 const runNodeCommand = async (packageRoot, entry, args, errorPrefix) =>
