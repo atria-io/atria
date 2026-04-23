@@ -21,7 +21,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && node build/sync-runtime.mjs",
+    "build": "tsc -p tsconfig.json && node build/dist.mjs",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
