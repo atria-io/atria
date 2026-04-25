@@ -420,7 +420,15 @@ const queueAdminBuild = () => {
   if (shuttingDown) {
     return;
   }
-  requestRestart();
+
+  if (adminBuildTimer) {
+    clearTimeout(adminBuildTimer);
+  }
+
+  adminBuildTimer = setTimeout(() => {
+    adminBuildTimer = null;
+    void runAdminBuild();
+  }, WATCH_DEBOUNCE_MS);
 };
 
 /**

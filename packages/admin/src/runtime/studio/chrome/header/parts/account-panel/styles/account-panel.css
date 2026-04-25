@@ -3,22 +3,8 @@
   position: relative;
 }
 
-.studio-account__profile {
-  border: 0;
-  padding: 0;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-
 .studio-account__profile-user {
   display: block;
-}
-
-.studio-account__avatar {
-  border-radius: 999px;
-  vertical-align: top;
-  border: var(--border);
 }
 
 .studio-account__panel {
@@ -41,10 +27,56 @@
   background: var(--background);
   border-radius: var(--radius);
   box-shadow: var(--box-shadow);
-  padding: var(--layout-inset);
 }
 
 .studio-account__menu-content {
+  display: flex;
+  flex-direction: column;
   animation: var(--card-fade);
+  gap: var(--spacing);
   opacity: 0;
 }
+
+.studio-account__profile {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.studio-account__user {
+  display: flex;
+  align-items: center;
+  padding: var(--layout-inset);
+  gap: calc(var(--spacing) * 3);
+}
+
+.studio-account__avatar {
+  border-radius: 999px;
+  vertical-align: top;
+  border: var(--border);
+}
+
+.studio-account__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.studio-account__email {
+  color: var(--text-muted);
+}
+
+.studio-account__scheme {
+  display: none;
+  gap: var(--spacing);
+  padding-inline: var(--layout-inset);
+}
+
+.studio-account__logout {
+  display: none;
+}
+
+/*.studio-account__scheme button {
+  width: 100%;
+}*/

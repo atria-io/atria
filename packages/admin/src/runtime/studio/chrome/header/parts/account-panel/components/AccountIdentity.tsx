@@ -15,8 +15,10 @@ export const AccountIdentity = ({ user, avatarSize, showDetails = false }: Accou
     )}
     {showDetails ? (
       <>
-        <span className="studio-account__name">{user.name}</span>
-        <span className="studio-account__name">{user.email}</span>
+        <div className="studio-account__info">
+          <span className="studio-account__name">{user.name}</span>
+          <span className="studio-account__email">{user.email}</span>
+        </div>
       </>
     ) : null}
   </div>

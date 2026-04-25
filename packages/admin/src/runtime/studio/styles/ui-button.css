@@ -1,0 +1,101 @@
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  gap: var(--space-y);
+  user-select: none;
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button--primary {
+  color: var(--background);
+  background: var(--button);
+  border-color: var(--button);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--button-hover);
+  border-color: var(--button-hover);
+}
+
+.button--secondary {
+  color: var(--text);
+  background: var(--button-muted);
+  border-color: var(--color-border);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background: var(--button-muted-hover);
+}
+
+.button--ghost {
+  color: var(--text);
+  background: transparent;
+  border-color: transparent;
+}
+
+.button--ghost:hover:not(:disabled) {
+  background: var(--button-muted);
+}
+
+.button--danger {
+  color: var(--background);
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.button--danger:hover:not(:disabled) {
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.button--link {
+  color: var(--link);
+  background: transparent;
+  border-color: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.button--link:hover:not(:disabled) {
+  color: var(--text-hover);
+}
+
+.button--xs {
+  height: calc(var(--baseline) * 8);
+  padding: 0 calc(var(--spacing) * 2);
+}
+
+.button--sm {
+  height: calc(var(--baseline) * 9);
+  padding: 0 calc(var(--spacing) * 2.5);
+  font-size: var(--text-xs);
+}
+
+.button--md {
+  height: calc(var(--baseline) * 11);
+  padding: 0 var(--space-y);
+  font-size: var(--text-sm);
+}
+
+.button--lg {
+  height: calc(var(--baseline) * 12);
+  padding: 0 calc(var(--space-y) + var(--spacing));
+  font-size: var(--text-base);
+}
+
+.button--xl {
+  height: calc(var(--baseline) * 13);
+  padding: 0 var(--space-x);
+  font-size: var(--text-lg);
+}
