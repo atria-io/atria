@@ -1,7 +1,12 @@
 import type { AccountIdentityProps } from "../AccountPanelTypes.js";
 
 export const AccountIdentity = ({ user, avatarSize, showDetails = false }: AccountIdentityProps) => (
-  <div className={showDetails ? "studio-account__user" : "studio-account__profile-user"} aria-label="User info">
+  <div className={
+        showDetails ?
+        "studio-account__user" :
+        "studio-account__profile-user"
+      }
+      aria-label="User info">
     {user.avatarUrl ? (
       <img
         className="studio-account__avatar"

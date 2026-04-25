@@ -1,14 +1,23 @@
+.studio-account {
+  width: var(--header);
+  height: var(--header);
+  float: left;
+}
+
 .studio-account__container {
   display: block;
   position: relative;
+  height: 100%;
+  width: 100%;
 }
 
 .studio-account__profile-user {
   display: block;
+  width: min-content;
 }
 
 .studio-account__panel {
-  top: calc(100% + 0.437em);
+  top: calc(100% - 1px);
   position: absolute;
   width: 16rem;
   right: 0;
@@ -40,6 +49,11 @@
 .studio-account__profile {
   border: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   text-align: left;
   cursor: pointer;

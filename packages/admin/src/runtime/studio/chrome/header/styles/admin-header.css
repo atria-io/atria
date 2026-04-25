@@ -20,17 +20,9 @@
   display: inline;
 }
 
-.admin-header__profile {
-  top: 50%;
+.admin-header__actions {
+  top: 0;
   right: 0;
-  transform: translateY(-50%);
   position: absolute;
-  padding: 0.4378em;
-}
-
-.admin-header__scheme {
-  top: 50%;
-  right: 3.5rem;
-  transform: translateY(-50%);
-  position: absolute;
+  height: var(--header);
 }
