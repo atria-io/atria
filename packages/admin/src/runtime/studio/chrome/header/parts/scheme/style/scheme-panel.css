@@ -1,6 +1,6 @@
 .studio-scheme {
+  width: var(--header);
   height: var(--header);
-  margin-right: var(--spacing);
   float: left;
 }
 
@@ -22,6 +22,7 @@
   background: transparent;
   text-align: left;
   cursor: pointer;
+  gap: calc(var(--spacing) * 0.75);
 }
 
 .studio-scheme__panel {
@@ -47,8 +48,31 @@
 
 .studio-scheme__menu-content {
   display: flex;
-  gap: var(--spacing);
+  gap: calc(var(--spacing) * 3);
   padding: var(--layout-inset);
   animation: var(--card-fade);
+  flex-direction: column;
   opacity: 0;
+}
+
+.studio-scheme__menu-content button {
+  display: inline-flex;
+}
+
+.studio-scheme__option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing);
+}
+
+.studio-scheme__icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  stroke-width: 1.75;
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
 }

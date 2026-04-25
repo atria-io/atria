@@ -6,7 +6,7 @@ import type {
   UseSchemeResult,
 } from "./schemeTypes.js";
 
-const SCHEME_MODES: readonly SchemeMode[] = ["system", "light", "dark"];
+const SCHEME_MODES: readonly SchemeMode[] = ["system", "dark", "light"];
 
 const getRuntimeScheme = (): RuntimeScheme | null => {
   const runtimeScheme = (

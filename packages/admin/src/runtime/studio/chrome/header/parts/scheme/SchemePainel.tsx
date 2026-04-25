@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { Sun, Moon, Monitor } from "lucide-react";
 import { useScheme } from "@/system/services/scheme/useScheme.js";
 import { useAccountPanelActions } from "../account-panel/AccountPanelActions.js";
 
@@ -6,10 +7,16 @@ export const SchemePainel = () => {
   const { mode, modes, setMode } = useScheme();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const { isOpen, isClosing, isMounted, togglePanel, onPanelAnimationEnd } = useAccountPanelActions(rootRef);
+  const schemeIcons = {
+    system: Monitor,
+    dark: Moon,
+    light: Sun,
+  } as const;
+  const CurrentSchemeIcon = schemeIcons[mode];
   const PANEL_ID = "studio-scheme-panel-menu";
 
   return (
-    <div className="studio-scheme">
+    <div className="studio-scheme" data-tooltip="Scheme">
       <div className="studio-scheme__container" ref={rootRef}>
         <button
           type="button"
@@ -19,9 +26,8 @@ export const SchemePainel = () => {
           aria-controls={PANEL_ID}
           aria-expanded={isOpen}
           onClick={togglePanel}
-          data-tooltip="Scheme"
         >
-          Scheme
+          <CurrentSchemeIcon size={16} className="studio-scheme__icon" />
         </button>
         {isMounted ? (
           <div
@@ -35,16 +41,23 @@ export const SchemePainel = () => {
           >
             <div className="studio-scheme__menu">
               <div className="studio-scheme__menu-content" aria-label="Scheme modes">
-                {modes.map((schemeMode) => (
-                  <button
-                    key={schemeMode}
-                    type="button"
-                    data-active={mode === schemeMode}
-                    onClick={() => setMode(schemeMode)}
-                  >
-                    {schemeMode[0].toUpperCase() + schemeMode.slice(1)}
-                  </button>
-                ))}
+                {modes.map((schemeMode) => {
+                  const SchemeIcon = schemeIcons[schemeMode];
+
+                  return (
+                    <button
+                      key={schemeMode}
+                      type="button"
+                      data-active={mode === schemeMode}
+                      onClick={() => setMode(schemeMode)}
+                    >
+                      <span className="studio-scheme__option">
+                        <SchemeIcon size={16} className="studio-scheme__icon" />
+                        <span>{schemeMode[0].toUpperCase() + schemeMode.slice(1)}</span>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

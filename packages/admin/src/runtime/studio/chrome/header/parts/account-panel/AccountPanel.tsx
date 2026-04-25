@@ -11,7 +11,7 @@ export const AccountPanel = ({ user, onLogout }: AccountPanelProps) => {
   const PANEL_ID = "studio-account-panel-menu";
 
   return (
-    <div className="studio-account">
+    <div className="studio-account" data-tooltip={user.name}>
       <div className="studio-account__container" ref={rootRef}>
         <button
           type="button"
@@ -21,7 +21,6 @@ export const AccountPanel = ({ user, onLogout }: AccountPanelProps) => {
           aria-controls={PANEL_ID}
           aria-expanded={isOpen}
           onClick={togglePanel}
-          data-tooltip={user.name}
         >
           <AccountIdentity user={user} avatarSize={22} />
         </button>
