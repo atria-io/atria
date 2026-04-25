@@ -46,6 +46,7 @@ export const SchemePainel = () => {
 
                   return (
                     <button
+                      className="button--xs"
                       key={schemeMode}
                       type="button"
                       data-active={mode === schemeMode}

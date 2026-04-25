@@ -120,11 +120,19 @@ button:disabled,
 }
 
 :focus-visible {
-  outline: 1px solid var(--accent);
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--focus);
   border-radius: inherit;
 }
 
 :after,
 :before {
   box-sizing: border-box;
+}
+
+* {
+  transition:
+    background var(--transition-slow),
+    color var(--transition-slow),
+    border-color var(--transition-slow);
 }
