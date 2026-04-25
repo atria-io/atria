@@ -1,6 +1,6 @@
 {
   "name": "@atria/core",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "description": "Core package",
   "license": "MIT",
   "type": "module",
