@@ -646,9 +646,19 @@ const main = async () => {
   });
 
   console.log("[live] Building packages once before watch...");
+  const adminBuildCode = await runCommand(
+    "corepack",
+    ["pnpm", "--filter", "@atria/admin", "build"],
+    rootDir
+  );
+  if (adminBuildCode !== 0) {
+    await shutdown(adminBuildCode);
+    return;
+  }
+
   const initialBuildCode = await runCommand(
     "corepack",
-    ["pnpm", "-r", "--filter", "./packages/*", "build"],
+    ["pnpm", "-r", "--filter", "./packages/*", "--filter", "!@atria/admin", "build"],
     rootDir
   );
   if (initialBuildCode !== 0) {
