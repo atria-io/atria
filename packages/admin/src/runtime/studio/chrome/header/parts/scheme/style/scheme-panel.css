@@ -64,7 +64,7 @@
 .studio-scheme__menu-content {
   display: flex;
   gap: var(--spacing);
-  padding: var(--layout-inset);
+  padding: calc(var(--layout-inset) / 1.5);
   animation: var(--card-fade);
   flex-direction: column;
   opacity: 0;

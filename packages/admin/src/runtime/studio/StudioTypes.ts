@@ -7,7 +7,8 @@ export interface AppUser {
 
 export type StudioState =
   | "dashboard"
-  | "pages";
+  | "pages"
+  | "settings";
 
 export interface StudioAppState {
   realm: "studio";

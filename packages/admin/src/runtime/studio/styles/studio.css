@@ -1,7 +1,8 @@
-.studio-screen {
-  width: 100%;
+.admin-main__screen {
+  flex-basis: 100%;
+  min-height: 20rem;
 }
 
-.studio-screen__view {
+.card-screen {
   padding: var(--layout-inset);
 }

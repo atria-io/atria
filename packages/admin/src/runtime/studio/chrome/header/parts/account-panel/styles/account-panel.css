@@ -59,6 +59,16 @@
   cursor: pointer;
 }
 
+.studio-account__icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.75;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
 .studio-account__user {
   display: flex;
   align-items: center;

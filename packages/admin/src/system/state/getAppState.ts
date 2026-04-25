@@ -67,6 +67,10 @@ const resolveStudioScreenFromLocation = (basePath: string): StudioState => {
     return "pages";
   }
 
+  if (pathname === "/settings") {
+    return "settings";
+  }
+
   return "dashboard";
 };
 

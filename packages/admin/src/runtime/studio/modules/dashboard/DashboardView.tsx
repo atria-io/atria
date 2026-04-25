@@ -1,3 +1,5 @@
 export const DashboardView = () => {
-  return <>No properties</>;
+  return (
+    <div className="card-screen">No properties</div>
+  );
 };
