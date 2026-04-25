@@ -1,6 +1,6 @@
 .admin-main__sidebar {
   --sidebar-icon-size: 1.125rem;
-  --sidebar-icon-stroke-width: 1.75;
+  --sidebar-icon-stroke-width: 1.5;
   float: left;
   top: var(--header);
   width: var(--sidebar);
