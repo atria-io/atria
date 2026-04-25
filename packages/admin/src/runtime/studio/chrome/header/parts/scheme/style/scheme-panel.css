@@ -1,0 +1,41 @@
+.admin-header__scheme-container {
+  display: block;
+  position: relative;
+}
+
+.admin-header__scheme-trigger {
+  border: var(--border);
+  border-radius: 999px;
+  background: transparent;
+  padding-inline: calc(var(--spacing) * 1.25);
+  height: 1.8rem;
+  cursor: pointer;
+}
+
+.admin-header__scheme-panel {
+  top: calc(100% + 0.437em);
+  right: 0;
+  position: absolute;
+}
+
+.admin-header__scheme-panel--open {
+  animation: var(--card-pop);
+}
+
+.admin-header__scheme-panel--closing {
+  animation: var(--card-pop-reverse);
+}
+
+.admin-header__scheme-menu {
+  border: var(--border);
+  background: var(--background);
+  border-radius: var(--radius);
+  box-shadow: var(--box-shadow);
+  animation: var(--card-fade);
+}
+
+.admin-header__scheme-switch {
+  display: flex;
+  gap: var(--spacing);
+  padding: var(--layout-inset);
+}

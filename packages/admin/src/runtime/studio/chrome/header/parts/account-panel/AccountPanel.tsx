@@ -1,13 +1,10 @@
 import { useRef } from "react";
-import { useScheme } from "@/system/services/scheme/useScheme.js";
 import type { AccountPanelProps } from "./AccountPanelTypes.js";
 import { useAccountPanelActions } from "./AccountPanelActions.js";
 import { AccountIdentity } from "./components/AccountIdentity.js";
 import { AccountLogout } from "./components/AccountLogout.js";
-import { AccountScheme } from "./components/AccountScheme.js";
 
 export const AccountPanel = ({ user, onLogout }: AccountPanelProps) => {
-  const { mode, modes, setMode } = useScheme();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const { isOpen, isClosing, isMounted, togglePanel, onPanelAnimationEnd } = useAccountPanelActions(rootRef);
 
@@ -40,7 +37,6 @@ export const AccountPanel = ({ user, onLogout }: AccountPanelProps) => {
           <div className="studio-account__menu">
             <div className="studio-account__menu-content">
               <AccountIdentity user={user} avatarSize={24} showDetails />
-              <AccountScheme mode={mode} modes={modes} onSetMode={setMode} />
               <AccountLogout onLogout={onLogout} />
             </div>
           </div>

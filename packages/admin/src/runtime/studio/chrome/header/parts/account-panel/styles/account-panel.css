@@ -67,16 +67,6 @@
   color: var(--text-muted);
 }
 
-.studio-account__scheme {
-  display: none;
-  gap: var(--spacing);
-  padding-inline: var(--layout-inset);
-}
-
 .studio-account__logout {
   display: none;
 }
-
-/*.studio-account__scheme button {
-  width: 100%;
-}*/
