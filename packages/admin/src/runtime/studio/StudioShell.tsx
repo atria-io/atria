@@ -11,7 +11,7 @@ export interface StudioShellProps {
 export const StudioShell = ({ screen, user }: StudioShellProps) => {
   return (
     <>
-      <StudioHeader account={user} />
+      <StudioHeader account={user} screen={screen} />
       <main className="admin-main">
         <div>
           <StudioSidebar state={screen} />
