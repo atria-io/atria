@@ -1,12 +1,18 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import readline from "node:readline/promises";
+import readline from "node:readline";
+import * as readlinePromises from "node:readline/promises";
 import { done, doneField, isInteractivePrompt, terminal } from "@atria/shared";
 import { parseArgs } from "../../parseArgs.js";
 
 type DatabaseMode = "sqlite" | "postgres";
+type PromptChoice<T extends string> = { value: T; label: string };
 
 const SQLITE_DATABASE_URL = "file:./.atria/data/atria.db";
+const DATABASE_MODE_CHOICES: Array<PromptChoice<DatabaseMode>> = [
+  { value: "sqlite", label: "SQLite (default)" },
+  { value: "postgres", label: "PostgreSQL" }
+];
 
 const printSetupHelp = (): void => {
   console.log(
@@ -55,23 +61,95 @@ const promptDatabaseMode = async (): Promise<DatabaseMode> => {
     return "sqlite";
   }
 
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
+  return new Promise((resolve, reject) => {
+    let selectedIndex = 0;
+    let hasNavigated = false;
+    let renderedLines = 0;
+
+    const clearRender = (): void => {
+      if (renderedLines === 0) {
+        return;
+      }
+
+      readline.moveCursor(process.stdout, 0, -Math.max(0, renderedLines - 1));
+      readline.cursorTo(process.stdout, 0);
+      readline.clearScreenDown(process.stdout);
+      renderedLines = 0;
+    };
+
+    const render = (): void => {
+      clearRender();
+
+      const promptHint = hasNavigated
+        ? ` ${terminal.dim("(↵ select)")}`
+        : ` ${terminal.dim("(↑↓ navigate)")}`;
+      const promptHeader = `${terminal.green("?")} ${terminal.bold("Select database engine")}${promptHint}`;
+      const lines = [
+        promptHeader,
+        ...DATABASE_MODE_CHOICES.map((choice, index) =>
+          index === selectedIndex
+            ? `${terminal.cyan("❯")} ${terminal.cyan(choice.label)}`
+            : `  ${choice.label}`
+        )
+      ];
+
+      process.stdout.write(lines.join("\n"));
+      renderedLines = lines.length;
+    };
+
+    const cleanup = (): void => {
+      process.stdin.off("data", onData);
+      process.stdin.setRawMode(false);
+      process.stdin.pause();
+      process.stdout.write("\u001b[?25h");
+    };
+
+    const finalize = (): void => {
+      const value = DATABASE_MODE_CHOICES[selectedIndex].value;
+      cleanup();
+      clearRender();
+      process.stdout.write("\n");
+      resolve(value);
+    };
+
+    const onData = (chunk: Buffer | string): void => {
+      const raw = typeof chunk === "string" ? chunk : chunk.toString("utf8");
+
+      if (raw === "\u0003") {
+        cleanup();
+        clearRender();
+        process.stdout.write("\n");
+        reject(new Error("Setup cancelled."));
+        return;
+      }
+
+      if (raw === "\r" || raw === "\n") {
+        finalize();
+        return;
+      }
+
+      if (raw === "\u001b[A") {
+        hasNavigated = true;
+        selectedIndex =
+          selectedIndex === 0 ? DATABASE_MODE_CHOICES.length - 1 : selectedIndex - 1;
+        render();
+        return;
+      }
+
+      if (raw === "\u001b[B") {
+        hasNavigated = true;
+        selectedIndex = (selectedIndex + 1) % DATABASE_MODE_CHOICES.length;
+        render();
+      }
+    };
+
+    process.stdin.setEncoding("utf8");
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdin.on("data", onData);
+    process.stdout.write("\u001b[?25l");
+    render();
   });
-
-  try {
-    const answer = await rl.question("Database [1=SQLite, 2=PostgreSQL] (1): ");
-    const normalized = answer.trim();
-
-    if (normalized === "2") {
-      return "postgres";
-    }
-
-    return "sqlite";
-  } finally {
-    rl.close();
-  }
 };
 
 const promptPostgresUrl = async (): Promise<string> => {
@@ -79,7 +157,7 @@ const promptPostgresUrl = async (): Promise<string> => {
     throw new Error("Missing --database-url for postgres in non-interactive mode.");
   }
 
-  const rl = readline.createInterface({
+  const rl = readlinePromises.createInterface({
     input: process.stdin,
     output: process.stdout
   });

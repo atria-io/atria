@@ -7,6 +7,11 @@ export interface PromptInputOptions {
   displayDefault?: string;
 }
 
+const stripAnsi = (value: string): string =>
+  value
+    .replace(/\u001b\[[0-9;?]*[ -/]*[@-~]/g, "")
+    .replace(/\u001b\][^\u0007]*(?:\u0007|\u001b\\)/g, "");
+
 const isPrintableInput = (value: string): boolean => {
   const code = value.charCodeAt(0);
   return code >= 32 && code !== 127;
@@ -115,8 +120,6 @@ export const promptProjectModeSelection = async (
     };
 
     const render = (): void => {
-      clearRender();
-
       const lines: string[] = [];
       lines.push(`${terminal.blue("?")} ${terminal.bold("Create a new project or select an existing one")}`);
       lines.push(
@@ -142,8 +145,14 @@ export const promptProjectModeSelection = async (
       lines.push("");
       lines.push(terminal.dim(hasNavigated ? "↵ select" : "↑↓ navigate • ↵ select"));
 
+      clearRender();
       process.stdout.write(lines.join("\n"));
-      renderedLines = lines.length;
+      const columns = Math.max(process.stdout.columns ?? 80, 1);
+      renderedLines = lines.reduce((total, line) => {
+        const visibleLine = stripAnsi(line);
+        const wrappedRows = Math.max(1, Math.ceil(visibleLine.length / columns));
+        return total + wrappedRows;
+      }, 0);
     };
 
     const cleanup = (): void => {
@@ -161,10 +170,6 @@ export const promptProjectModeSelection = async (
 
       if (selection.kind === "create-new") {
         process.stdout.write(`${done("Create new project")}\n`);
-      } else {
-        process.stdout.write(
-          `${doneField("Using existing project", selection.project.configProjectName)}\n`
-        );
       }
 
       resolve(selection);

@@ -101,9 +101,9 @@ const resolveRuntimeFilePath = (
   return resolvePathWithinRoot(runtimeRoot, urlPath);
 };
 
-const runAdminBuild = async (adminDistRoot: string): Promise<void> =>
+const runAdminBuild = async (adminPackageRoot: string): Promise<void> =>
   new Promise((resolve, reject) => {
-    const buildEntry = path.join(adminDistRoot, "..", "..", "build", "dist.mjs");
+    const buildEntry = path.join(adminPackageRoot, "build", "dist.mjs");
     const child = spawn(process.execPath, [buildEntry], {
       cwd: process.cwd(),
       stdio: "inherit",
@@ -163,10 +163,18 @@ const ensureWorkspaceRuntime = async (
 ): Promise<{ runtimeRoot: string; adminDistRoot: string; adminAssetDirectory: string }> => {
   const workspaceRuntimeRoot = path.join(projectRoot, path.join(".atria", "runtime"));
   const adminDistRoot = resolveAdminDistRoot();
-  await runAdminBuild(adminDistRoot);
-  const adminReady = await hasRuntimePayload(adminDistRoot);
+  const adminPackageRoot = path.resolve(adminDistRoot, "..", "..");
+  let adminReady = await hasRuntimePayload(adminDistRoot);
   if (!adminReady) {
-    throw new Error("Admin dist runtime is missing required files after build.");
+    const buildEntry = path.join(adminPackageRoot, "build", "dist.mjs");
+    if (await pathExists(buildEntry)) {
+      await runAdminBuild(adminPackageRoot);
+      adminReady = await hasRuntimePayload(adminDistRoot);
+    }
+  }
+
+  if (!adminReady) {
+    throw new Error("Admin dist runtime is missing required files.");
   }
   const adminAssetDirectory = await resolveAdminAssetDirectory(adminDistRoot);
   if (!adminAssetDirectory) {
