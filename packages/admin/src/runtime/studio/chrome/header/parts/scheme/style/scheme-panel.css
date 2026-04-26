@@ -27,9 +27,9 @@
 
 .studio-scheme__trigger::after {
   content: '';
-  width: 1.5rem;
-  height: 1.5rem;
   position: absolute;
+  width: var(--header);
+  height: var(--header);
   background: transparent;
   transition: background var(--transition-fast);
   border-radius: calc(var(--radius) / 2);
