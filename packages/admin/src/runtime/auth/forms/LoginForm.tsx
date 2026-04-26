@@ -1,9 +1,5 @@
 import { useState, type SubmitEventHandler } from "react";
-
-export interface LoginValues {
-  email: string;
-  password: string;
-}
+import type { LoginValues } from "../AuthTypes.js";
 
 interface LoginFormProps {
   disabled?: boolean;

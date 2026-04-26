@@ -1,108 +1,7 @@
-import { useMemo, useState, type SubmitEventHandler } from "react";
-
-interface BrokerConfirmErrorState {
-  title: string;
-  message: string;
-  retryable: boolean;
-  backToLogin: boolean;
-}
+import { useBrokerConsent } from "../logic/brokerConsent.js";
 
 export const BrokerConsentView = () => {
-  type BrokerSubmitEvent = Parameters<SubmitEventHandler<HTMLFormElement>>[0];
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [failure, setFailure] = useState<BrokerConfirmErrorState | null>(null);
-
-  const brokerPayload = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    return {
-      provider: params.get("provider") ?? "",
-      project_id: params.get("project_id") ?? "",
-      broker_consent_token: params.get("code") ?? params.get("broker_consent_token") ?? "",
-      broker_code: params.get("broker_code") ?? "",
-    };
-  }, []);
-
-  const navigateToCleanUrl = (): void => {
-    const url = new URL(window.location.href);
-    url.searchParams.delete("screen");
-    url.searchParams.delete("provider");
-    url.searchParams.delete("project_id");
-    url.searchParams.delete("code");
-    url.searchParams.delete("broker_consent_token");
-    url.searchParams.delete("broker_code");
-    url.searchParams.delete("next");
-    const cleanPath = url.pathname === "/create" ? "/" : url.pathname;
-    const cleanQuery = url.searchParams.toString();
-    window.location.replace(cleanQuery === "" ? cleanPath : `${cleanPath}?${cleanQuery}`);
-  };
-
-  const handleConfirm = async (event: BrokerSubmitEvent): Promise<void> => {
-    event.preventDefault();
-    setFailure(null);
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/auth/broker/confirm", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(brokerPayload),
-      });
-
-      if (response.status === 204) {
-        navigateToCleanUrl();
-        return;
-      }
-
-      const defaultFailure: BrokerConfirmErrorState = {
-        title: "Consent confirmation failed",
-        message: "Unable to confirm broker consent.",
-        retryable: true,
-        backToLogin: false,
-      };
-
-      try {
-        const payload = (await response.json()) as {
-          error?: {
-            title?: unknown;
-            message?: unknown;
-            retryable?: unknown;
-            backToLogin?: unknown;
-          };
-        };
-        const error = payload.error;
-        if (error) {
-          setFailure({
-            title: typeof error.title === "string" ? error.title : defaultFailure.title,
-            message: typeof error.message === "string" ? error.message : defaultFailure.message,
-            retryable: typeof error.retryable === "boolean" ? error.retryable : defaultFailure.retryable,
-            backToLogin:
-              typeof error.backToLogin === "boolean" ? error.backToLogin : defaultFailure.backToLogin,
-          });
-          return;
-        }
-      } catch {
-        // fall through to default failure
-      }
-
-      setFailure(defaultFailure);
-    } catch {
-      setFailure({
-        title: "Connection error",
-        message: "Unable to reach broker confirmation endpoint.",
-        retryable: true,
-        backToLogin: false,
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleBackToLogin = (): void => {
-    window.location.assign("/");
-  };
+  const { isSubmitting, failure, onSubmitConfirm, onBackToLogin } = useBrokerConsent();
 
   return (
     <section className="auth-screen">
@@ -122,22 +21,24 @@ export const BrokerConsentView = () => {
               <h2 className="auth-card__title">{failure.title}</h2>
               <p className="auth-card__text">{failure.message}</p>
               {failure.retryable ? (
-                <form onSubmit={(event) => void handleConfirm(event)}>
+                <form onSubmit={onSubmitConfirm}>
                   <button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Retrying..." : "Retry"}
                   </button>
                 </form>
               ) : null}
               {failure.backToLogin ? (
-                <button type="button" onClick={handleBackToLogin}>
+                <button type="button" onClick={onBackToLogin}>
                   Back to login
                 </button>
               ) : null}
             </>
           ) : (
             <>
-              <p className="auth-card__text">Placeholder screen for broker consent confirmation.</p>
-              <form onSubmit={(event) => void handleConfirm(event)}>
+              <p className="auth-card__text">
+                Placeholder screen for broker consent confirmation.
+              </p>
+              <form onSubmit={onSubmitConfirm}>
                 <button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? "Confirming..." : "Confirm consent"}
                 </button>

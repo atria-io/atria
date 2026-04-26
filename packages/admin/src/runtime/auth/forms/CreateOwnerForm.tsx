@@ -1,24 +1,19 @@
 import { useState, type SubmitEventHandler } from "react";
+import type { CreateOwnerValues } from "../AuthTypes.js";
 
-export interface CreateValues {
-  name: string;
-  email: string;
-  password: string;
-}
-
-interface CreateFormProps {
+interface CreateOwnerFormProps {
   disabled?: boolean;
   errorMessage?: string | null;
   onBack?: (() => void) | undefined;
-  onSubmit: (values: CreateValues) => Promise<void> | void;
+  onSubmit: (values: CreateOwnerValues) => Promise<void> | void;
 }
 
-export const CreateForm = ({
+export const CreateOwnerForm = ({
   disabled = false,
   errorMessage = null,
   onBack,
   onSubmit,
-}: CreateFormProps) => {
+}: CreateOwnerFormProps) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");

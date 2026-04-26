@@ -1,35 +1,9 @@
+import { startOAuthRedirect } from "../api/authProviderApi.js";
+import type { AuthMode } from "../AuthTypes.js";
+
 interface AuthProviderActionsProps {
-  mode: "login" | "create";
+  mode: AuthMode;
 }
-
-const OAUTH_REDIRECT_DELAY_MS = 220;
-
-const readSafeNextPath = (): string => {
-  if (typeof window === "undefined") {
-    return "/";
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  const next = params.get("next");
-  return next && next.startsWith("/") ? next : "/";
-};
-
-const buildProviderStartUrl = (provider: "google" | "github", mode: "login" | "create"): string => {
-  const params = new URLSearchParams();
-  params.set("mode", mode);
-  const nextPath = readSafeNextPath();
-  if (nextPath !== "/") {
-    params.set("next", nextPath);
-  }
-  return `/api/auth/start/${provider}?${params.toString()}`;
-};
-
-const startOAuthRedirect = (provider: "google" | "github", mode: "login" | "create"): void => {
-  const target = buildProviderStartUrl(provider, mode);
-  window.setTimeout(() => {
-    window.location.href = target;
-  }, OAUTH_REDIRECT_DELAY_MS);
-};
 
 export const AuthProviderActions = ({ mode }: AuthProviderActionsProps) => {
   return (

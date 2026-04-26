@@ -1,6 +1,8 @@
+import { initializeWorkspace } from "../api/authApi.js";
+
 export const SetupView = () => {
   const handleSetup = async (): Promise<void> => {
-    const response = await fetch("/admin/setup", { method: "POST" });
+    const response = await initializeWorkspace();
     if (response.status === 204) {
       window.location.reload();
     }
