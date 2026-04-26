@@ -1,4 +1,4 @@
-import type { AppState } from "./system/runtimeTypes.js";
+import type { AppState } from "./system/appState.js";
 import { useRuntimeScheme } from "./system/runtimeScheme.js";
 import { useAppState } from "./system/state/useAppState.js";
 

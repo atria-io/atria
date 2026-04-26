@@ -1,4 +1,4 @@
-import type { AppState } from "../../runtimeTypes.js";
+import type { AppState } from "../../appState.js";
 import type { BootPayload } from "../bootAppState.js";
 import { isBootState, isBootUser } from "../bootAppState.js";
 import { resolveAuthState } from "./auth/resolveAuthState.js";

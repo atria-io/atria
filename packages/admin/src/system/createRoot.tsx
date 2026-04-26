@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import type { AppState } from "./runtimeTypes.js";
+import type { AppState } from "./appState.js";
 import type { BootSnapshot } from "./state/getAppState.js";
 import { resolveBootState } from "./state/getAppState.js";
 import { App } from "../App.js";

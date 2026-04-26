@@ -1,4 +1,4 @@
-import type { AppState } from "@/system/runtimeTypes.js";
+import type { AppState } from "@/system/appState.js";
 import type { AuthState } from "@/runtime/auth/AuthTypes.js";
 
 const hasBrokerConsentQueryMarker = (): boolean => {

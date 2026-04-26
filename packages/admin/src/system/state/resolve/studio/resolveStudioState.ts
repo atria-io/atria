@@ -1,4 +1,4 @@
-import type { AppState } from "@/system/runtimeTypes.js";
+import type { AppState } from "@/system/appState.js";
 import type { AppUser, StudioState } from "@/runtime/studio/StudioTypes.js";
 
 const resolveStudioScreenFromLocation = (basePath: string): StudioState => {

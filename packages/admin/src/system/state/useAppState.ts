@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getAppState } from "./getAppState.js";
 import { getRuntimeFatalState } from "../runtimeFatal.js";
 import type { CriticalState } from "../../runtime/critical/CriticalTypes.js";
-import type { AppState } from "../runtimeTypes.js";
+import type { AppState } from "../appState.js";
 
 const isSameAppState = (left: AppState | null, right: AppState): boolean => {
   if (!left || left.realm !== right.realm || left.screen !== right.screen) {
