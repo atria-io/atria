@@ -5,7 +5,7 @@ import type { BootSnapshot } from "./state/getAppState.js";
 import { resolveBootState } from "./state/getAppState.js";
 import { App } from "../App.js";
 
-export interface MountAdminOptions {
+export interface AdminOptions {
   mountElement?: Element | null;
   basePath?: string;
   reactStrictMode?: boolean;
@@ -13,7 +13,7 @@ export interface MountAdminOptions {
   initialBootstrap?: BootSnapshot;
 }
 
-export const AdminApp = (options: MountAdminOptions = {}): void => {
+export const AdminApp = (options: AdminOptions = {}): void => {
   const mountElement = options.mountElement ?? document.getElementById("atria");
 
   if (!mountElement) {
