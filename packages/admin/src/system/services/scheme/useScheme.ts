@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useRuntimeScheme } from "../../hooks/useScheme.js";
+import { useScheme as useResolvedScheme } from "../../hooks/useScheme.js";
 import type {
   RuntimeScheme,
   SchemeMode,
@@ -30,7 +30,7 @@ const getRuntimeScheme = (): RuntimeScheme | null => {
 const readRuntimeMode = (): SchemeMode => getRuntimeScheme()?.mode ?? "system";
 
 export const useScheme = (): UseSchemeResult => {
-  const resolved = useRuntimeScheme();
+  const resolved = useResolvedScheme();
   const [mode, setCurrentMode] = useState<SchemeMode>(() => readRuntimeMode());
 
   useEffect(() => {

@@ -22,7 +22,7 @@ const readResolvedScheme = (): ResolvedScheme => {
   return resolved === "dark" ? "dark" : "light";
 };
 
-export const useRuntimeScheme = (): ResolvedScheme => {
+export const useScheme = (): ResolvedScheme => {
   const [resolved, setResolved] = useState<ResolvedScheme>(() => readResolvedScheme());
 
   useEffect(() => {

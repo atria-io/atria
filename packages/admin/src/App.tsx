@@ -1,5 +1,5 @@
 import type { AppState } from "./system/appState.js";
-import { useRuntimeScheme } from "./system/hooks/useScheme.js";
+import { useScheme } from "./system/hooks/useScheme.js";
 import { useAppState } from "./system/state/useAppState.js";
 
 import { Router } from "./runtime/Router.js";
@@ -11,7 +11,7 @@ export interface AppProps {
 
 export const App = ({ basePath, initialAppState }: AppProps) => {
   const appState = useAppState(basePath, initialAppState);
-  const resolved = useRuntimeScheme();
+  const resolved = useScheme();
 
   if (!appState) {
     return null;
