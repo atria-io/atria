@@ -1,4 +1,4 @@
-import type { CriticalState } from "../runtime/critical/CriticalTypes.js";
+import type { CriticalState } from "../../runtime/critical/CriticalTypes.js";
 
 export interface RuntimeFatalDetail {
   state?: CriticalState;

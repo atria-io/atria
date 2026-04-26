@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAppState } from "./getAppState.js";
-import { getRuntimeFatalState } from "../runtimeFatal.js";
+import { getRuntimeFatalState } from "../hooks/runtimeFatal.js";
 import type { CriticalState } from "../../runtime/critical/CriticalTypes.js";
 import type { AppState } from "../appState.js";
 

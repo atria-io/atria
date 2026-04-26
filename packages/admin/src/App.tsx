@@ -1,5 +1,5 @@
 import type { AppState } from "./system/appState.js";
-import { useRuntimeScheme } from "./system/runtimeScheme.js";
+import { useRuntimeScheme } from "./system/hooks/useScheme.js";
 import { useAppState } from "./system/state/useAppState.js";
 
 import { Router } from "./runtime/Router.js";

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useRuntimeScheme } from "../../runtimeScheme.js";
+import { useRuntimeScheme } from "../../hooks/useScheme.js";
 import type {
   RuntimeScheme,
   SchemeMode,

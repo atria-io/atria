@@ -46,4 +46,3 @@ export const useRuntimeScheme = (): ResolvedScheme => {
 
   return resolved;
 };
-
