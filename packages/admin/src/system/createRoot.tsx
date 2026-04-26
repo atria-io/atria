@@ -1,8 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import type { AppState } from "./runtimeTypes.js";
-import type { InitialBootstrapSnapshot } from "./state/getAppState.js";
-import { resolveInitialAppState } from "./state/getAppState.js";
+import type { BootSnapshot } from "./state/getAppState.js";
+import { resolveBootState } from "./state/getAppState.js";
 import { App } from "../App.js";
 
 export interface MountAdminOptions {
@@ -10,7 +10,7 @@ export interface MountAdminOptions {
   basePath?: string;
   reactStrictMode?: boolean;
   initialAppState?: AppState;
-  initialBootstrap?: InitialBootstrapSnapshot;
+  initialBootstrap?: BootSnapshot;
 }
 
 export const mountAdminApp = (options: MountAdminOptions = {}): void => {
@@ -24,7 +24,7 @@ export const mountAdminApp = (options: MountAdminOptions = {}): void => {
   const root = createRoot(mountElement);
   const initialAppState =
     options.initialBootstrap !== undefined
-      ? resolveInitialAppState(options.initialBootstrap, basePath)
+      ? resolveBootState(options.initialBootstrap, basePath)
       : options.initialAppState;
   const app = <App basePath={basePath} initialAppState={initialAppState} />;
 

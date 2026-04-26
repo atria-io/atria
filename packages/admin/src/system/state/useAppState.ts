@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAppState } from "./getAppState.js";
-import { getRuntimeFatalState, RUNTIME_FATAL_EVENT } from "../runtimeFatal.js";
+import { getRuntimeFatalState } from "../runtimeFatal.js";
 import type { CriticalState } from "../../runtime/critical/CriticalTypes.js";
 import type { AppState } from "../runtimeTypes.js";
 
@@ -57,7 +57,7 @@ export const useAppState = (basePath: string, initialAppState?: AppState): AppSt
       void syncAppState();
     };
 
-    window.addEventListener(RUNTIME_FATAL_EVENT, handleRuntimeFatal);
+    window.addEventListener("atria:runtime:fatal", handleRuntimeFatal);
     window.addEventListener("popstate", handlePopState);
 
     if (initialAppState === undefined) {
@@ -65,7 +65,7 @@ export const useAppState = (basePath: string, initialAppState?: AppState): AppSt
     }
 
     return () => {
-      window.removeEventListener(RUNTIME_FATAL_EVENT, handleRuntimeFatal);
+      window.removeEventListener("atria:runtime:fatal", handleRuntimeFatal);
       window.removeEventListener("popstate", handlePopState);
       isActive = false;
     };

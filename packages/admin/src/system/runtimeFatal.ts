@@ -1,7 +1,5 @@
 import type { CriticalState } from "../runtime/critical/CriticalTypes.js";
 
-export const RUNTIME_FATAL_EVENT = "atria:runtime:fatal";
-
 export interface RuntimeFatalDetail {
   state?: CriticalState;
   message?: string;
