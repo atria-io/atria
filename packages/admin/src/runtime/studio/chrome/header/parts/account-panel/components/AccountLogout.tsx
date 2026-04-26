@@ -1,4 +1,4 @@
-import type { AccountLogoutProps } from "../AccountPanelTypes.js";
+import type { AccountLogoutProps } from "../accountPanelTypes.js";
 
 export const AccountLogout = ({ onLogout }: AccountLogoutProps) => (
   <div className="studio-account__logout" aria-label="Logout action">

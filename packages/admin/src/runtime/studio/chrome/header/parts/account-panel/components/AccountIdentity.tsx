@@ -1,4 +1,4 @@
-import type { AccountIdentityProps } from "../AccountPanelTypes.js";
+import type { AccountIdentityProps } from "../accountPanelTypes.js";
 
 export const AccountIdentity = ({ user, avatarSize, showDetails = false }: AccountIdentityProps) => (
   <div className={

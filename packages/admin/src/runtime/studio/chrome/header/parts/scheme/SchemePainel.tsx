@@ -1,12 +1,12 @@
 import { useRef } from "react";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useScheme } from "@/system/services/scheme/useScheme.js";
-import { useAccountPanelActions } from "../account-panel/AccountPanelActions.js";
+import { useAccountPanel } from "../account-panel/useAccountPanel.js";
 
 export const SchemePainel = () => {
   const { mode, modes, setMode } = useScheme();
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const { isOpen, isClosing, isMounted, togglePanel, onPanelAnimationEnd } = useAccountPanelActions(rootRef);
+  const { isOpen, isClosing, isMounted, togglePanel, onPanelAnimationEnd } = useAccountPanel(rootRef);
   const schemeIcons = {
     system: Monitor,
     dark: Moon,

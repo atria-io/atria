@@ -4,7 +4,7 @@ type AccountPanelState = "closed" | "open" | "closing";
 
 const CLOSE_ANIMATION_MS = 260;
 
-export const useAccountPanelActions = (rootRef: RefObject<HTMLDivElement | null>) => {
+export const useAccountPanel = (rootRef: RefObject<HTMLDivElement | null>) => {
   const [panelState, setPanelState] = useState<AccountPanelState>("closed");
   const closeTimerRef = useRef<number | null>(null);
 
