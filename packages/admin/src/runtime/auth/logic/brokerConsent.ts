@@ -7,14 +7,14 @@ const brokerConsentFallback: BrokerConsentFailure = {
   title: "Consent confirmation failed",
   message: "Unable to confirm broker consent.",
   retryable: true,
-  backToLogin: false,
+  backToSignIn: false,
 };
 
 const brokerConsentConnectionFailure: BrokerConsentFailure = {
   title: "Connection error",
   message: "Unable to reach broker confirmation endpoint.",
   retryable: true,
-  backToLogin: false,
+  backToSignIn: false,
 };
 
 const readBrokerPayloadFromLocation = (): BrokerConsentPayload => {
@@ -46,7 +46,7 @@ export interface BrokerConsentModel {
   isSubmitting: boolean;
   failure: BrokerConsentFailure | null;
   onSubmitConfirm: SubmitEventHandler<HTMLFormElement>;
-  onBackToLogin: () => void;
+  onBackToSignIn: () => void;
 }
 
 export const useBrokerConsent = (): BrokerConsentModel => {
@@ -77,7 +77,7 @@ export const useBrokerConsent = (): BrokerConsentModel => {
     }
   };
 
-  const onBackToLogin = (): void => {
+  const onBackToSignIn = (): void => {
     window.location.assign("/");
   };
 
@@ -85,6 +85,6 @@ export const useBrokerConsent = (): BrokerConsentModel => {
     isSubmitting,
     failure,
     onSubmitConfirm,
-    onBackToLogin,
+    onBackToSignIn,
   };
 };

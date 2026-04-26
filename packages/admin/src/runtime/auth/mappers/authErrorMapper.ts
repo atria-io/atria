@@ -2,7 +2,7 @@ export interface BrokerConsentFailure {
   title: string;
   message: string;
   retryable: boolean;
-  backToLogin: boolean;
+  backToSignIn: boolean;
 }
 
 interface BrokerConfirmErrorPayload {
@@ -10,7 +10,7 @@ interface BrokerConfirmErrorPayload {
     title?: unknown;
     message?: unknown;
     retryable?: unknown;
-    backToLogin?: unknown;
+    backToSignIn?: unknown;
   };
 }
 
@@ -29,7 +29,7 @@ export const mapBrokerConfirmError = async (
       title: typeof error.title === "string" ? error.title : fallback.title,
       message: typeof error.message === "string" ? error.message : fallback.message,
       retryable: typeof error.retryable === "boolean" ? error.retryable : fallback.retryable,
-      backToLogin: typeof error.backToLogin === "boolean" ? error.backToLogin : fallback.backToLogin,
+      backToSignIn: typeof error.backToSignIn === "boolean" ? error.backToSignIn : fallback.backToSignIn,
     };
   } catch {
     return fallback;

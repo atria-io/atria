@@ -1,7 +1,7 @@
 export type AdminBootstrapState =
   | "setup"
   | "create"
-  | "login"
+  | "sign-in"
   | "broker-consent"
   | "authenticated";
 

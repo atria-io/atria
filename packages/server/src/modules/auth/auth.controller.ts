@@ -7,7 +7,7 @@ import {
   getOwnerSetupState,
   getUserByEmail,
 } from "@atria/db";
-import type { LoginPayload } from "./auth.types.js";
+import type { SignInPayload } from "./auth.types.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_PASSWORD_LENGTH = 256;
@@ -43,7 +43,7 @@ const verifyPassword = (storedPassword: string, providedPassword: string): boole
   }
 };
 
-const readJsonBody = async (request: IncomingMessage): Promise<LoginPayload | null> => {
+const readJsonBody = async (request: IncomingMessage): Promise<SignInPayload | null> => {
   const chunks: Buffer[] = [];
 
   for await (const chunk of request) {
@@ -56,7 +56,7 @@ const readJsonBody = async (request: IncomingMessage): Promise<LoginPayload | nu
   }
 
   try {
-    return JSON.parse(rawBody) as LoginPayload;
+    return JSON.parse(rawBody) as SignInPayload;
   } catch {
     return null;
   }
@@ -111,7 +111,7 @@ const getSessionIdFromCookie = (request: IncomingMessage): string | null => {
   return null;
 };
 
-export const sendAuthLogin = async (
+export const sendAuthSignIn = async (
   request: IncomingMessage,
   response: ServerResponse
 ): Promise<void> => {

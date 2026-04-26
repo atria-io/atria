@@ -1,7 +1,7 @@
 import { useBrokerConsent } from "../logic/brokerConsent.js";
 
 export const BrokerConsentView = () => {
-  const { isSubmitting, failure, onSubmitConfirm, onBackToLogin } = useBrokerConsent();
+  const { isSubmitting, failure, onSubmitConfirm, onBackToSignIn } = useBrokerConsent();
 
   return (
     <section className="auth-screen">
@@ -27,9 +27,9 @@ export const BrokerConsentView = () => {
                   </button>
                 </form>
               ) : null}
-              {failure.backToLogin ? (
-                <button type="button" onClick={onBackToLogin}>
-                  Back to login
+              {failure.backToSignIn ? (
+                <button type="button" onClick={onBackToSignIn}>
+                  Back to sign in
                 </button>
               ) : null}
             </>

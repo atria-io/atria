@@ -51,7 +51,7 @@ Health payload includes:
 - `GET /api/auth/session`
 - `POST /api/auth/logout`
 - `POST /api/auth/email/register`
-- `POST /api/auth/email/login`
+- `POST /api/auth/email/sign-in`
 - `GET /api/auth/start/:provider`
 - `GET /api/auth/callback/:provider`
 - `GET /api/auth/broker/exchange`
@@ -59,5 +59,5 @@ Health payload includes:
 ## Auth redirect behavior
 
 - When owner setup is pending, protected Studio routes redirect to `/create`.
-- After owner exists, `/create` redirects to `/` (login flow).
+- After owner exists, `/create` redirects to `/` (sign-in flow).
 - Unauthenticated access to protected Studio routes redirects to `/` with `next` query.

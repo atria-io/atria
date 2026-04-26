@@ -28,7 +28,7 @@ const writeBrokerConfirmError = (
 
 const sendOAuthFailureRedirect = (response: ServerResponse, location: string): void => {
   response.statusCode = 302;
-  response.setHeader("Set-Cookie", "atria_login_error=oauth_failed; Path=/; Max-Age=30");
+  response.setHeader("Set-Cookie", "atria_signin_error=oauth_failed; Path=/; Max-Age=30");
   response.setHeader("Location", location);
   response.end();
 };
@@ -246,7 +246,7 @@ const createSessionFromBrokerExchange = async (profile: BrokerExchangeProfile | 
   return { status: "ok", sessionId: session.id };
 };
 
-const getLoginFailureReturnPath = (request: IncomingMessage): string => {
+const getSignInFailureReturnPath = (request: IncomingMessage): string => {
   const rawReferer = toStringValue(request.headers.referer);
   if (rawReferer === "") {
     return "/";
@@ -294,7 +294,7 @@ export const sendBrokerConfirm = async (
       title: "Invalid consent payload",
       message: "Missing or invalid broker consent fields.",
       retryable: false,
-      backToLogin: true,
+      backToSignIn: true,
     });
     return;
   }
@@ -311,7 +311,7 @@ export const sendBrokerConfirm = async (
         title: "Consent rejected",
         message: "Broker did not accept this consent request.",
         retryable: true,
-        backToLogin: true,
+        backToSignIn: true,
       });
       return;
     }
@@ -321,7 +321,7 @@ export const sendBrokerConfirm = async (
       title: "Broker unavailable",
       message: "Could not confirm consent with broker.",
       retryable: true,
-      backToLogin: false,
+      backToSignIn: false,
     });
     return;
   }
@@ -333,7 +333,7 @@ export const sendBrokerConfirm = async (
       title: "Broker unavailable",
       message: "Could not complete broker exchange.",
       retryable: true,
-      backToLogin: false,
+      backToSignIn: false,
     });
     return;
   }
@@ -345,7 +345,7 @@ export const sendBrokerConfirm = async (
       title: "No eligible user",
       message: "No local user is available for authenticated session.",
       retryable: false,
-      backToLogin: true,
+      backToSignIn: true,
     });
     return;
   }
@@ -356,7 +356,7 @@ export const sendBrokerConfirm = async (
       title: "Session failed",
       message: "Could not create authenticated session.",
       retryable: true,
-      backToLogin: true,
+      backToSignIn: true,
     });
     return;
   }
@@ -447,7 +447,7 @@ export const sendBrokerProviderEntry = async (
     return;
   }
 
-  const authorizationUrl = new URL(`/v1/auth/login/${provider}`, resolveBrokerOrigin());
+  const authorizationUrl = new URL(`/v1/auth/sign-in/${provider}`, resolveBrokerOrigin());
   authorizationUrl.searchParams.set("origin", returnTo.toString());
   authorizationUrl.searchParams.set("projectId", projectId);
   if (consentMode === "required") {
@@ -459,19 +459,19 @@ export const sendBrokerProviderEntry = async (
   response.end();
 };
 
-export const sendProviderLoginStart = async (
+export const sendProviderSignInStart = async (
   request: IncomingMessage,
   response: ServerResponse,
   provider: BrokerProvider
 ): Promise<void> => {
   const sessionResult = await createSessionFromLinkedProvider(provider);
   if (sessionResult.status === "no-user") {
-    sendOAuthFailureRedirect(response, getLoginFailureReturnPath(request));
+    sendOAuthFailureRedirect(response, getSignInFailureReturnPath(request));
     return;
   }
 
   if (sessionResult.status !== "ok") {
-    sendOAuthFailureRedirect(response, getLoginFailureReturnPath(request));
+    sendOAuthFailureRedirect(response, getSignInFailureReturnPath(request));
     return;
   }
 

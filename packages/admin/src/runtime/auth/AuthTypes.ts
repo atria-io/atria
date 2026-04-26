@@ -1,10 +1,10 @@
 export type AuthState =
   | "setup"
   | "create"
-  | "login"
+  | "sign-in"
   | "broker-consent";
 
-export type AuthMode = "login" | "create";
+export type AuthMode = "sign-in" | "create";
 
 export type AuthProvider = "google" | "github";
 
@@ -17,7 +17,7 @@ export interface AuthProps {
   state: AuthState;
 }
 
-export interface LoginValues {
+export interface SignInValues {
   email: string;
   password: string;
 }

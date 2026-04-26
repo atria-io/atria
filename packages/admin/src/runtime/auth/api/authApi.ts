@@ -1,11 +1,11 @@
-import type { BrokerConsentPayload, CreateOwnerValues, LoginValues } from "../AuthTypes.js";
+import type { BrokerConsentPayload, CreateOwnerValues, SignInValues } from "../AuthTypes.js";
 
 const JSON_HEADERS = {
   "Content-Type": "application/json",
 };
 
-export const loginWithPassword = async (values: LoginValues): Promise<Response> => {
-  return fetch("/auth/login", {
+export const signInWithPassword = async (values: SignInValues): Promise<Response> => {
+  return fetch("/auth/sign-in", {
     method: "POST",
     credentials: "include",
     headers: JSON_HEADERS,

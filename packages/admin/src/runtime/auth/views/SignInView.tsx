@@ -1,8 +1,8 @@
-import { LoginForm } from "../forms/LoginForm.js";
+import { SignInForm } from "../forms/SignInForm.js";
 import { useSignIn } from "../logic/signIn.js";
 import { AuthProviderActions } from "./AuthProviderActions.js";
 
-export const LoginView = () => {
+export const SignInView = () => {
   const {
     errorMessage,
     showEmailForm,
@@ -15,7 +15,7 @@ export const LoginView = () => {
     <div className="auth-card">
       <div className="auth-card__header">
         <h1 className="auth-card__title">
-          <span>Login</span>
+          <span>Sign in</span>
         </h1>
         <div className="auth-card__header-text">
           <span>Access your workspace</span>
@@ -27,7 +27,7 @@ export const LoginView = () => {
       <div className="auth-card__content">
         {!showEmailForm ? (
           <>
-            <AuthProviderActions mode="login" />
+            <AuthProviderActions mode="sign-in" />
             <div className="auth-card__actions">
               <button
                 type="button"
@@ -39,7 +39,7 @@ export const LoginView = () => {
             </div>
           </>
         ) : (
-          <LoginForm errorMessage={null} onSubmit={onSubmitSignIn} onBack={onBackToProviderOptions} />
+          <SignInForm errorMessage={null} onSubmit={onSubmitSignIn} onBack={onBackToProviderOptions} />
         )}
       </div>
     </div>

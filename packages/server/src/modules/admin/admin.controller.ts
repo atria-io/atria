@@ -85,17 +85,17 @@ const getAdminBootstrapState = async (request: IncomingMessage): Promise<AdminBo
 
   const sessionId = getSessionIdFromCookie(request);
   if (!sessionId) {
-    return { state: "login" };
+    return { state: "sign-in" };
   }
 
   const session = await getSessionById(sessionId);
   if (!session) {
-    return { state: "login" };
+    return { state: "sign-in" };
   }
 
   const user = await getUserSummary(session.userId);
   if (!user) {
-    return { state: "login" };
+    return { state: "sign-in" };
   }
 
   return { state: "authenticated", user };

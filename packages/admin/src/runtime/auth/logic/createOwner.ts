@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createOwnerAccount } from "../api/authApi.js";
-import { clearAuthLoginErrorCookie, readAuthLoginErrorCookie } from "../cookies/authLoginErrorCookie.js";
+import { clearAuthSignInErrorCookie, readAuthSignInErrorCookie } from "../cookies/authSignInErrorCookie.js";
 import type { CreateOwnerValues } from "../AuthTypes.js";
 
 const OAUTH_FAILURE_MESSAGE = "Could not complete browser sign-in. Please try again.";
@@ -19,10 +19,10 @@ export const useCreateOwner = (): CreateOwnerModel => {
   const [showEmailForm, setShowEmailForm] = useState(false);
 
   useEffect(() => {
-    const signal = readAuthLoginErrorCookie();
+    const signal = readAuthSignInErrorCookie();
     if (signal === "oauth_failed") {
       setErrorMessage(OAUTH_FAILURE_MESSAGE);
-      clearAuthLoginErrorCookie();
+      clearAuthSignInErrorCookie();
     }
   }, []);
 

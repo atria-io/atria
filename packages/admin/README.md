@@ -34,7 +34,7 @@ React admin runtime for atria.
 - `GET /api/auth/providers`
 - `GET /api/auth/session`
 - `POST /api/auth/email/register`
-- `POST /api/auth/email/login`
+- `POST /api/auth/email/sign-in`
 - `POST /api/auth/logout`
 
 ## Build

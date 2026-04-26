@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { loginWithPassword } from "../api/authApi.js";
-import { clearAuthLoginErrorCookie, readAuthLoginErrorCookie } from "../cookies/authLoginErrorCookie.js";
-import type { LoginValues } from "../AuthTypes.js";
+import { signInWithPassword } from "../api/authApi.js";
+import { clearAuthSignInErrorCookie, readAuthSignInErrorCookie } from "../cookies/authSignInErrorCookie.js";
+import type { SignInValues } from "../AuthTypes.js";
 
 const OAUTH_FAILURE_MESSAGE = "Could not complete browser sign-in. Please try again.";
 
@@ -10,7 +10,7 @@ export interface SignInModel {
   showEmailForm: boolean;
   onEnableEmailForm: () => void;
   onBackToProviderOptions: () => void;
-  onSubmitSignIn: (values: LoginValues) => Promise<void>;
+  onSubmitSignIn: (values: SignInValues) => Promise<void>;
 }
 
 export const useSignIn = (): SignInModel => {
@@ -18,17 +18,17 @@ export const useSignIn = (): SignInModel => {
   const [showEmailForm, setShowEmailForm] = useState(false);
 
   useEffect(() => {
-    const signal = readAuthLoginErrorCookie();
+    const signal = readAuthSignInErrorCookie();
     if (signal === "oauth_failed") {
       setErrorMessage(OAUTH_FAILURE_MESSAGE);
-      clearAuthLoginErrorCookie();
+      clearAuthSignInErrorCookie();
     }
   }, []);
 
-  const onSubmitSignIn = async (values: LoginValues): Promise<void> => {
+  const onSubmitSignIn = async (values: SignInValues): Promise<void> => {
     setErrorMessage(null);
 
-    const response = await loginWithPassword(values);
+    const response = await signInWithPassword(values);
     if (response.status === 204) {
       window.location.reload();
       return;

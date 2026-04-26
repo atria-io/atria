@@ -10,7 +10,7 @@ export interface BrokerConfirmError {
   title: string;
   message: string;
   retryable: boolean;
-  backToLogin: boolean;
+  backToSignIn: boolean;
 }
 
 export interface BrokerConfirmErrorResponse {

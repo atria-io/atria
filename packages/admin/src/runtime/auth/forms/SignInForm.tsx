@@ -1,19 +1,19 @@
 import { useState, type SubmitEventHandler } from "react";
-import type { LoginValues } from "../AuthTypes.js";
+import type { SignInValues } from "../AuthTypes.js";
 
-interface LoginFormProps {
+interface SignInFormProps {
   disabled?: boolean;
   errorMessage?: string | null;
   onBack?: (() => void) | undefined;
-  onSubmit: (values: LoginValues) => Promise<void> | void;
+  onSubmit: (values: SignInValues) => Promise<void> | void;
 }
 
-export const LoginForm = ({
+export const SignInForm = ({
   disabled = false,
   errorMessage = null,
   onBack,
   onSubmit,
-}: LoginFormProps) => {
+}: SignInFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -25,9 +25,9 @@ export const LoginForm = ({
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
       <div className="auth-form__field">
-        <label htmlFor="auth-login-email">Email</label>
+        <label htmlFor="auth-signin-email">Email</label>
         <input
-          id="auth-login-email"
+          id="auth-signin-email"
           className="auth-form__input"
           type="email"
           value={email}
@@ -39,9 +39,9 @@ export const LoginForm = ({
       </div>
 
       <div className="auth-form__field">
-        <label htmlFor="auth-login-password">Password</label>
+        <label htmlFor="auth-signin-password">Password</label>
         <input
-          id="auth-login-password"
+          id="auth-signin-password"
           className="auth-form__input"
           type="password"
           value={password}
@@ -55,7 +55,7 @@ export const LoginForm = ({
       {errorMessage ? <p className="auth-form__error">{errorMessage}</p> : null}
 
       <button type="submit" className="auth-card__button" disabled={disabled}>
-        Login
+        Sign in
       </button>
 
       {onBack ? (

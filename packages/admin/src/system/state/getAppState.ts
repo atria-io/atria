@@ -20,7 +20,7 @@ const isBootstrapState = (value: unknown): value is BootstrapState => {
   return (
     value === "setup" ||
     value === "create" ||
-    value === "login" ||
+    value === "sign-in" ||
     value === "broker-consent" ||
     value === "authenticated"
   );
@@ -98,7 +98,7 @@ export const resolveAppStateFromPayload = (
       };
     }
 
-    return applyAuthQueryOverride({ realm: "auth", screen: "login" });
+    return applyAuthQueryOverride({ realm: "auth", screen: "sign-in" });
   }
 
   return applyAuthQueryOverride({ realm: "auth", screen: "setup" });
