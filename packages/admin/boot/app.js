@@ -1,4 +1,4 @@
-import { mountAdminApp } from "/static/js/app.js";
+import { AdminApp } from "/static/js/app.js";
 
 const rootElement = document.getElementById("atria");
 
@@ -20,7 +20,7 @@ const readInitialBootstrap = async () => {
 
 void (async () => {
   const initialBootstrap = await readInitialBootstrap();
-  mountAdminApp({
+  AdminApp({
     mountElement: rootElement,
     basePath: "/",
     reactStrictMode: false,

@@ -13,7 +13,7 @@ export interface MountAdminOptions {
   initialBootstrap?: BootSnapshot;
 }
 
-export const mountAdminApp = (options: MountAdminOptions = {}): void => {
+export const AdminApp = (options: MountAdminOptions = {}): void => {
   const mountElement = options.mountElement ?? document.getElementById("atria");
 
   if (!mountElement) {
@@ -36,4 +36,4 @@ export const mountAdminApp = (options: MountAdminOptions = {}): void => {
   root.render(app);
 };
 
-export const mountStudioApp = mountAdminApp;
+export const StudioApp = AdminApp;
