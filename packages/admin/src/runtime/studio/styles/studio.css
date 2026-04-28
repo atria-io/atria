@@ -4,12 +4,11 @@
 }
 
 .card-column {
-  border-right: var(--border);
   width: 100%;
 }
 
-.card-column:last-child {
-  border: none;
+.card-column + .card-column {
+  border-left: var(--border);
 }
 
 .card-column__stack {
@@ -20,19 +19,16 @@
   width: 100%;
 }
 
-.card-column__stack > div {
-  border-bottom: var(--border);
-}
-
-.card-column__stack > div:last-child {
-  border: none;
-}
-
 .card-column__item {
   height: 100%;
   width: 100%;
 }
 
+.card-column__item + .card-column__item {
+  border-top: var(--border);
+}
+
 .card-screen {
   padding: var(--layout-inset);
+  height: inherit;
 }

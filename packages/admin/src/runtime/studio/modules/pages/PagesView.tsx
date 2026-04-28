@@ -8,7 +8,7 @@ export const PagesView = () => {
       </div>*/}
       <div className="studio-screen__pages">
         <div className="pages-layout">
-          <div className="card-column" data-zone="a">
+          <div className="card-column" data-zone="pages:a">
             <div className="card-column__stack" data-group="selector">
               <div className="card-column__item" data-type="folders">
                 <div className="card-screen">Folders</div>
@@ -18,12 +18,12 @@ export const PagesView = () => {
               </div>
             </div>
           </div>
-          <div className="card-column" data-zone="b">
+          <div className="card-column" data-zone="pages:b">
             <div className="card-column__item" data-type="pages">
               <div className="card-screen">Pages</div>
             </div>
           </div>
-          <div className="card-column" data-zone="c">
+          <div className="card-column" data-zone="pages:c">
             <div className="card-column__item" data-type="properties">
               <div className="card-screen">No propertiess</div>
             </div>

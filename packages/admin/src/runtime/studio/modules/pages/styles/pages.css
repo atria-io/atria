@@ -9,10 +9,10 @@
   flex: 1;
 }
 
-.pages-layout [data-zone=a] {
+[data-zone=pages\:a] {
   max-width: 20rem;
 }
 
-.pages-layout [data-zone=c] {
-  max-width: 30rem;
+[data-zone=pages\:b] {
+  max-width: 25rem;
 }
