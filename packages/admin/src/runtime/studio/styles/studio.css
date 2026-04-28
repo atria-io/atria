@@ -1,6 +1,36 @@
 .admin-main__screen {
   flex-basis: 100%;
-  min-height: 20rem;
+  min-height: 24rem;
+}
+
+.card-column {
+  border-right: var(--border);
+  width: 100%;
+}
+
+.card-column:last-child {
+  border: none;
+}
+
+.card-column__stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+}
+
+.card-column__stack > div {
+  border-bottom: var(--border);
+}
+
+.card-column__stack > div:last-child {
+  border: none;
+}
+
+.card-column__item {
+  height: 100%;
+  width: 100%;
 }
 
 .card-screen {
