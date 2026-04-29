@@ -30,6 +30,7 @@ auth-broker/
 
 # Local agent instructions
 AGENTS.md
+@/
 
 
 .agents/
