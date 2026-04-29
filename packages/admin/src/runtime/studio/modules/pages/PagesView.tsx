@@ -25,7 +25,7 @@ export const PagesView = () => {
           </div>
           <div className="card-column" data-zone="pages:c">
             <div className="card-column__item" data-type="properties">
-              <div className="card-screen">No propertiess</div>
+              <div className="card-screen">No properties</div>
             </div>
           </div>
         </div>
