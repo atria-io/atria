@@ -11,9 +11,10 @@ import { formatScaffoldedAt, replacePreviousPromptLine } from "./render.js";
 
 const ATRIA_CONFIG_FILE = "atria.config.json";
 const ATRIA_RUNTIME_DIR = path.join(".atria", "runtime");
-const PUBLIC_OUTPUT_DIR = path.join("production", "public");
-const STUDIO_CONTENT_DIR = path.join("production", "studio", "content");
-const STUDIO_THEME_DIR = path.join("production", "studio", "theme");
+const PUBLISHED_PUBLIC_DIR = path.join("published", "public");
+const PUBLISHED_THEME_DIR = path.join("published", "theme");
+const PUBLISHED_MEDIA_DIR = path.join("published", "media");
+const PUBLISHED_HTML_DIR = path.join("published", "htm");
 const CURRENT_MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const BUNDLED_ADMIN_RUNTIME_SOURCE_DIR = path.resolve(CURRENT_MODULE_DIR, "./runtime");
 const ADMIN_RUNTIME_SOURCE_DIR = existsSync(BUNDLED_ADMIN_RUNTIME_SOURCE_DIR)
@@ -377,9 +378,10 @@ const run = async (): Promise<void> => {
 
   await ensureDirectory(projectRoot);
   await Promise.all([
-    ensureDirectory(path.join(projectRoot, STUDIO_CONTENT_DIR)),
-    ensureDirectory(path.join(projectRoot, STUDIO_THEME_DIR)),
-    ensureDirectory(path.join(projectRoot, PUBLIC_OUTPUT_DIR))
+    ensureDirectory(path.join(projectRoot, PUBLISHED_PUBLIC_DIR)),
+    ensureDirectory(path.join(projectRoot, PUBLISHED_THEME_DIR)),
+    ensureDirectory(path.join(projectRoot, PUBLISHED_MEDIA_DIR)),
+    ensureDirectory(path.join(projectRoot, PUBLISHED_HTML_DIR))
   ]);
 
   const targets: WriteTarget[] = [
@@ -396,11 +398,19 @@ const run = async (): Promise<void> => {
       content: createEnvExampleFile()
     },
     {
-      path: path.join(projectRoot, STUDIO_CONTENT_DIR, ".gitkeep"),
+      path: path.join(projectRoot, PUBLISHED_PUBLIC_DIR, ".gitkeep"),
       content: ""
     },
     {
-      path: path.join(projectRoot, STUDIO_THEME_DIR, ".gitkeep"),
+      path: path.join(projectRoot, PUBLISHED_THEME_DIR, ".gitkeep"),
+      content: ""
+    },
+    {
+      path: path.join(projectRoot, PUBLISHED_MEDIA_DIR, ".gitkeep"),
+      content: ""
+    },
+    {
+      path: path.join(projectRoot, PUBLISHED_HTML_DIR, ".gitkeep"),
       content: ""
     }
   ];

@@ -39,9 +39,10 @@ npx create-atria my-project
   - `dev`: `atria dev`
 - `atria.config.json`
 - `.env.example`
-- `production/studio/content/.gitkeep`
-- `production/studio/theme/.gitkeep`
-- `production/public/`
+- `published/public/.gitkeep`
+- `published/theme/.gitkeep`
+- `published/media/.gitkeep`
+- `published/htm/.gitkeep`
 - `.atria/runtime/index.html`
 - `.atria/runtime/app.js`
 
