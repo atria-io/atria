@@ -1,4 +1,4 @@
-export const osql = {
+export const oauthQueries = {
   oauthUpdateUser: `
     UPDATE users
     SET

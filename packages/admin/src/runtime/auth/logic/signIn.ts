@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { signInWithPassword } from "../api/authApi.js";
-import { clearAuthSignInErrorCookie, readAuthSignInErrorCookie } from "../cookies/authSignInErrorCookie.js";
+import {
+  clearAuthSignInErrorCookie,
+  readAuthSignInErrorCookie
+} from "../cookies/authSignInErrorCookie.js";
 import type { SignInValues } from "../AuthTypes.js";
 
-const OAUTH_FAILURE_MESSAGE = "Could not complete browser sign-in. Please try again.";
+const OAUTH_FAILURE_MESSAGE =
+  "Could not complete browser sign-in. Please try again.";
 
 export interface SignInModel {
   errorMessage: string | null;
@@ -25,7 +29,9 @@ export const useSignIn = (): SignInModel => {
     }
   }, []);
 
-  const onSubmitSignIn = async (values: SignInValues): Promise<void> => {
+  const onSubmitSignIn = async (
+    values: SignInValues
+  ): Promise<void> => {
     setErrorMessage(null);
 
     const response = await signInWithPassword(values);

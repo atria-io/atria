@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { sql } from "../../queriesApi.js";
+import { sql } from "../../dmlApi.js";
 import { withDatabase } from "@/system/withDatabase.js";
 import { getTimestamp, toString } from "@/data/support/shared.js";
 import type { AuthSession } from "../../types.js";

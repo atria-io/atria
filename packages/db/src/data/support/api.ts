@@ -1,4 +1,4 @@
-export * as auth from "../auth/serviceApi.js";
-export { ensureModulesSchema } from "./setup.js";
+export * as auth from "../../data/slices/auth/opsApi.js";
+export { ensureComponentsDDL } from "./setup.js";
 
-export type * as authTypes from "../auth/types.js";
+export type * as authTypes from "../../data/slices/auth/types.js";

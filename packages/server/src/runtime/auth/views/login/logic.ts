@@ -38,7 +38,9 @@ const verifyPassword = (
   }
 };
 
-export const parseEmail = (value: unknown): string | null => {
+export const parseEmail = (
+  value: unknown
+): string | null => {
   if (typeof value !== "string") {
     return null;
   }
@@ -47,7 +49,9 @@ export const parseEmail = (value: unknown): string | null => {
   return EMAIL_PATTERN.test(normalized) ? normalized : null;
 };
 
-export const parsePassword = (value: unknown): string | null => {
+export const parsePassword = (
+  value: unknown
+): string | null => {
   if (typeof value !== "string") {
     return null;
   }

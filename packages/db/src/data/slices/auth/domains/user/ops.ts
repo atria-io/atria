@@ -1,4 +1,4 @@
-import { sql } from "../../queriesApi.js";
+import { sql } from "../../dmlApi.js";
 import { withDatabase } from "@/system/withDatabase.js";
 import { toString } from "@/data/support/shared.js";
 import type { AuthUser } from "../../types.js";

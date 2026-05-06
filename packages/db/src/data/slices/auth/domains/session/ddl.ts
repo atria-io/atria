@@ -1,4 +1,4 @@
-export const sessionSchema = [
+export const sessionDDL = [
   `CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,

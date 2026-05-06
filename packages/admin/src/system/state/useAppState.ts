@@ -4,7 +4,9 @@ import { getRuntimeFatalState } from "../hooks/runtimeFatal.js";
 import type { CriticalState } from "../../runtime/critical/CriticalTypes.js";
 import type { AppState } from "../appState.js";
 
-const isSameAppState = (left: AppState | null, right: AppState): boolean => {
+const isSameAppState = (
+  left: AppState | null, right: AppState
+): boolean => {
   if (!left || left.realm !== right.realm || left.screen !== right.screen) {
     return false;
   }
@@ -21,7 +23,9 @@ const isSameAppState = (left: AppState | null, right: AppState): boolean => {
   );
 };
 
-export const useAppState = (basePath: string, initialAppState?: AppState): AppState | null => {
+export const useAppState = (
+  basePath: string, initialAppState?: AppState
+): AppState | null => {
   const [appState, setAppState] = useState<AppState | null>(initialAppState ?? null);
 
   useEffect(() => {

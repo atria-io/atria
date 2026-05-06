@@ -2,15 +2,21 @@ import { resolveBrokerOrigin } from "./config.js";
 import type { BrokerExchangeProfile } from "./db.js";
 import type { BrokerProvider } from "./types.js";
 
-const toStringValue = (value: unknown): string =>
+const toStringValue = (
+  value: unknown
+): string =>
   typeof value === "string" ? value.trim() : "";
 
-const toNullableString = (value: unknown): string | null => {
+const toNullableString = (
+  value: unknown
+): string | null => {
   const normalized = toStringValue(value);
   return normalized === "" ? null : normalized;
 };
 
-const isSupportedProvider = (provider: string): provider is BrokerProvider =>
+const isSupportedProvider = (
+  provider: string
+): provider is BrokerProvider =>
   provider === "google" || provider === "github";
 
 interface BrokerConfirmResult {
@@ -18,7 +24,9 @@ interface BrokerConfirmResult {
   brokerCode: string;
 }
 
-const readObject = (value: unknown): Record<string, unknown> | null => {
+const readObject = (
+  value: unknown
+): Record<string, unknown> | null => {
   if (!value || typeof value !== "object") {
     return null;
   }

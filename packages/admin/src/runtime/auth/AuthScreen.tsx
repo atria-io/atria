@@ -4,7 +4,9 @@ import { SignInView } from "./views/SignInView.js";
 import { CreateOwnerView } from "./views/CreateOwnerView.js";
 import { BrokerConsentView } from "./views/BrokerConsentView.js";
 
-export const AuthScreen = ({ state }: AuthProps) => {
+export const AuthScreen = (
+  { state }: AuthProps
+) => {
   switch (state) {
     case "setup":
       return <SetupView />;

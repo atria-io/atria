@@ -1,6 +1,6 @@
 import type { ServerResponse } from "node:http";
 
-const writeJson = (
+const writeJSON = (
   response: ServerResponse,
   statusCode: number,
   payload: unknown
@@ -15,13 +15,17 @@ export const sendHttpError = (
   statusCode: number,
   message: string
 ): void => {
-  writeJson(response, statusCode, { error: message });
+  writeJSON(response, statusCode, { error: message });
 };
 
-export const sendNotFound = (response: ServerResponse): void => {
+export const sendNotFound = (
+  response: ServerResponse
+): void => {
   sendHttpError(response, 404, "Not Found");
 };
 
-export const sendInternalServerError = (response: ServerResponse): void => {
+export const sendInternalServerError = (
+  response: ServerResponse
+): void => {
   sendHttpError(response, 500, "Internal Server Error");
 };

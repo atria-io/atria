@@ -1,5 +1,5 @@
 import { ensureDatabaseFile } from "./openDatabase.js";
-import { ensureModulesSchema } from "../data/support/setup.js";
+import { ensureComponentsDDL } from "../data/support/setup.js";
 
 export const initializeDatabase = async (): Promise<boolean> => {
   const databaseReady = await ensureDatabaseFile();
@@ -7,5 +7,5 @@ export const initializeDatabase = async (): Promise<boolean> => {
     return false;
   }
 
-  return ensureModulesSchema();
+  return ensureComponentsDDL();
 };

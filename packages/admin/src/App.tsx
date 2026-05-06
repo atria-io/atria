@@ -1,7 +1,6 @@
 import type { AppState } from "./system/appState.js";
 import { useSchemeState } from "./system/hooks/useSchemeState.js";
 import { useAppState } from "./system/state/useAppState.js";
-
 import { Router } from "./runtime/Router.js";
 
 export interface AppProps {
@@ -9,7 +8,9 @@ export interface AppProps {
   initialAppState?: AppState;
 }
 
-export const App = ({ basePath, initialAppState }: AppProps) => {
+export const App = (
+  { basePath, initialAppState }: AppProps
+) => {
   const appState = useAppState(basePath, initialAppState);
   const resolved = useSchemeState();
 

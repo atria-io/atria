@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { createOwnerAccount } from "../api/authApi.js";
-import { clearAuthSignInErrorCookie, readAuthSignInErrorCookie } from "../cookies/authSignInErrorCookie.js";
+import {
+  clearAuthSignInErrorCookie,
+  readAuthSignInErrorCookie
+} from "../cookies/authSignInErrorCookie.js";
 import type { CreateOwnerValues } from "../AuthTypes.js";
 
-const OAUTH_FAILURE_MESSAGE = "Could not complete browser sign-in. Please try again.";
-const CREATE_OWNER_FAILURE_MESSAGE = "Could not create owner account. Please try again.";
+const OAUTH_FAILURE_MESSAGE =
+  "Could not complete browser sign-in. Please try again.";
+const CREATE_OWNER_FAILURE_MESSAGE =
+  "Could not create owner account. Please try again.";
 
 export interface CreateOwnerModel {
   errorMessage: string | null;

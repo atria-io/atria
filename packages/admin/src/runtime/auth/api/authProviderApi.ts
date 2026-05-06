@@ -12,7 +12,9 @@ const readSafeNextPath = (): string => {
   return next && next.startsWith("/") ? next : "/";
 };
 
-export const buildProviderStartUrl = (provider: AuthProvider, mode: AuthMode): string => {
+export const buildProviderStartUrl = (
+  provider: AuthProvider, mode: AuthMode
+): string => {
   const params = new URLSearchParams();
   params.set("mode", mode);
   const nextPath = readSafeNextPath();
@@ -22,7 +24,9 @@ export const buildProviderStartUrl = (provider: AuthProvider, mode: AuthMode): s
   return `/api/auth/start/${provider}?${params.toString()}`;
 };
 
-export const startOAuthRedirect = (provider: AuthProvider, mode: AuthMode): void => {
+export const startOAuthRedirect = (
+  provider: AuthProvider, mode: AuthMode
+): void => {
   const target = buildProviderStartUrl(provider, mode);
   window.setTimeout(() => {
     window.location.href = target;

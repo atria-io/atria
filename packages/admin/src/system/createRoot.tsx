@@ -13,7 +13,9 @@ export interface AdminOptions {
   initialBootstrap?: BootSnapshot;
 }
 
-export const AdminApp = (options: AdminOptions = {}): void => {
+export const AdminApp = (
+  options: AdminOptions = {}
+): void => {
   const mountElement = options.mountElement ?? document.getElementById("atria");
 
   if (!mountElement) {

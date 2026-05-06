@@ -46,10 +46,14 @@ const sendOAuthFailureRedirect = (
   response.end();
 };
 
-const toStringValue = (value: unknown): string =>
+const toStringValue = (
+  value: unknown
+): string =>
   typeof value === "string" ? value.trim() : "";
 
-const isSupportedProvider = (provider: string): provider is BrokerProvider =>
+const isSupportedProvider = (
+  provider: string
+): provider is BrokerProvider =>
   provider === "google" || provider === "github";
 
 const readJsonBody = async (
@@ -72,7 +76,9 @@ const readJsonBody = async (
   }
 };
 
-const getSignInFailureReturnPath = (request: IncomingMessage): string => {
+const getSignInFailureReturnPath = (
+  request: IncomingMessage
+): string => {
   const rawReferer = toStringValue(request.headers.referer);
   if (rawReferer === "") {
     return "/";
@@ -170,7 +176,9 @@ export const sendBrokerConfirm = async (
   });
 };
 
-const getRequestProtocol = (request: IncomingMessage): string => {
+const getRequestProtocol = (
+  request: IncomingMessage
+): string => {
   const forwardedProto = toStringValue(request.headers["x-forwarded-proto"]);
   if (forwardedProto !== "") {
     return forwardedProto.split(",")[0]?.trim() || "http";
@@ -179,7 +187,9 @@ const getRequestProtocol = (request: IncomingMessage): string => {
   return "http";
 };
 
-const getRequestHost = (request: IncomingMessage): string => {
+const getRequestHost = (
+  request: IncomingMessage
+): string => {
   const forwardedHost = toStringValue(request.headers["x-forwarded-host"]);
   if (forwardedHost !== "") {
     return forwardedHost.split(",")[0]?.trim() || "localhost";
@@ -189,12 +199,16 @@ const getRequestHost = (request: IncomingMessage): string => {
   return hostHeader === "" ? "localhost" : hostHeader;
 };
 
-const getSafeNextPath = (requestUrl: URL): string => {
+const getSafeNextPath = (
+  requestUrl: URL
+): string => {
   const nextPath = toStringValue(requestUrl.searchParams.get("next"));
   return nextPath.startsWith("/") ? nextPath : "/";
 };
 
-const parseConsentMode = (requestUrl: URL): "auto" | "required" => {
+const parseConsentMode = (
+  requestUrl: URL
+): "auto" | "required" => {
   const consentRaw =
     toStringValue(requestUrl.searchParams.get("consent")) ||
     toStringValue(requestUrl.searchParams.get("consent_mode")) ||

@@ -1,6 +1,8 @@
 import { deleteSessionById } from "./db.js";
 
-export const revokeSession = async (sessionId: string | null): Promise<void> => {
+export const revokeSession = async (
+  sessionId: string | null
+): Promise<void> => {
   if (!sessionId) {
     return;
   }

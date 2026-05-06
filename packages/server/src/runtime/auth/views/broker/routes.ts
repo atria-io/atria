@@ -17,7 +17,7 @@ export const handleBrokerRoutes = async (
     return true;
   }
 
-  if (request.method === "POST" && pathname === "/api/auth/broker/confirm") {
+  if (request.method === "POST" && pathname === "/api/auth/broker/consent") {
     await sendBrokerConfirm(request, response);
     return true;
   }

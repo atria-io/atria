@@ -4,7 +4,10 @@ import { isBootState, isBootUser } from "../bootAppState.js";
 import { resolveAppState } from "./resolveAppState.js";
 import { resolveCriticalState } from "./critical/resolveCriticalState.js";
 
-export const resolveBootState = (snapshot: BootSnapshot, basePath = "/"): AppState => {
+
+export const resolveBootState = (
+  snapshot: BootSnapshot, basePath = "/"
+): AppState => {
   if (!snapshot.ok) {
     if (snapshot.failed === "network" && snapshot.online === false) {
       return resolveCriticalState("offline");

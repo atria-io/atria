@@ -1,4 +1,4 @@
-export const identitySchema = [
+export const identityDDL = [
   `CREATE TABLE IF NOT EXISTS identities (
     provider TEXT NOT NULL,
     provider_user_id TEXT NOT NULL,

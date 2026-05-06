@@ -1,10 +1,11 @@
 import { useRef } from "react";
-import type { AccountPanelProps } from "./accountPanelTypes.js";
 import { useAccountPanel } from "./useAccountPanel.js";
-import { AccountIdentity } from "./components/AccountIdentity.js";
 import { AccountLogout } from "./components/AccountLogout.js";
+import { AccountIdentity } from "./components/AccountIdentity.js";
+import type { AccountPanelProps } from "./accountPanelTypes.js";
 
-export const AccountPanel = ({ user, onLogout }: AccountPanelProps) => {
+export const AccountPanel = (
+  { user, onLogout }: AccountPanelProps) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const { isOpen, isClosing, isMounted, togglePanel, onPanelAnimationEnd } = useAccountPanel(rootRef);
 

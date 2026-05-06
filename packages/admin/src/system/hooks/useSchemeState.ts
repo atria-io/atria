@@ -4,7 +4,9 @@ type ResolvedScheme = "light" | "dark";
 
 interface RuntimeScheme {
   resolved?: string;
-  subscribe?: (onChange: (resolved: ResolvedScheme) => void) => (() => void) | void;
+  subscribe?: (
+    onChange: (resolved: ResolvedScheme) => void
+  ) => (() => void) | void;
 }
 
 interface RuntimeAtria {

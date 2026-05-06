@@ -12,7 +12,9 @@ export interface DatabaseLike {
 
 const DEFAULT_DATABASE_URL = "file:./.atria/data/atria.db";
 
-const parseEnvFile = (source: string): Record<string, string> => {
+const parseEnvFile = (
+  source: string
+): Record<string, string> => {
   const entries: Record<string, string> = {};
 
   for (const rawLine of source.split(/\r?\n/g)) {
@@ -36,7 +38,8 @@ const parseEnvFile = (source: string): Record<string, string> => {
   return entries;
 };
 
-const readProjectEnvFile = async (): Promise<Record<string, string>> => {
+const readProjectEnvFile = async (
+): Promise<Record<string, string>> => {
   const envPath = path.join(process.cwd(), ".env");
 
   try {
@@ -47,7 +50,8 @@ const readProjectEnvFile = async (): Promise<Record<string, string>> => {
   }
 };
 
-const resolveDatabaseUrl = async (): Promise<string> => {
+const resolveDatabaseUrl = async (
+): Promise<string> => {
   const fromProcessAtria = process.env.ATRIA_DATABASE_URL?.trim();
   if (fromProcessAtria) return fromProcessAtria;
   const fromProcessCompat = process.env.DATABASE_URL?.trim();
@@ -62,7 +66,9 @@ const resolveDatabaseUrl = async (): Promise<string> => {
   return DEFAULT_DATABASE_URL;
 };
 
-const resolveSqlitePath = (databaseUrl: string): string | null => {
+const resolveSqlitePath = (
+  databaseUrl: string
+): string | null => {
   if (!databaseUrl.startsWith("file:")) {
     return null;
   }
@@ -75,7 +81,9 @@ const resolveSqlitePath = (databaseUrl: string): string | null => {
   return path.resolve(process.cwd(), rawPath);
 };
 
-const fileExists = async (targetPath: string): Promise<boolean> => {
+const fileExists = async (
+  targetPath: string
+): Promise<boolean> => {
   try {
     await fs.access(targetPath);
     return true;
@@ -84,32 +92,8 @@ const fileExists = async (targetPath: string): Promise<boolean> => {
   }
 };
 
-export const openDatabase = async (): Promise<DatabaseLike | null> => {
-  const databaseUrl = await resolveDatabaseUrl();
-  if (databaseUrl === "") {
-    return null;
-  }
-
-  const sqlitePath = resolveSqlitePath(databaseUrl);
-  if (!sqlitePath) {
-    return null;
-  }
-
-  if (!(await fileExists(sqlitePath))) {
-    return null;
-  }
-
-  try {
-    const sqlite = (await import("node:sqlite")) as {
-      DatabaseSync: new (filename: string) => DatabaseLike;
-    };
-    return new sqlite.DatabaseSync(sqlitePath);
-  } catch {
-    return null;
-  }
-};
-
-export const ensureDatabaseFile = async (): Promise<boolean> => {
+export const ensureDatabaseFile = async (
+): Promise<boolean> => {
   const databaseUrl = await resolveDatabaseUrl();
   if (databaseUrl === "") {
     return false;
@@ -136,5 +120,31 @@ export const ensureDatabaseFile = async (): Promise<boolean> => {
     return true;
   } catch {
     return false;
+  }
+};
+
+export const openDatabase = async (
+): Promise<DatabaseLike | null> => {
+  const databaseUrl = await resolveDatabaseUrl();
+  if (databaseUrl === "") {
+    return null;
+  }
+
+  const sqlitePath = resolveSqlitePath(databaseUrl);
+  if (!sqlitePath) {
+    return null;
+  }
+
+  if (!(await fileExists(sqlitePath))) {
+    return null;
+  }
+
+  try {
+    const sqlite = (await import("node:sqlite")) as {
+      DatabaseSync: new (filename: string) => DatabaseLike;
+    };
+    return new sqlite.DatabaseSync(sqlitePath);
+  } catch {
+    return null;
   }
 };

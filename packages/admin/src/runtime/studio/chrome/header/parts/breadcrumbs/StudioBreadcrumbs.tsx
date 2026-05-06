@@ -4,10 +4,14 @@ export interface StudioBreadcrumbsProps {
   screen: StudioState;
 }
 
-const toCapitalized = (value: string): string =>
+const toCapitalized = (
+  value: string
+): string =>
   value[0].toUpperCase() + value.slice(1);
 
-export const StudioBreadcrumbs = ({ screen }: StudioBreadcrumbsProps) => {
+export const StudioBreadcrumbs = (
+  { screen }: StudioBreadcrumbsProps
+) => {
   if (screen === "dashboard") {
     return <strong>@studio</strong>;
   }

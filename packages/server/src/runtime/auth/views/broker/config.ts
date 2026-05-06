@@ -4,10 +4,13 @@ import path from "node:path";
 const DEFAULT_BROKER_ORIGIN = "https://api.atrialabs.pt";
 const DEFAULT_PROJECT_ID = "local-dev";
 
-const toStringValue = (value: unknown): string =>
+const toStringValue = (
+  value: unknown
+): string =>
   typeof value === "string" ? value.trim() : "";
 
-export const resolveBrokerOrigin = (): string => {
+export const resolveBrokerOrigin = (
+): string => {
   const configured = toStringValue(process.env.ATRIA_BROKER_ORIGIN);
   return configured === "" ? DEFAULT_BROKER_ORIGIN : configured;
 };
@@ -27,7 +30,8 @@ const readProjectIdFromConfigPath = async (
   }
 };
 
-const readProjectIdFromConfig = async (): Promise<string> => {
+const readProjectIdFromConfig = async (
+): Promise<string> => {
   const primary = await readProjectIdFromConfigPath(
     path.join(process.cwd(), "atria.config.json")
   );
@@ -40,7 +44,8 @@ const readProjectIdFromConfig = async (): Promise<string> => {
   );
 };
 
-export const resolveBrokerProjectId = async (): Promise<string> => {
+export const resolveBrokerProjectId = async (
+): Promise<string> => {
   const fromEnv = toStringValue(process.env.ATRIA_PROJECT_ID);
   if (fromEnv !== "") {
     return fromEnv;

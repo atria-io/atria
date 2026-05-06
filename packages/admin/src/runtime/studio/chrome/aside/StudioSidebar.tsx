@@ -2,7 +2,9 @@ import type { StudioProps } from "../../StudioTypes.js";
 import { useLogout } from "@/system/services/session/useLogout.js";
 import { Layers2, LogOut, Settings } from "lucide-react";
 
-export const StudioSidebar = ({ state }: StudioProps) => {
+export const StudioSidebar = (
+  { state }: StudioProps
+) => {
   const { logout } = useLogout();
 
   const navigateTo = (nextState: StudioProps["state"]): void => {

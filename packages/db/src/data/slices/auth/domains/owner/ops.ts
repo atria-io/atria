@@ -3,7 +3,7 @@ import {
   randomBytes,
   scryptSync
 } from "node:crypto";
-import { sql } from "../../queriesApi.js";
+import { sql } from "../../dmlApi.js";
 import { withDatabase } from "@/system/withDatabase.js";
 import { getTimestamp, toCount, toString } from "@/data/support/shared.js";
 import type { AuthOwnerInput, OwnerSetupState } from "../../types.js";

@@ -6,7 +6,9 @@ export type { BootPayload, BootSnapshot } from "./bootAppState.js";
 export { resolveAppState } from "./resolve/resolveAppState.js";
 export { resolveBootState } from "./resolve/resolveBootState.js";
 
-export const getAppState = async (basePath: string): Promise<AppState> => {
+export const getAppState = async (
+  basePath: string
+): Promise<AppState> => {
   const response = await fetch("/api/state", { method: "GET" });
   if (!response.ok) {
     throw new Error(`Api request failed with status ${response.status}`);

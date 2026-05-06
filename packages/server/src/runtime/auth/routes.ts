@@ -4,7 +4,9 @@ import { handleCreateViewRoutes } from "./views/create/adapter.js";
 import { handleLoginViewRoutes } from "./views/login/adapter.js";
 import { handleLogoutViewRoutes } from "./views/logout/adapter.js";
 
-const getStartMode = (request: IncomingMessage): "sign-in" | "create" => {
+const getStartMode = (
+  request: IncomingMessage
+): "sign-in" | "create" => {
   const requestUrl = new URL(request.url ?? "/", "http://localhost");
   const mode = requestUrl.searchParams.get("mode");
   return mode === "create" ? "create" : "sign-in";

@@ -19,7 +19,9 @@ const hasBrokerConsentQueryMarker = (): boolean => {
   );
 };
 
-export const resolveAuthState = (screen: AuthState): AppState => {
+export const resolveAuthState = (
+  screen: AuthState
+): AppState => {
   if (hasBrokerConsentQueryMarker()) {
     return { realm: "auth", screen: "broker-consent" };
   }

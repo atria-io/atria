@@ -1,7 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { revokeSession } from "./logic.js";
 
-const getSessionIdFromCookie = (request: IncomingMessage): string | null => {
+const getSessionIdFromCookie = (
+  request: IncomingMessage
+): string | null => {
   const rawCookie = request.headers.cookie;
   if (typeof rawCookie !== "string" || rawCookie.trim() === "") {
     return null;

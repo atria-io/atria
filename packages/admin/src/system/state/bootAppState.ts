@@ -15,7 +15,9 @@ export interface BootSnapshot {
   online?: boolean;
 }
 
-export const isBootState = (value: unknown): value is BootState => {
+export const isBootState = (
+  value: unknown
+): value is BootState => {
   return (
     value === "setup" ||
     value === "create" ||
@@ -25,7 +27,9 @@ export const isBootState = (value: unknown): value is BootState => {
   );
 };
 
-export const isBootUser = (value: unknown): value is AppUser => {
+export const isBootUser = (
+  value: unknown
+): value is AppUser => {
   if (!value || typeof value !== "object") {
     return false;
   }

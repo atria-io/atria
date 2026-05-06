@@ -1,7 +1,9 @@
 import type { AppState } from "@/system/appState.js";
 import type { AppUser, StudioState } from "@/runtime/studio/StudioTypes.js";
 
-const resolveStudioScreenFromLocation = (basePath: string): StudioState => {
+const resolveStudioScreenFromLocation = (
+  basePath: string
+): StudioState => {
   if (typeof window === "undefined") {
     return "dashboard";
   }
@@ -12,7 +14,7 @@ const resolveStudioScreenFromLocation = (basePath: string): StudioState => {
     ? rawPathname.slice(normalizedBasePath.length) || "/"
     : rawPathname;
 
-  if (pathname === "/pages" || pathname.startsWith("/pages;")) {
+  if (pathname === "/pages") {
     return "pages";
   }
 

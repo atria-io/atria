@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { resolveBootState, runAdminSetup } from "./logic.js";
+import { resolveBootState, runAdminSetup } from "./auth.js";
 
-const writeJson = (
+const writeJSON = (
   response: ServerResponse,
   statusCode: number,
   payload: unknown
@@ -11,7 +11,9 @@ const writeJson = (
   response.end(JSON.stringify(payload));
 };
 
-const getSessionIdFromCookie = (request: IncomingMessage): string | null => {
+const getSessionIdFromCookie = (
+  request: IncomingMessage
+): string | null => {
   const rawCookie = request.headers.cookie;
   if (typeof rawCookie !== "string" || rawCookie.trim() === "") {
     return null;
@@ -43,7 +45,7 @@ export const sendAdminBootstrap = async (
   response: ServerResponse
 ): Promise<void> => {
   const state = await resolveBootState(getSessionIdFromCookie(request));
-  writeJson(response, 200, state);
+  writeJSON(response, 200, state);
 };
 
 export const sendAdminSetup = async (
