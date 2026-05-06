@@ -355,7 +355,7 @@ const requestRestart = () => {
 
   restartTimer = setTimeout(() => {
     restartTimer = null;
-    void restartServer();
+    void restartDevServer();
   }, RESTART_DEBOUNCE_MS);
 };
 
@@ -369,7 +369,7 @@ const stopDevServer = async () => {
   await terminateChildProcess(current);
 };
 
-const startServer = () => {
+const startDevServer = () => {
   if (shuttingDown) {
     return;
   }
@@ -396,7 +396,7 @@ const startServer = () => {
  *
  * @returns {Promise<void>}
  */
-const restartServer = async () => {
+const restartDevServer = async () => {
   if (shuttingDown) {
     return;
   }
@@ -408,12 +408,12 @@ const restartServer = async () => {
 
   restartingDev = true;
   await stopDevServer();
-  startServer();
+  startDevServer();
   restartingDev = false;
 
   if (pendingRestart) {
     pendingRestart = false;
-    void restartServer();
+    void restartDevServer();
   }
 };
 
@@ -758,7 +758,7 @@ const main = async () => {
 
   console.log("[live] Starting workspace dev server...");
   await ensureDevPortsAvailable();
-  startServer();
+  startDevServer();
 };
 
 void main();

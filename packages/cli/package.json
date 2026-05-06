@@ -29,9 +29,9 @@
     "prepublishOnly": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@atria/admin": "0.1.24",
-    "@atria/server": "0.0.37",
-    "@atria/shared": "0.0.34"
+    "@atria/admin": "workspace:*",
+    "@atria/server": "workspace:*",
+    "@atria/shared": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

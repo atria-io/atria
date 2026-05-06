@@ -25,7 +25,7 @@
     "prepublishOnly": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@atria/cli": "0.0.53"
+    "@atria/cli": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

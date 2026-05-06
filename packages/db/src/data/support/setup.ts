@@ -1,10 +1,8 @@
 import { withDatabase } from "../../system/withDatabase.js";
 import { AUTH_SCHEMA } from "../auth/schemaApi.js";
-import { PAGES_SCHEMA } from "../modules/pages/schemaApi.js";
 
 const MODULES_SCHEMA = [
   ...AUTH_SCHEMA,
-  ...PAGES_SCHEMA,
 ] as const;
 
 export const ensureModulesSchema = async (): Promise<boolean> => {

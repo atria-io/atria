@@ -10,7 +10,7 @@ import { promises as fs } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { terminal } from "@atria/shared";
-import { startServer } from "@atria/server";
+import { startDevServer } from "@atria/server";
 import { parseArgs } from "../../parseArgs.js";
 
 const DEFAULT_ADMIN_PORT = 3333;
@@ -142,7 +142,6 @@ const materializeWorkspaceRuntime = async (
 ): Promise<void> => {
   await fs.rm(workspaceRuntimeRoot, { recursive: true, force: true });
   await fs.mkdir(workspaceRuntimeRoot, { recursive: true });
-
   const adminEntries = await fs.readdir(adminDistRoot, { withFileTypes: true });
   for (const entry of adminEntries) {
     if (!entry.isFile()) {
@@ -282,7 +281,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
   const { runtimeRoot, adminDistRoot, adminAssetDirectory } = await ensureWorkspaceRuntime(projectRoot);
-  internalApiServer = await startServer({ host: "0.0.0.0", port: internalApiPort });
+  internalApiServer = await startDevServer({ host: "0.0.0.0", port: internalApiPort });
 
   const server = createServer(async (request, response) => {
     const requestUrl = request.url ?? "/";
