@@ -50,19 +50,19 @@ importers:
     dependencies:
       '@atria/cli':
         specifier: 0.0.53
-        version: link:../cli
+        version: 0.0.53
 
   packages/cli:
     dependencies:
       '@atria/admin':
         specifier: 0.1.24
-        version: link:../admin
+        version: 0.1.24
       '@atria/server':
         specifier: 0.0.37
-        version: link:../server
+        version: 0.0.37
       '@atria/shared':
         specifier: 0.0.34
-        version: link:../shared
+        version: 0.0.34
 
   packages/core: {}
 
@@ -70,7 +70,7 @@ importers:
     dependencies:
       '@atria/shared':
         specifier: 0.0.34
-        version: link:../shared
+        version: 0.0.34
 
   packages/db: {}
 
@@ -82,7 +82,28 @@ importers:
 
   packages/shared: {}
 
+  workspace:
+    devDependencies:
+      atria:
+        specifier: file:../packages/atria
+        version: link:../packages/atria
+
 packages:
+
+  '@atria/admin@0.1.24':
+    resolution: {integrity: sha512-kkCYpwOvaGTf+vNU9kfkp4m/DsQRMPHxqOCndQhVonK1ExTDurffjrULiKEUKwM6QsbgUUGIS349iZ0Q1sLF7g==}
+
+  '@atria/cli@0.0.53':
+    resolution: {integrity: sha512-ALJdz3gf/o0vjyGJoh6esx2dFGLPIKOmLvWIoiS5jWIWFQwBv7bT7TGdpvgC7wqzGXQ6ZmcVjP9aIeRkaD1KrA==}
+
+  '@atria/db@0.0.23':
+    resolution: {integrity: sha512-mHEp/0iskkktDOnfW5epUQLEXu17Q+MUmgEL3HucYYNxWfLBkyBQQpQQYwiyrGn0PRFzJp6ya8BVXVOftYeFtw==}
+
+  '@atria/server@0.0.37':
+    resolution: {integrity: sha512-ytvemnaUOZ+ZQNyk2BbKz7HGz94BYTP6POE0KAuWfTswbkq3TyBrNhBYBjS5uVN7HQ8qgnVuO03dS/A/Wy2J8A==}
+
+  '@atria/shared@0.0.34':
+    resolution: {integrity: sha512-QU+ZQOoa7J/AtQ5kVhDI4MFDdsCuELBxGMs9ykbmH/IZv8+d3eOq0dl9e6990mtvwp+sUHHORhMCZILgEMHRhQ==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -366,8 +387,17 @@ packages:
     peerDependencies:
       react: ^19.2.4
 
+  react-dom@19.2.5:
+    resolution: {integrity: sha512-J5bAZz+DXMMwW/wV3xzKke59Af6CHY7G4uYLN1OvBcKEsWOs4pQExj86BBKamxl/Ik5bx9whOrvBlSDfWzgSag==}
+    peerDependencies:
+      react: ^19.2.5
+
   react@19.2.4:
     resolution: {integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==}
+    engines: {node: '>=0.10.0'}
+
+  react@19.2.5:
+    resolution: {integrity: sha512-llUJLzz1zTUBrskt2pwZgLq59AemifIftw4aB7JxOqf1HY2FDaGDxgwpAPVzHU1kdWabH7FauP4i1oEeer2WCA==}
     engines: {node: '>=0.10.0'}
 
   resolve@1.22.11:
@@ -416,6 +446,26 @@ packages:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
 snapshots:
+
+  '@atria/admin@0.1.24':
+    dependencies:
+      lucide-react: 1.8.0(react@19.2.5)
+      react: 19.2.5
+      react-dom: 19.2.5(react@19.2.5)
+
+  '@atria/cli@0.0.53':
+    dependencies:
+      '@atria/admin': 0.1.24
+      '@atria/server': 0.0.37
+      '@atria/shared': 0.0.34
+
+  '@atria/db@0.0.23': {}
+
+  '@atria/server@0.0.37':
+    dependencies:
+      '@atria/db': 0.0.23
+
+  '@atria/shared@0.0.34': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -606,6 +656,10 @@ snapshots:
     dependencies:
       react: 19.2.4
 
+  lucide-react@1.8.0(react@19.2.5):
+    dependencies:
+      react: 19.2.5
+
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -619,7 +673,14 @@ snapshots:
       react: 19.2.4
       scheduler: 0.27.0
 
+  react-dom@19.2.5(react@19.2.5):
+    dependencies:
+      react: 19.2.5
+      scheduler: 0.27.0
+
   react@19.2.4: {}
+
+  react@19.2.5: {}
 
   resolve@1.22.11:
     dependencies:

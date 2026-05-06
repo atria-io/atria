@@ -2,7 +2,7 @@ import { createServer, type Server } from "node:http";
 import { sendInternalServerError } from "./errors.js";
 import { routeRequest } from "./router.js";
 
-export interface StartServerOptions {
+export interface startDevServerOptions {
   host?: string;
   port?: number;
 }
@@ -10,8 +10,8 @@ export interface StartServerOptions {
 const DEFAULT_HOST = "0.0.0.0";
 const DEFAULT_PORT = 3333;
 
-export const startServer = async (
-  options: StartServerOptions = {}
+export const startDevServer = async (
+  options: startDevServerOptions = {}
 ): Promise<Server> => {
   const host = options.host ?? DEFAULT_HOST;
   const port = options.port ?? DEFAULT_PORT;
