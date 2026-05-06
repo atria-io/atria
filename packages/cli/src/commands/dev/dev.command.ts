@@ -10,7 +10,7 @@ import { promises as fs } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { terminal } from "@atria/shared";
-import { startDevServer } from "@atria/server";
+import { startServer } from "@atria/server";
 import { parseArgs } from "../../parseArgs.js";
 
 const DEFAULT_ADMIN_PORT = 3333;
@@ -282,7 +282,7 @@ export const runDevCommand = async (args: string[]): Promise<void> => {
 
   console.log(`${terminal.green("✔")} Checking configuration files...`);
   const { runtimeRoot, adminDistRoot, adminAssetDirectory } = await ensureWorkspaceRuntime(projectRoot);
-  internalApiServer = await startDevServer({ host: "0.0.0.0", port: internalApiPort });
+  internalApiServer = await startServer({ host: "0.0.0.0", port: internalApiPort });
 
   const server = createServer(async (request, response) => {
     const requestUrl = request.url ?? "/";

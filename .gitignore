@@ -13,8 +13,8 @@ packages/*/dist/
 
 # Local runtime and project data
 .atria/
-workspace/
-data/
+/workspace/
+/data/
 auth-broker/
 
 # Local SQLite files

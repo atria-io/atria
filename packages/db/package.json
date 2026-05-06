@@ -10,8 +10,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node build/dist.mjs",
     "clean": "rm -rf dist",
-    "prepublishOnly": "tsc -p tsconfig.json"
+    "prepublishOnly": "npm run build"
   }
 }

@@ -6,16 +6,16 @@
 
   --link: #aaadeb;
 
-  --color-border: #24252f;
+  --color-border: #373737;
 
-  --background: #131319;
+  --background: #202020;
   --foreground: #f3f4f6;
 
   --button: #e4e5e9;
   --button-hover: #eeeef2;
 
-  --button-muted: #181820;
-  --button-muted-hover: #21212a;
+  --button-muted: #2a2a2a;
+  --button-muted-hover: #333333;
 
   --button-accent: #005fcc;
   --button-accent-hover: #0071ff;

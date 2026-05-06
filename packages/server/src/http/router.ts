@@ -1,19 +1,12 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { sendNotFound } from "../modules/admin/admin.controller.js";
-import { handleAdminRoutes } from "../modules/admin/admin.routes.js";
-import { handleAuthRoutes } from "../modules/auth/auth.routes.js";
-import { handleBrokerRoutes } from "../modules/broker/broker.routes.js";
+import { handleServerRoutes } from "./handlers.js";
+import { sendNotFound } from "./errors.js";
 
-export const routeRequest = async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
-  if (await handleAuthRoutes(request, response)) {
-    return;
-  }
-
-  if (await handleAdminRoutes(request, response)) {
-    return;
-  }
-
-  if (await handleBrokerRoutes(request, response)) {
+export const routeRequest = async (
+  request: IncomingMessage,
+  response: ServerResponse
+): Promise<void> => {
+  if (await handleServerRoutes(request, response)) {
     return;
   }
 

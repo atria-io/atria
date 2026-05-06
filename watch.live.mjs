@@ -1,8 +1,6 @@
-#!/usr/bin/env node
-
+import path from "node:path";
 import { spawn } from "node:child_process";
 import { existsSync, readdirSync, watch } from "node:fs";
-import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
@@ -57,6 +55,9 @@ let restartQueuedAfterAdminBuild = false;
 let sharedBuildTimer = null;
 let sharedBuildRunning = false;
 let sharedBuildQueued = false;
+let dbBuildTimer = null;
+let dbBuildRunning = false;
+let dbBuildQueued = false;
 
 const spawnProcess = (command, args, cwd, stdio = "inherit") =>
   spawn(command, args, {
@@ -354,7 +355,7 @@ const requestRestart = () => {
 
   restartTimer = setTimeout(() => {
     restartTimer = null;
-    void restartDevServer();
+    void restartServer();
   }, RESTART_DEBOUNCE_MS);
 };
 
@@ -368,7 +369,7 @@ const stopDevServer = async () => {
   await terminateChildProcess(current);
 };
 
-const startDevServer = () => {
+const startServer = () => {
   if (shuttingDown) {
     return;
   }
@@ -395,7 +396,7 @@ const startDevServer = () => {
  *
  * @returns {Promise<void>}
  */
-const restartDevServer = async () => {
+const restartServer = async () => {
   if (shuttingDown) {
     return;
   }
@@ -407,12 +408,12 @@ const restartDevServer = async () => {
 
   restartingDev = true;
   await stopDevServer();
-  startDevServer();
+  startServer();
   restartingDev = false;
 
   if (pendingRestart) {
     pendingRestart = false;
-    void restartDevServer();
+    void restartServer();
   }
 };
 
@@ -520,6 +521,48 @@ const runSharedBuild = async () => {
   }
 };
 
+const queueDbBuild = () => {
+  if (shuttingDown) {
+    return;
+  }
+
+  if (dbBuildTimer) {
+    clearTimeout(dbBuildTimer);
+  }
+
+  dbBuildTimer = setTimeout(() => {
+    dbBuildTimer = null;
+    void runDbBuild();
+  }, WATCH_DEBOUNCE_MS);
+};
+
+const runDbBuild = async () => {
+  if (shuttingDown) {
+    return;
+  }
+
+  if (dbBuildRunning) {
+    dbBuildQueued = true;
+    return;
+  }
+
+  dbBuildRunning = true;
+  const code = await runCommand(
+    "corepack",
+    ["pnpm", "--filter", "@atria/db", "build"],
+    rootDir
+  );
+  if (code !== 0) {
+    console.error(`[live] @atria/db build failed (exit ${code}).`);
+  }
+  dbBuildRunning = false;
+
+  if (dbBuildQueued) {
+    dbBuildQueued = false;
+    void runDbBuild();
+  }
+};
+
 const addRecursiveWatcher = (targetPath, onEvent) => {
   if (!existsSync(targetPath)) {
     return;
@@ -560,6 +603,9 @@ const shutdown = async (exitCode) => {
   }
   if (sharedBuildTimer) {
     clearTimeout(sharedBuildTimer);
+  }
+  if (dbBuildTimer) {
+    clearTimeout(dbBuildTimer);
   }
 
   closeWatchers();
@@ -612,6 +658,7 @@ const watchBuildOnlySources = () => {
   });
   addRecursiveWatcher(path.join(packagesDir, "shared", "src", "runtime"), queueSharedBuild);
   addRecursiveWatcher(path.join(packagesDir, "shared", "build"), queueSharedBuild);
+  addRecursiveWatcher(path.join(packagesDir, "db", "src"), queueDbBuild);
 };
 
 const watchWorkspaceSources = () => {
@@ -675,6 +722,8 @@ const main = async () => {
       "--parallel",
       "--filter",
       "./packages/*",
+      "--filter",
+      "!@atria/db",
       "exec",
       "tsc",
       "-w",
@@ -709,7 +758,7 @@ const main = async () => {
 
   console.log("[live] Starting workspace dev server...");
   await ensureDevPortsAvailable();
-  startDevServer();
+  startServer();
 };
 
 void main();

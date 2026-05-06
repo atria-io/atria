@@ -12,7 +12,7 @@ const resolveStudioScreenFromLocation = (basePath: string): StudioState => {
     ? rawPathname.slice(normalizedBasePath.length) || "/"
     : rawPathname;
 
-  if (pathname === "/pages") {
+  if (pathname === "/pages" || pathname.startsWith("/pages;")) {
     return "pages";
   }
 

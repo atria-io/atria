@@ -11,9 +11,9 @@ npm install @atria/server
 ## Usage
 
 ```ts
-import { startDevServer } from "@atria/server";
+import { startServer } from "@atria/server";
 
-const server = await startDevServer({
+const server = await startServer({
   projectRoot: process.cwd(),
   adminPort: 3333,
   publicPort: 4444
