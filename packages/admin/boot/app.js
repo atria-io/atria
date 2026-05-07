@@ -2,7 +2,7 @@ import { AdminApp } from "/static/js/app.js";
 
 const rootElement = document.getElementById("atria");
 
-const readInitialBootstrap = async () => {
+const readApp = async () => {
   try {
     const response = await fetch("/api/state", { method: "GET" });
     return {
@@ -19,7 +19,7 @@ const readInitialBootstrap = async () => {
 };
 
 void (async () => {
-  const initialBootstrap = await readInitialBootstrap();
+  const initialBootstrap = await readApp();
   AdminApp({
     mountElement: rootElement,
     basePath: "/",

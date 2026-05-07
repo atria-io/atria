@@ -22,7 +22,9 @@ export const CreateView = () => {
         </div>
       </div>
 
-      <div className="auth-card__content">
+      <div
+        key={showEmailForm ? "email" : "providers"}
+        className="auth-card__content card-transition">
         {!showEmailForm ? (
           <>
             <ButtonProviders mode="create" />
