@@ -1,5 +1,5 @@
 import { LogOut } from "lucide-react";
-import type { AccountLogoutProps } from "../accountPanelTypes.js";
+import type { AccountLogoutProps } from "../types.js";
 
 export const AccountLogout = ({ onLogout }: AccountLogoutProps) => (
   <div className="studio-account__logout" aria-label="Logout action">

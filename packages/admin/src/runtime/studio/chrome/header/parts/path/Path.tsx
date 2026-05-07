@@ -1,6 +1,6 @@
 import type { State } from "@/runtime/studio/types.js";
 
-export interface StudioBreadcrumbsProps {
+export interface PathProps {
   screen: State;
 }
 
@@ -9,8 +9,8 @@ const toCapitalized = (
 ): string =>
   value[0].toUpperCase() + value.slice(1);
 
-export const StudioBreadcrumbs = (
-  { screen }: StudioBreadcrumbsProps
+export const Path = (
+  { screen }: PathProps
 ) => {
   if (screen === "dashboard") {
     return <strong>@studio</strong>;

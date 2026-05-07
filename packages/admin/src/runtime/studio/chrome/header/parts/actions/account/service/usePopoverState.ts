@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState, type AnimationEvent, type RefObject } from "react";
 
-type AccountPanelState = "closed" | "open" | "closing";
+type AccountState = "closed" | "open" | "closing";
 
 const CLOSE_ANIMATION_MS = 260;
 
-export const useAccountPanel = (
+export const usePopoverState = (
   rootRef: RefObject<HTMLDivElement | null>
 ) => {
-  const [panelState, setPanelState] = useState<AccountPanelState>("closed");
+  const [panelState, setPanelState] = useState<AccountState>("closed");
   const closeTimerRef = useRef<number | null>(null);
 
   const isOpen = panelState === "open";

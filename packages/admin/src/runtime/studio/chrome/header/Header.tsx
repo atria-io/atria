@@ -1,7 +1,7 @@
-import { StudioBreadcrumbs } from "./parts/breadcrumbs/StudioBreadcrumbs.js";
-import { AccountPanel } from "./parts/account-panel/AccountPanel.js";
+import { Path } from "./parts/path/Path.js";
+import { Account } from "./parts/actions/account/Account.js";
 import { useLogout } from "@/system/services/session/useLogout.js";
-import { SchemePanel } from "./parts/scheme/SchemePanel.js";
+import { Scheme } from "./parts/actions/scheme/Scheme.js";
 import type { User, State } from "@/runtime/studio/types.js";
 
 export interface HeaderProps {
@@ -22,11 +22,11 @@ export const Header = (
     <header className="admin-header">
       <div className="admin-header__container">
         <div className="admin-header__path">
-          <StudioBreadcrumbs screen={screen} />
+          <Path screen={screen} />
         </div>
         <div className="admin-header__actions">
-          <SchemePanel />
-          <AccountPanel user={account} onLogout={handleLogoutClick} />
+          <Scheme />
+          <Account user={account} onLogout={handleLogoutClick} />
         </div>
       </div>
     </header>

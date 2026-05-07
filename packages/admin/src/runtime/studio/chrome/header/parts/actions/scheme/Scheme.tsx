@@ -1,12 +1,12 @@
 import { useRef } from "react";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useScheme } from "@/system/services/scheme/useScheme.js";
-import { useAccountPanel } from "../account-panel/useAccountPanel.js";
+import { usePopoverState } from "../account/service/usePopoverState.js";
 
-export const SchemePanel = () => {
+export const Scheme = () => {
   const { mode, modes, setMode } = useScheme();
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const { isOpen, isClosing, isMounted, togglePanel, onPanelAnimationEnd } = useAccountPanel(rootRef);
+  const { isOpen, isClosing, isMounted, togglePanel, onPanelAnimationEnd } = usePopoverState(rootRef);
   const schemeIcons = {
     system: Monitor,
     dark: Moon,

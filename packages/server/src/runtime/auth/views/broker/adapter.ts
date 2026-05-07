@@ -250,14 +250,16 @@ const sendBrokerProviderStart = async (
     return;
   }
 
-  let consentMode: "auto" | "required";
-  try {
-    consentMode = parseConsentMode(requestUrl);
-  } catch (error) {
-    writeJson(response, 400, {
-      error: error instanceof Error ? error.message : "Invalid consent.",
-    });
-    return;
+  let consentMode: "auto" | "required" = "auto";
+  if (mode === "create") {
+    try {
+      consentMode = parseConsentMode(requestUrl);
+    } catch (error) {
+      writeJson(response, 400, {
+        error: error instanceof Error ? error.message : "Invalid consent.",
+      });
+      return;
+    }
   }
 
   const authorizationUrl = new URL(`/v1/auth/login/${provider}`, resolveBrokerOrigin());
@@ -325,7 +327,24 @@ export const sendBrokerProviderCallback = async (
     return;
   }
 
-  if (brokerConsentToken !== "") {
+  if (brokerCode !== "") {
+    const sessionResult = await resolveBrokerCodeToSession(brokerCode, projectId);
+    if (sessionResult.status !== "ok") {
+      sendOAuthFailureRedirect(response, getSignInFailureReturnPath(request));
+      return;
+    }
+
+    response.statusCode = 302;
+    response.setHeader(
+      "Set-Cookie",
+      `session=${sessionResult.sessionId}; Path=/; HttpOnly`
+    );
+    response.setHeader("Location", nextPath === "/" ? "/" : nextPath);
+    response.end();
+    return;
+  }
+
+  if (brokerConsentToken !== "" && mode === "create") {
     const redirectParams = new URLSearchParams();
     redirectParams.set("screen", "consent");
     redirectParams.set("provider", callbackProvider);
@@ -342,23 +361,5 @@ export const sendBrokerProviderCallback = async (
     return;
   }
 
-  if (brokerCode === "") {
-    response.statusCode = 400;
-    response.end("Missing broker code.");
-    return;
-  }
-
-  const sessionResult = await resolveBrokerCodeToSession(brokerCode, projectId);
-  if (sessionResult.status !== "ok") {
-    sendOAuthFailureRedirect(response, getSignInFailureReturnPath(request));
-    return;
-  }
-
-  response.statusCode = 302;
-  response.setHeader(
-    "Set-Cookie",
-    `session=${sessionResult.sessionId}; Path=/; HttpOnly`
-  );
-  response.setHeader("Location", nextPath === "/" ? "/" : nextPath);
-  response.end();
+  sendOAuthFailureRedirect(response, getSignInFailureReturnPath(request));
 };

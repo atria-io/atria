@@ -1,6 +1,6 @@
 import type { User } from "@/runtime/studio/types.js";
 
-export interface AccountPanelProps {
+export interface AccountProps {
   user: User;
   onLogout: () => void;
 }
