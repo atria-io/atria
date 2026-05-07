@@ -5,6 +5,8 @@ export const ownerDDL = [
     role TEXT NOT NULL,
     is_owner INTEGER NOT NULL DEFAULT 0,
     name TEXT,
+    first_name TEXT,
+    last_name TEXT,
     avatar_url TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL

@@ -12,8 +12,8 @@
   box-shadow: var(--box-shadow);
   padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
   border-radius: var(--radius);
+  border: var(--border-solid);
   font-size: var(--text-xs);
-  border: var(--border);
 }
 
 .atria-tooltip__content--open {

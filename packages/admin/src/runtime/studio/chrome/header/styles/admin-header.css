@@ -4,7 +4,7 @@
   width: 100%;
   height: var(--header);
   background: var(--background);
-  border-bottom: var(--border);
+  border-bottom: var(--border-solid);
   position: sticky;
   z-index: 1;
 }

@@ -1,7 +1,7 @@
-import type { StudioState } from "@/runtime/studio/StudioTypes.js";
+import type { State } from "@/runtime/studio/types.js";
 
 export interface StudioBreadcrumbsProps {
-  screen: StudioState;
+  screen: State;
 }
 
 const toCapitalized = (

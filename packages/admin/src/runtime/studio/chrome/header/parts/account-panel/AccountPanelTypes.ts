@@ -1,12 +1,12 @@
-import type { AppUser } from "@/runtime/studio/StudioTypes.js";
+import type { User } from "@/runtime/studio/types.js";
 
 export interface AccountPanelProps {
-  user: AppUser;
+  user: User;
   onLogout: () => void;
 }
 
 export interface AccountIdentityProps {
-  user: AppUser;
+  user: User;
   avatarSize: 22 | 24;
   showDetails?: boolean;
 }

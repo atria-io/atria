@@ -1,13 +1,13 @@
-import type { CriticalState } from "../../runtime/critical/CriticalTypes.js";
+import type { State } from "../../runtime/critical/types.js";
 
 export interface RuntimeFatalDetail {
-  state?: CriticalState;
+  state?: State;
   message?: string;
 }
 
 const readRuntimeFatalStateKind = (
   event: Event
-): CriticalState | null => {
+): State | null => {
   const detail = (event as CustomEvent<RuntimeFatalDetail | undefined>).detail;
   if (!detail || typeof detail !== "object") {
     return null;
@@ -26,6 +26,6 @@ const readRuntimeFatalStateKind = (
 
 export const getRuntimeFatalState = (
   event: Event
-): CriticalState => {
+): State => {
   return readRuntimeFatalStateKind(event) ?? "critical";
 };

@@ -1,11 +1,9 @@
 .admin-main__sidebar {
-  --sidebar-icon-size: 1.125rem;
-  --sidebar-icon-stroke-width: 1.75;
   float: left;
   top: var(--header);
   width: var(--sidebar);
   height: calc(100vh - var(--header));
-  border-right: var(--border);
+  border-right: var(--border-solid);
   min-height: 20rem;
   position: sticky;
   z-index: 0;
@@ -18,46 +16,21 @@
   height: 100%;
 }
 
-.admin-main__sidebar nav > div {
+.admin-main__sidebar div:last-child {
   margin-top: auto;
 }
 
-.admin-main__sidebar button {
-  height: var(--sidebar);
-  width: calc(var(--sidebar) - 1px);
-  min-height: var(--sidebar);
-  max-height: var(--sidebar);
-  background: transparent;
-  position: relative;
-  cursor: pointer;
-  flex: 0 1 100%;
+.admin-main__sidebar-button {
+  --button-size: var(--sidebar);
+  --button-overlay-inset: calc(var(--spacing) * 1);
+  --button-overlay-radius: calc(var(--radius) / 2);
+  width: calc(var(--button-size) - 1px);
+  height: var(--button-size);
 }
 
-.admin-main__sidebar button::after {
-  content: '';
-  position: absolute;
-  background: transparent;
-  transition: background var(--transition-fast);
-  opacity: 0.5;
-  z-index: 0;
-  inset: 0;
-}
-
-.admin-main__sidebar button:hover::after {
-  background: var(--button-muted-hover);
-}
-
-.admin-main__sidebar-icon {
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: var(--sidebar-icon-stroke-width);
-  width: var(--sidebar-icon-size);
-  height: var(--sidebar-icon-size);
-  pointer-events: none;
-  position: relative;
-  z-index: 1;
+.admin-main__sidebar-button svg {
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 .admin-main__sidebar-icon.logout {

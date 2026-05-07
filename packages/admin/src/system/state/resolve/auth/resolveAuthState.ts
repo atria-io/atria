@@ -1,5 +1,5 @@
 import type { AppState } from "@/system/appState.js";
-import type { AuthState } from "@/runtime/auth/AuthTypes.js";
+import type { State } from "@/runtime/auth/types.js";
 
 const hasBrokerConsentQueryMarker = (): boolean => {
   if (typeof window === "undefined") {
@@ -19,8 +19,8 @@ const hasBrokerConsentQueryMarker = (): boolean => {
   );
 };
 
-export const resolveAuthState = (
-  screen: AuthState
+export const resolveState = (
+  screen: State
 ): AppState => {
   if (hasBrokerConsentQueryMarker()) {
     return { realm: "auth", screen: "broker-consent" };

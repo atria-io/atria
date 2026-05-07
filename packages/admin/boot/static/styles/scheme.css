@@ -1,24 +1,30 @@
 [data-scheme="dark"] {
   --text: #d4d4d4;
-  --text-hover: #f3f4f6;
-  --text-muted: #9ca3af;
-  --accent: #005fcc;
-
-  --link: #aaadeb;
-
-  --color-border: #373737;
+  --text-hover: #ffffff;
+  --text-ghost: #a6a6a6;
 
   --background: #202020;
   --foreground: #f3f4f6;
 
-  --button: #e4e5e9;
-  --button-hover: #eeeef2;
+  --surface: #202020;
+  --surface-raised: #252525;
+  --surface-hover: #2a2a2a;
 
-  --button-muted: #2a2a2a;
-  --button-muted-hover: #333333;
+  --border: #373737;
+  --border-hover: #454545;
 
-  --button-accent: #005fcc;
-  --button-accent-hover: #0071ff;
+  --solid: #2a2a2a;
+  --solid-hover: #333333;
+
+  --ghost: transparent;
+  --ghost-hover: #2a2a2a;
+
+  --accent: #2f8cff;
+  --accent-hover: #4d9cff;
+  --accent-text: #ffffff;
+
+  --link: #aaadeb;
+  --link-hover: #c4c6ff;
 
   --focus: #005fcc;
   --error: #f97373;
@@ -33,32 +39,38 @@
 
 [data-scheme="light"] {
   --text: #222222;
-  --text-hover: #252837;
-  --text-muted: #6a6a6a;
-  --accent: #e4e5e9;
-
-  --link: #4a46e0;
-
-  --color-border: #eeeeee;
+  --text-hover: #000000;
+  --text-ghost: #6a6a6a;
 
   --background: #ffffff;
   --foreground: #131316;
 
-  --button: #252837;
-  --button-hover: #eeeef2;
+  --surface: #ffffff;
+  --surface-raised: #f6f6f8;
+  --surface-hover: #eeeef2;
 
-  --button-muted: #f6f6f8;
-  --button-muted-hover: #e4e5e9;
+  --border: #eeeeee;
+  --border-hover: #d7d7dc;
 
-  --button-accent: #005fcc;
-  --button-accent-hover: #0071ff;
+  --solid: #f6f6f8;
+  --solid-hover: #e4e5e9;
+
+  --ghost: transparent;
+  --ghost-hover: #f0f0f3;
+
+  --accent: #005fcc;
+  --accent-hover: #0071ff;
+  --accent-text: #ffffff;
+
+  --link: #4a46e0;
+  --link-hover: #312eaf;
 
   --focus: #005fcc;
-  --error: #f97373;
-  --valid: #34d399;
+  --error: #dc2626;
+  --valid: #059669;
 
-  --boot-track:#d7dde8;
-  --boot-spinner:#1f2937;
+  --boot-track: #d7dde8;
+  --boot-spinner: #1f2937;
 
   --shadow: #0000000d;
   --box-shadow: 0 .15rem .5rem var(--shadow);

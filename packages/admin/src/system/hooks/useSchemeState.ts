@@ -21,7 +21,12 @@ declare global {
 
 const readResolvedScheme = (): ResolvedScheme => {
   const resolved = window.__atria__?.scheme?.resolved;
-  return resolved === "dark" ? "dark" : "light";
+  if (resolved === "dark" || resolved === "light") {
+    return resolved;
+  }
+
+  const schemeAttr = document.documentElement.getAttribute("data-scheme");
+  return schemeAttr === "dark" ? "dark" : "light";
 };
 
 export const useSchemeState = (): ResolvedScheme => {

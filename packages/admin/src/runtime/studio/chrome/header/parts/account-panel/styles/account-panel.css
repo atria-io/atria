@@ -1,14 +1,8 @@
 .studio-account {
+  position: relative;
   width: var(--header);
   height: var(--header);
   float: left;
-}
-
-.studio-account__container {
-  display: block;
-  position: relative;
-  height: 100%;
-  width: 100%;
 }
 
 .studio-account__profile-user {
@@ -32,7 +26,7 @@
 }
 
 .studio-account__menu {
-  border: var(--border);
+  border: var(--border-solid);
   background: var(--background);
   border-radius: var(--radius);
   box-shadow: var(--box-shadow);
@@ -82,13 +76,23 @@
   border: var(--border);
 }
 
+.studio-account__avatar-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ff5a3f;
+  color: #0b1024;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .studio-account__info {
   display: flex;
   flex-direction: column;
 }
 
 .studio-account__email {
-  color: var(--text-muted);
+  color: var(--text-ghost);
 }
 
 .studio-account__logout {

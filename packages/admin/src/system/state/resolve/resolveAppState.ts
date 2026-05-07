@@ -1,8 +1,8 @@
 import type { AppState } from "../../appState.js";
 import type { BootPayload } from "../bootAppState.js";
 import { isBootState, isBootUser } from "../bootAppState.js";
-import { resolveAuthState } from "./auth/resolveAuthState.js";
-import { resolveStudioState } from "./studio/resolveStudioState.js";
+import { resolveState as resolveAuthState } from "./auth/resolveAuthState.js";
+import { resolveState as resolveStudioState } from "./studio/resolveStudioState.js";
 
 export const resolveAppState = (
   payload: Partial<BootPayload>,

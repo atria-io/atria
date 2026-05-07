@@ -1,6 +1,8 @@
 export type OwnerSetupState = "setup" | "create" | "ready";
 
 export interface AuthOwnerInput {
+  firstName?: string | null;
+  lastName?: string | null;
   email: string;
   password: string;
   name?: string | null;

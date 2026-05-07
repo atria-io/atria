@@ -1,7 +1,7 @@
 import type { AppState } from "../system/appState.js";
-import { AuthShell } from "./auth/AuthShell.js";
-import { StudioShell } from "./studio/StudioShell.js";
-import { CriticalShell } from "./critical/CriticalShell.js";
+import { Shell as AuthShell } from "./auth/Shell.js";
+import { Shell as StudioShell } from "./studio/Shell.js";
+import { Shell as CriticalShell } from "./critical/Shell.js";
 
 export interface RouterProps {
   appState: AppState;

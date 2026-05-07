@@ -49,6 +49,8 @@ export const createOwner = async (
           userId,
           input.email,
           input.name ?? null,
+          input.firstName ?? null,
+          input.lastName ?? null,
           null,
           now,
           now

@@ -1,9 +1,9 @@
-import type { AuthState } from "../../runtime/auth/AuthTypes.js";
-import type { AppUser } from "../../runtime/studio/StudioTypes.js";
+import type { State } from "../../runtime/auth/types.js";
+import type { User } from "../../runtime/studio/types.js";
 
 export interface BootPayload {
-  state: AuthState | "authenticated";
-  user?: AppUser;
+  state: State | "authenticated";
+  user?: User;
 }
 
 export type BootState = BootPayload["state"];
@@ -29,12 +29,12 @@ export const isBootState = (
 
 export const isBootUser = (
   value: unknown
-): value is AppUser => {
+): value is User => {
   if (!value || typeof value !== "object") {
     return false;
   }
 
-  const user = value as Partial<AppUser>;
+  const user = value as Partial<User>;
   return (
     typeof user.name === "string" &&
     typeof user.email === "string" &&

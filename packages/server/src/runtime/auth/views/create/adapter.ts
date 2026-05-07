@@ -1,6 +1,12 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { sendBrokerProviderEntry } from "../../views/broker/adapter.js";
-import { parseEmail, parsePassword, resolveCreateOwner } from "./logic.js";
+import {
+  parseEmail,
+  parseFirstName,
+  parseLastName,
+  parsePassword,
+  resolveCreateOwner
+} from "./logic.js";
 import type { SignInPayload } from "../../types.js";
 
 const readJsonBody = async (
@@ -44,16 +50,18 @@ export const handleCreateViewRoutes = async (
 
   if (request.method === "POST" && pathname === "/auth/create-owner") {
     const payload = await readJsonBody(request);
+    const firstName = parseFirstName(payload?.firstName);
+    const lastName = parseLastName(payload?.lastName);
     const email = parseEmail(payload?.email);
     const password = parsePassword(payload?.password);
 
-    if (!email || !password) {
+    if (!firstName || !lastName || !email || !password) {
       response.statusCode = 400;
       response.end();
       return true;
     }
 
-    const result = await resolveCreateOwner(email, password);
+    const result = await resolveCreateOwner(firstName, lastName, email, password);
     if (result.status === "ready") {
       response.statusCode = 409;
       response.end();

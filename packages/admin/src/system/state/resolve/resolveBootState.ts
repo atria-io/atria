@@ -2,7 +2,7 @@ import type { AppState } from "../../appState.js";
 import type { BootPayload, BootSnapshot } from "../bootAppState.js";
 import { isBootState, isBootUser } from "../bootAppState.js";
 import { resolveAppState } from "./resolveAppState.js";
-import { resolveCriticalState } from "./critical/resolveCriticalState.js";
+import { resolveState as resolveCriticalState } from "./critical/resolveCriticalState.js";
 
 
 export const resolveBootState = (

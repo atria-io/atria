@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAppState } from "./getAppState.js";
 import { getRuntimeFatalState } from "../hooks/runtimeFatal.js";
-import type { CriticalState } from "../../runtime/critical/CriticalTypes.js";
+import type { State } from "../../runtime/critical/types.js";
 import type { AppState } from "../appState.js";
 
 const isSameAppState = (
@@ -47,7 +47,7 @@ export const useAppState = (
       }
     };
 
-    const setCritical = (screen: CriticalState): void => {
+    const setCritical = (screen: State): void => {
       if (isActive) {
         setAppState({ realm: "critical", screen });
       }

@@ -16,10 +16,12 @@ export const oauthQueries = {
       role,
       is_owner,
       name,
+      first_name,
+      last_name,
       avatar_url,
       created_at,
       updated_at
     )
-    VALUES (?, ?, 'owner', 1, ?, ?, ?, ?)
+    VALUES (?, ?, 'owner', 1, ?, NULL, NULL, ?, ?, ?)
   `,
 } as const;

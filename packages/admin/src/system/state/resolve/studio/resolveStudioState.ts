@@ -1,9 +1,9 @@
 import type { AppState } from "@/system/appState.js";
-import type { AppUser, StudioState } from "@/runtime/studio/StudioTypes.js";
+import type { User, State } from "@/runtime/studio/types.js";
 
 const resolveStudioScreenFromLocation = (
   basePath: string
-): StudioState => {
+): State => {
   if (typeof window === "undefined") {
     return "dashboard";
   }
@@ -25,7 +25,7 @@ const resolveStudioScreenFromLocation = (
   return "dashboard";
 };
 
-export const resolveStudioState = (basePath: string, user: AppUser): AppState => {
+export const resolveState = (basePath: string, user: User): AppState => {
   return {
     realm: "studio",
     screen: resolveStudioScreenFromLocation(basePath),

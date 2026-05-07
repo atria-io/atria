@@ -15,7 +15,8 @@ const getPaths = (packageRoot) => {
   const outputFile = path.join(packageRoot, "dist", "frontend", "static", "styles", "globals.css");
   const baseFiles = [
     path.join(packageRoot, "boot", "static", "styles", "globals.css"),
-    path.join(packageRoot, "boot", "static", "styles", "admin.css")
+    path.join(packageRoot, "boot", "static", "styles", "admin.css"),
+    path.join(packageRoot, "boot", "static", "styles", "system.css")
   ];
 
   return { modulesDir, outputFile, baseFiles };
