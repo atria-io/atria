@@ -1,54 +1,11 @@
-import { useRef } from "react";
-import { useAccountPanel } from "./useAccountPanel.js";
-import { AccountLogout } from "./components/AccountLogout.js";
-import { AccountIdentity } from "./components/AccountIdentity.js";
+import { AccountPanelEmail } from "./shared/AccountPanelEmail.js";
+import { AccountPanelProvider } from "./shared/AccountPanelProvider.js";
 import type { AccountPanelProps } from "./accountPanelTypes.js";
 
 export const AccountPanel = (
   { user, onLogout }: AccountPanelProps
 ) => {
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const {
-    isOpen,
-    isClosing,
-    isMounted,
-    togglePanel,
-    onPanelAnimationEnd
-  } = useAccountPanel(rootRef);
-
-  const PANEL_ID = "studio-account-panel-menu";
-
-  return (
-    <div className="studio-account" data-tooltip={user.name} ref={rootRef}>
-      <button
-        type="button"
-        className="button"
-        aria-label="User info"
-        aria-haspopup="menu"
-        aria-controls={PANEL_ID}
-        aria-expanded={isOpen}
-        onClick={togglePanel}
-      >
-        <AccountIdentity user={user} avatarSize={22} />
-      </button>
-      {isMounted ? (
-        <div
-          id={PANEL_ID}
-          className={
-            !isClosing ?
-            "studio-account__panel studio-account__panel--open" :
-            "studio-account__panel studio-account__panel--closing"
-          }
-          onAnimationEnd={onPanelAnimationEnd}
-        >
-          <div className="studio-account__menu">
-            <div className="studio-account__menu-content">
-              <AccountIdentity user={user} avatarSize={24} showDetails />
-              <AccountLogout onLogout={onLogout} />
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
+  return user.avatarUrl
+    ? <AccountPanelProvider user={user} onLogout={onLogout} />
+    : <AccountPanelEmail user={user} onLogout={onLogout} />;
 };

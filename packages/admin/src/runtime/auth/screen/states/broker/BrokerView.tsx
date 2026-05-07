@@ -1,4 +1,5 @@
 import { useBrokerConsent } from "../../../services/models/brokerConsent.js";
+import { toLoadingButtonClass } from "../../../services/models/loading.js";
 
 export const BrokerView = () => {
   const {
@@ -12,10 +13,10 @@ export const BrokerView = () => {
     <div className="auth-card">
       <div className="auth-card__header">
         <h1 className="auth-card__title">
-          <span>Broker consent</span>
+          <span>Confirm sign-in</span>
         </h1>
         <div className="auth-card__header-text">
-          <span>Authorize broker access to continue</span>
+          <span>Authorize access to your workspace</span>
         </div>
       </div>
 
@@ -28,8 +29,7 @@ export const BrokerView = () => {
               <form onSubmit={onSubmitConfirm}>
                 <button
                   type="submit"
-                  className="
-                    button button--solid button--sm button--full auth-provider-button"
+                  className="button button--solid button--sm button--full button--has-icon auth-provider-button"
                   disabled={isSubmitting}
                 >
                   <span className="button__label">
@@ -46,17 +46,19 @@ export const BrokerView = () => {
           </>
         ) : (
           <>
-            <p className="auth-card__text">
-              Placeholder screen for broker consent confirmation.
-            </p>
             <form onSubmit={onSubmitConfirm}>
               <button
               type="submit"
-              className="button button--solid button--sm button--full auth-provider-button"
+              className={toLoadingButtonClass(
+                "button button--solid button--sm button--full button--has-icon auth-provider-button",
+                isSubmitting
+              )}
               disabled={isSubmitting}>
-                <span className="button__label">
-                  {isSubmitting ? "Confirming..." : "Confirm consent"}
-                </span>
+              {isSubmitting ? (
+                <span className="button__spinner" aria-hidden="true" />
+              ) : (
+                <span className="button__label">Confirm</span>
+              )}
               </button>
             </form>
           </>

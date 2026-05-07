@@ -24,7 +24,7 @@ export const SignInView = () => {
 
       <div
         key={showEmailForm ? "email" : "providers"}
-        className="auth-card__content card-transition">
+        className="auth-card__content">
         {!showEmailForm ? (
           <>
             <ButtonProviders mode="sign-in" />

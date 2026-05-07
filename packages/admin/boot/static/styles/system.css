@@ -1,6 +1,7 @@
 /*!button-base*/
 .button {
   display: inline;
+  vertical-align: bottom;
 
   border-radius: var(--baseline);
 
@@ -45,6 +46,31 @@
 .button[data-state="open"] {
   color: var(--button-color-hover);
   background: var(--button-background-hover);
+}
+.button.loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button.loading :not(.button__spinner) {
+  opacity: 0;
+}
+
+.button__spinner {
+  position: absolute;
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 2px solid color-mix(in srgb, var(--text) 28%, transparent);
+  border-top-color: var(--text);
+  border-radius: 999px;
+  animation: button-spin 0.7s linear infinite;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /*!button-overlay*/

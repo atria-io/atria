@@ -100,17 +100,3 @@
 .auth-card__error {
   margin: 0;
 }
-
-/*.card-transition {
-  animation: card-transition 0.18s var(--easing) forwards;
-  opacity: 0;
-}
-
-@keyframes card-transition {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}*/

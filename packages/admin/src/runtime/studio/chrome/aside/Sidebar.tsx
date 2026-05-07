@@ -1,7 +1,7 @@
 import type { Props } from "../../types.js";
 import { useLogout } from "@/system/services/session/useLogout.js";
 import { Layers2, LogOut, Settings } from "lucide-react";
-import { SidebarNavButton } from "./components/SidebarNavButton.js";
+import { SidebarNavButton } from "./shared/SidebarNavButton.js";
 
 interface SidebarItem {
   name: "Pages" | "Settings" | "Logout";

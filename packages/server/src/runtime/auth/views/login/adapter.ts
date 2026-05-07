@@ -31,12 +31,12 @@ export const handleLoginViewRoutes = async (
   startMode: "sign-in" | "create"
 ): Promise<boolean> => {
   if (request.method === "GET" && startMode === "sign-in") {
-    if (pathname === "/api/auth/start/google") {
+    if (pathname === "/api/auth/connect/google") {
       await sendProviderSignInStart(request, response, "google");
       return true;
     }
 
-    if (pathname === "/api/auth/start/github") {
+    if (pathname === "/api/auth/connect/github") {
       await sendProviderSignInStart(request, response, "github");
       return true;
     }

@@ -1,6 +1,10 @@
 import { CreateForm } from "./CreateForm.js";
 import { useCreateOwner } from "../../../services/models/createOwner.js";
 import { ButtonProviders } from "../../shared/ButtonProviders.js";
+import {
+  toLoadingButtonClass,
+  useEmailFormLoading
+} from "../../../services/models/loading.js";
 
 export const CreateView = () => {
   const {
@@ -11,6 +15,11 @@ export const CreateView = () => {
     onSubmitCreateOwner,
   } = useCreateOwner();
 
+  const { isEmailSubmitting, onEnableEmailFormWithLoading } = useEmailFormLoading(
+    showEmailForm,
+    onEnableEmailForm
+  );
+
   return (
     <div className="auth-card">
       <div className="auth-card__header">
@@ -18,23 +27,31 @@ export const CreateView = () => {
           <span>Create owner</span>
         </h1>
         <div className="auth-card__header-text">
-          <span>Create the first user</span>
+          <span>Create the first workspace account</span>
         </div>
       </div>
 
       <div
         key={showEmailForm ? "email" : "providers"}
-        className="auth-card__content card-transition">
+        className="auth-card__content">
         {!showEmailForm ? (
           <>
             <ButtonProviders mode="create" />
             <div className="auth-card__actions">
               <button
                 type="button"
-                className="button button--solid button--sm button--full auth-provider-button"
-                onClick={onEnableEmailForm}
+                className={toLoadingButtonClass(
+                  "button button--solid button--sm button--full auth-provider-button",
+                  isEmailSubmitting
+                )}
+                onClick={onEnableEmailFormWithLoading}
+                disabled={isEmailSubmitting}
               >
-                <span className="button__label">Continue with Email</span>
+                {isEmailSubmitting ? (
+                  <span className="button__spinner" aria-hidden="true" />
+                ) : (
+                  <span className="button__label">Continue with Email</span>
+                )}
               </button>
             </div>
           </>

@@ -37,12 +37,12 @@ export const handleCreateViewRoutes = async (
   startMode: "sign-in" | "create"
 ): Promise<boolean> => {
   if (request.method === "GET" && startMode === "create") {
-    if (pathname === "/api/auth/start/google") {
+    if (pathname === "/api/auth/connect/google") {
       await sendBrokerProviderEntry(request, response, "google");
       return true;
     }
 
-    if (pathname === "/api/auth/start/github") {
+    if (pathname === "/api/auth/connect/github") {
       await sendBrokerProviderEntry(request, response, "github");
       return true;
     }

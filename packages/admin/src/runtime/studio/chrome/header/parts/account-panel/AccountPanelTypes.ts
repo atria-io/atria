@@ -5,12 +5,6 @@ export interface AccountPanelProps {
   onLogout: () => void;
 }
 
-export interface AccountIdentityProps {
-  user: User;
-  avatarSize: 22 | 24;
-  showDetails?: boolean;
-}
-
 export interface AccountLogoutProps {
   onLogout: () => void;
 }

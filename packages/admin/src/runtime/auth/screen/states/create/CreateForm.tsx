@@ -1,5 +1,6 @@
-import { useState, type SubmitEventHandler } from "react";
+import { toLoadingButtonClass } from "../../../services/models/loading.js";
 import type { CreateOwnerValues } from "../../../types.js";
+import { useCreateFormModel } from "./modelForm.js";
 
 interface CreateOwnerFormProps {
   disabled?: boolean;
@@ -14,38 +15,20 @@ export const CreateForm = ({
   onBack,
   onSubmit,
 }: CreateOwnerFormProps) => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [localError, setLocalError] = useState<string | null>(null);
-
-  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (
-    event
-  ): void => {
-    event.preventDefault();
-
-    if (password !== confirmPassword) {
-      setLocalError("Passwords do not match.");
-      return;
-    }
-
-    setLocalError(null);
-    const firstNameValue = firstName.trim();
-    const lastNameValue = lastName.trim();
-    const name = [
-      firstNameValue,
-      lastNameValue
-    ].filter((value) => value !== "").join(" ");
-    void onSubmit({
-      firstName: firstNameValue,
-      lastName: lastNameValue,
-      name,
-      email: email.trim(),
-      password
-    });
-  };
+  const {
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    localError,
+    handleSubmit
+  } = useCreateFormModel({ onSubmit });
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
@@ -170,10 +153,17 @@ export const CreateForm = ({
       <div className="auth-form__actions">
         <button
           type="submit"
-          className="button button--solid button--sm button--full"
+          className={toLoadingButtonClass(
+            "button button--solid button--sm button--full",
+            disabled
+          )}
           disabled={disabled}
         >
-          <span className="button__label">Create account</span>
+          {disabled ? (
+            <span className="button__spinner" aria-hidden="true" />
+          ) : (
+            <span className="button__label">Create account</span>
+          )}
         </button>
 
         {onBack ? (

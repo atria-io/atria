@@ -1,11 +1,23 @@
+import { useState } from "react";
 import { initializeWorkspace } from "../../../services/http/authApi.js";
+import { toLoadingButtonClass } from "../../../services/models/loading.js";
 
 export const SetupView = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSetup = async (): Promise<void> => {
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
     const response = await initializeWorkspace();
     if (response.status === 204) {
       window.location.reload();
+      return;
     }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -22,10 +34,18 @@ export const SetupView = () => {
       <div className="auth-card__content">
         <button
           type="button"
-          className="button button--solid button--sm button--full auth-provider-button"
+          className={toLoadingButtonClass(
+            "button button--solid button--sm button--full auth-provider-button",
+            isSubmitting
+          )}
           onClick={() => void handleSetup()}
+          disabled={isSubmitting}
         >
-          <span className="button__label">Continue</span>
+          {isSubmitting ? (
+            <span className="button__spinner" aria-hidden="true" />
+          ) : (
+            <span className="button__label">Continue</span>
+          )}
         </button>
       </div>
     </div>

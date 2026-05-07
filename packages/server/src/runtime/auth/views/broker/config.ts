@@ -52,11 +52,11 @@ export const resolveBrokerProjectId = async (
   }
 
   if (hasCachedProjectId) {
-    return cachedProjectId ?? "";
+    return cachedProjectId ?? DEFAULT_PROJECT_ID;
   }
 
   const fromConfig = await readProjectIdFromConfig();
-  cachedProjectId = fromConfig === "" ? null : fromConfig;
+  cachedProjectId = fromConfig === "" ? DEFAULT_PROJECT_ID : fromConfig;
   hasCachedProjectId = true;
-  return fromConfig === "" ? DEFAULT_PROJECT_ID : fromConfig;
+  return cachedProjectId;
 };

@@ -1,10 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { resolveBrokerOrigin, resolveBrokerProjectId } from "./config.js";
-import {
-  resolveBrokerCodeToSession,
-  resolveBrokerConfirm,
-  resolveLinkedProviderSession,
-} from "./logic.js";
+import { resolveBrokerCodeToSession, resolveBrokerConfirm } from "./logic.js";
 import type {
   BrokerConfirmPayload,
   BrokerConfirmErrorResponse,
@@ -225,17 +221,18 @@ const parseConsentMode = (
   throw new Error("Invalid consent.");
 };
 
-export const sendBrokerProviderEntry = async (
+const sendBrokerProviderStart = async (
   request: IncomingMessage,
   response: ServerResponse,
-  provider: BrokerProvider
+  provider: BrokerProvider,
+  mode: "create" | "sign-in"
 ): Promise<void> => {
   const requestUrl = new URL(request.url ?? "/", "http://localhost");
   const protocol = getRequestProtocol(request);
   const host = getRequestHost(request);
   const nextPath = getSafeNextPath(requestUrl);
   const returnTo = new URL(`/api/auth/callback/${provider}`, `${protocol}://${host}`);
-  returnTo.searchParams.set("mode", "create");
+  returnTo.searchParams.set("mode", mode);
   if (nextPath !== "/") {
     returnTo.searchParams.set("next", nextPath);
   }
@@ -275,24 +272,20 @@ export const sendBrokerProviderEntry = async (
   response.end();
 };
 
+export const sendBrokerProviderEntry = async (
+  request: IncomingMessage,
+  response: ServerResponse,
+  provider: BrokerProvider
+): Promise<void> => {
+  return sendBrokerProviderStart(request, response, provider, "create");
+};
+
 export const sendProviderSignInStart = async (
   request: IncomingMessage,
   response: ServerResponse,
   provider: BrokerProvider
 ): Promise<void> => {
-  const sessionResult = await resolveLinkedProviderSession(provider);
-  if (sessionResult.status !== "ok") {
-    sendOAuthFailureRedirect(response, getSignInFailureReturnPath(request));
-    return;
-  }
-
-  response.statusCode = 302;
-  response.setHeader(
-    "Set-Cookie",
-    `session=${sessionResult.sessionId}; Path=/; HttpOnly`
-  );
-  response.setHeader("Location", "/");
-  response.end();
+  return sendBrokerProviderStart(request, response, provider, "sign-in");
 };
 
 export const sendBrokerProviderCallback = async (
@@ -302,7 +295,7 @@ export const sendBrokerProviderCallback = async (
 ): Promise<void> => {
   const requestUrl = new URL(request.url ?? "/", "http://localhost");
   const mode = toStringValue(requestUrl.searchParams.get("mode"));
-  if (mode !== "create") {
+  if (mode !== "create" && mode !== "sign-in") {
     writeJson(response, 400, {
       ok: false,
       error: "Invalid OAuth callback mode.",
@@ -342,8 +335,9 @@ export const sendBrokerProviderCallback = async (
       redirectParams.set("next", nextPath);
     }
 
+    const consentPath = mode === "create" ? "/create" : "/";
     response.statusCode = 302;
-    response.setHeader("Location", `/create?${redirectParams.toString()}`);
+    response.setHeader("Location", `${consentPath}?${redirectParams.toString()}`);
     response.end();
     return;
   }
@@ -356,7 +350,7 @@ export const sendBrokerProviderCallback = async (
 
   const sessionResult = await resolveBrokerCodeToSession(brokerCode, projectId);
   if (sessionResult.status !== "ok") {
-    sendOAuthFailureRedirect(response, "/");
+    sendOAuthFailureRedirect(response, getSignInFailureReturnPath(request));
     return;
   }
 

@@ -68,6 +68,7 @@
   align-items: center;
   padding: var(--layout-inset);
   gap: calc(var(--spacing) * 3);
+  position: relative;
 }
 
 .studio-account__avatar {
@@ -77,12 +78,14 @@
 }
 
 .studio-account__avatar-fallback {
+  height: 1.5rem;
+  width: 1.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #ff5a3f;
-  color: #0b1024;
-  font-weight: 700;
+  background: var(--solid);
+  border: var(--border-solid);
+  font-size: 0.75rem;
   line-height: 1;
 }
 
@@ -96,5 +99,7 @@
 }
 
 .studio-account__logout {
-  display: none;
+  position: absolute;
+  right: .75rem;
+  top: .75rem;
 }
