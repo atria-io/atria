@@ -12,6 +12,12 @@
   --layout-inset: 1rem;
   --layout-gap: 0.5rem;
 
+  --container-xs: 36rem;
+  --container-sm: 48rem;
+  --container-md: 64rem;
+  --container-lg: 88rem;
+  --container-xl: 96rem;
+
   --header: 2.25rem;
   --sidebar: 2.75rem;
 

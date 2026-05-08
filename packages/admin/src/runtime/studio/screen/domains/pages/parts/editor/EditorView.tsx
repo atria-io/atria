@@ -1,5 +1,5 @@
-import { Header } from "./parts/header/Header.js";
-import { Main } from "./parts/main/Main.js";
+import { EditorHeader } from "./parts/header/EditorHeader.js";
+import { EditorMain } from "./parts/main/EditorMain.js";
 
 interface EditorViewProps {
   creating: boolean;
@@ -8,8 +8,8 @@ interface EditorViewProps {
 export function EditorView({ creating }: EditorViewProps) {
   return (
     <div className="card-column__item" data-type="properties">
-      <Header creating={creating} />
-      <Main creating={creating} />
+      <EditorHeader creating={creating} />
+      <EditorMain creating={creating} />
     </div>
   );
 }

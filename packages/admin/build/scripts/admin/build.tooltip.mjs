@@ -6,9 +6,9 @@ const buildRuntimeSource = () =>
   const ROOT_ID = "atria";
   const TOOLTIP_ATTR = "data-tooltip";
   const PORTAL_ATTR = "data-portal";
-  const OPEN_DELAY_MS = 600;
+  const OPEN_DELAY_MS = 300;
   const HIDE_GRACE_MS = 90;
-  const SWITCH_GRACE_MS = 300;
+  const SWITCH_GRACE_MS = 150;
   const CLOSE_FALLBACK_MS = 260;
   const EDGE_OFFSET = 8;
   const HORIZONTAL_OFFSET = 10;

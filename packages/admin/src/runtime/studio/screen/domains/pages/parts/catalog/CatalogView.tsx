@@ -1,15 +1,11 @@
-import { Header } from "./parts/header/Header.js";
-import { Main } from "./parts/main/Main.js";
+import { CatalogHeader } from "./parts/header/CatalogHeader.js";
+import { CatalogMain } from "./parts/main/CatalogMain.js";
 
-interface CatalogViewProps {
-  onCreatePage: () => void;
-}
-
-export function CatalogView({ onCreatePage }: CatalogViewProps) {
+export function CatalogView() {
   return (
     <div className="card-column__item" data-type="pages">
-      <Header onCreatePage={onCreatePage} />
-      <Main />
+      <CatalogHeader />
+      <CatalogMain />
     </div>
   );
 }

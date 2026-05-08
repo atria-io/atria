@@ -1,45 +1,12 @@
-import { useEffect, useState } from "react";
 import { CatalogView } from "./parts/catalog/CatalogView.js";
 import { EditorView } from "./parts/editor/EditorView.js";
 import { FoldersView } from "./parts/folders/FoldersView.js";
 import { RoutesView } from "./parts/routes/RoutesView.js";
-
-const CREATE_SEGMENTS = [";create", ":create"];
-
-const isCreatePath = (pathname: string): boolean =>
-  CREATE_SEGMENTS.some((segment) => pathname.endsWith(segment));
-
-const resolvePagesPath = (pathname: string): string => {
-  if (isCreatePath(pathname)) {
-    return pathname;
-  }
-
-  return pathname === "/pages" ? "/pages;create" : pathname + ";create";
-};
+import { isCreatePath, usePagesPathname } from "./services/resolveCreate.js";
 
 export const PagesView = () => {
-  const [pathname, setPathname] = useState<string>(
-    typeof window === "undefined" ? "/pages" : window.location.pathname
-  );
+  const pathname = usePagesPathname();
   const creating = isCreatePath(pathname);
-
-  useEffect(() => {
-    const handlePopState = (): void => {
-      setPathname(window.location.pathname);
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, []);
-
-  const handleCreatePage = (): void => {
-    const nextPath = resolvePagesPath(window.location.pathname);
-    window.history.pushState({}, "", nextPath);
-    setPathname(nextPath);
-    window.dispatchEvent(new PopStateEvent("popstate"));
-  };
 
   return (
     <div className="studio-screen__pages">
@@ -51,7 +18,7 @@ export const PagesView = () => {
           </div>
         </div>
         <div className="card-column" data-zone="pages:b">
-          <CatalogView onCreatePage={handleCreatePage} />
+          <CatalogView />
         </div>
         <div className="card-column" data-zone="pages:c">
           <EditorView creating={creating} />

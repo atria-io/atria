@@ -4,7 +4,7 @@ import { resolveDashboardState } from "./domains/dashboard/resolveDashboardState
 import { resolvePagesState } from "./domains/pages/resolvePagesState.js";
 import { resolveSettingsState } from "./domains/settings/resolveSettingsState.js";
 
-const resolveStudioScreenFromLocation = (
+const resolveStudioState = (
   basePath: string
 ): State => {
   if (typeof window === "undefined") {
@@ -28,7 +28,7 @@ const resolveStudioScreenFromLocation = (
 export const resolveState = (basePath: string, user: User): AppState => {
   return {
     realm: "studio",
-    screen: resolveStudioScreenFromLocation(basePath),
+    screen: resolveStudioState(basePath),
     user,
   };
 };

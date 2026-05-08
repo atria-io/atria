@@ -1,6 +1,6 @@
 import type { HeaderProps } from "./types.js";
 
-export function Header({ creating }: HeaderProps) {
+export function EditorHeader({ creating }: HeaderProps) {
   return (
     <div className="card-screen">
       <div className="editor-header">

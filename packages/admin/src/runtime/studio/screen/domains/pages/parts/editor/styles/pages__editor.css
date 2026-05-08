@@ -1,0 +1,14 @@
+[data-type="properties"] .card-screen + .card-screen {
+  border-top: var(--border-solid);
+}
+
+.editor-header {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+
+.a {
+  max-width: var(--container-xs);
+}
