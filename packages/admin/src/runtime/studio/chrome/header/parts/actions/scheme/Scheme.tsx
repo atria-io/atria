@@ -47,7 +47,7 @@ export const Scheme = () => {
 
                 return (
                   <button
-                    className="button--xs button--overlay button--has-icon button--start"
+                    className="button button--xs button--overlay button--has-icon button--start"
                     key={schemeMode}
                     type="button"
                     data-active={mode === schemeMode}

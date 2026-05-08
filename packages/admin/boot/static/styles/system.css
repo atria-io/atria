@@ -159,8 +159,13 @@
   padding-inline: calc(var(--spacing) * 5);
 }
 
+/*!button-layout*/
 .button--full {
   width: 100%;
+}
+
+.button--square {
+  padding: 0.25rem;
 }
 
 /*!button-slots*/

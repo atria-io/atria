@@ -1,0 +1,12 @@
+.catalog-header {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+  position: relative;
+}
+
+.catalog-header__action {
+  right: 0;
+  position: absolute;
+}

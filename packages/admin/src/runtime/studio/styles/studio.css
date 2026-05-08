@@ -19,8 +19,11 @@
   width: 100%;
 }
 
-.card-column__item {
+.card-column__stack > div {
   height: 100%;
+}
+
+.card-column__item {
   width: 100%;
 }
 

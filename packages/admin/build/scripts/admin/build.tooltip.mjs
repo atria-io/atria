@@ -214,6 +214,7 @@ const buildRuntimeSource = () =>
   };
 
   const isHeaderTarget = (target) => target.closest("header") !== null;
+  const isSidebarTarget = (target) => target.closest("aside.admin-main__sidebar") !== null;
 
   const isHeaderPopupOpen = (target) =>
     target.querySelector('[aria-haspopup="menu"][aria-expanded="true"]') !== null;
@@ -235,6 +236,7 @@ const buildRuntimeSource = () =>
     }
 
     const offset = getTooltipOffset(target);
+    const isSidePlacement = isSidebarTarget(target);
     const targetRect = target.getBoundingClientRect();
     const tooltipRect = tooltipNode.getBoundingClientRect();
     const maxLeft = window.innerWidth - tooltipRect.width - EDGE_OFFSET;
@@ -245,7 +247,7 @@ const buildRuntimeSource = () =>
     let nextTop;
     let nextOrigin;
 
-    if (rightLeft <= maxLeft) {
+    if (isSidePlacement && rightLeft <= maxLeft) {
       nextLeft = Math.max(EDGE_OFFSET, Math.min(maxLeft, rightLeft));
       const rightTop = targetRect.top + targetRect.height / 2 - tooltipRect.height / 2;
       nextTop = Math.max(EDGE_OFFSET, Math.min(maxTop, rightTop));
