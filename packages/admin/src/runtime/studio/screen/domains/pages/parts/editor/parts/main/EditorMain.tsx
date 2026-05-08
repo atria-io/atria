@@ -3,13 +3,17 @@ import type { MainProps } from "./types.js";
 
 export function EditorMain({ creating }: MainProps) {
   if (!creating) {
-    return <div />;
+    return;
   }
 
   return (
-    <div className="card-screen">
-      <div className="editor-main">
-        <EditorForm />
+    <div className="card-column__item" data-type="edit">
+      <div>
+        <div className="pages-editor pages-editor--edit">
+          <div className="pages-editor pages-editor__main">
+            <EditorForm />
+          </div>
+        </div>
       </div>
     </div>
   );

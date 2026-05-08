@@ -12,13 +12,19 @@
   --layout-inset: 1rem;
   --layout-gap: 0.5rem;
 
-  --container-xs: 36rem;
-  --container-sm: 48rem;
-  --container-md: 64rem;
-  --container-lg: 88rem;
-  --container-xl: 96rem;
+  --space-block-xs: 2rem;
+  --space-block-sm: 3rem;
+  --space-block-md: 5rem;
+  --space-block-lg: 8rem;
+  --space-block-xl: 13rem;
 
-  --header: 2.25rem;
+  --space-inline-xs: 36rem;
+  --space-inline-sm: 48rem;
+  --space-inline-md: 64rem;
+  --space-inline-lg: 88rem;
+  --space-inline-xl: 96rem;
+
+  --header: 2.75rem;
   --sidebar: 2.75rem;
 
   --text-xs: 0.8333rem;

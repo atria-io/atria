@@ -1,11 +1,9 @@
-import { CatalogCreate } from "./CatalogCreate.js";
-import { CatalogSearch } from "./CatalogSearch.js";
+import { CatalogActions } from "./CatalogActions.js";
 
-export function CatalogHeaderView() {
+export function CatalogHeader() {
   return (
-    <div className="card-screen">
-      <CatalogCreate />
-      <CatalogSearch />
+    <div className="pages-catalog__header">
+      <CatalogActions />
     </div>
   );
 }

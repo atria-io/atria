@@ -115,13 +115,9 @@ button:disabled,
   cursor: no-drop;
 }
 
-:focus {
-  outline: 0;
-}
-
+:focus,
 :focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 1px var(--focus);
+  outline: 0;
   border-radius: var(--baseline);
 }
 

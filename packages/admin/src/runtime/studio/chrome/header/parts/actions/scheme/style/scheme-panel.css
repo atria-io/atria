@@ -1,18 +1,3 @@
-.studio-scheme {
-  position: relative;
-  width: var(--header);
-  height: var(--header);
-  float: left;
-}
-
-.studio-scheme__button {
-  --button-size: var(--header);
-  --button-overlay-inset: calc(var(--spacing) * 1);
-  --button-overlay-radius: calc(var(--radius) / 2);
-  width: var(--button-size);
-  height: calc(var(--button-size) - 1px);
-}
-
 .studio-scheme__panel {
   top: calc(100% - 1px);
   position: absolute;

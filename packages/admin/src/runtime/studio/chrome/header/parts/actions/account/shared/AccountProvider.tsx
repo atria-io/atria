@@ -15,7 +15,7 @@ export const AccountProvider = ({ user, onLogout }: AccountProps) => {
     <div className="studio-account" data-tooltip={user.name} ref={rootRef}>
       <button
         type="button"
-        className="button button--has-icon admin-header__action-button"
+        className="button button-square button--has-icon"
         aria-label="User info"
         aria-haspopup="menu"
         aria-controls={panelId}

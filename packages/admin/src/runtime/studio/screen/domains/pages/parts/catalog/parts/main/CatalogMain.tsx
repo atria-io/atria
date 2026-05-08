@@ -1,3 +1,3 @@
 export function CatalogMain() {
-  return <div className="catalog-main" />;
+  return <div className="pages-catalog__main" />;
 }

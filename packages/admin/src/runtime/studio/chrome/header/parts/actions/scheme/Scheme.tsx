@@ -19,7 +19,7 @@ export const Scheme = () => {
     <div className="studio-scheme" data-tooltip="Scheme" ref={rootRef}>
       <button
         type="button"
-        className="button button--overlay button--has-icon admin-header__action-button"
+        className="button button--xs button--overlay button--has-icon"
         aria-label="Scheme actions"
         aria-haspopup="menu"
         aria-controls={PANEL_ID}

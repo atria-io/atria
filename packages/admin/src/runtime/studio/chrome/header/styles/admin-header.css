@@ -23,14 +23,9 @@
 .admin-header__actions {
   top: 0;
   right: 0;
+  display: flex;
   position: absolute;
+  align-items: center;
   height: var(--header);
-}
-
-.admin-header__action-button {
-  --button-size: var(--header);
-  --button-overlay-inset: calc(var(--spacing) * 1);
-  --button-overlay-radius: calc(var(--radius) / 2);
-  width: var(--button-size);
-  height: calc(var(--button-size) - 1px);
+  gap: var(--layout-gap);
 }

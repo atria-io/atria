@@ -1,6 +1,6 @@
 export function EditorForm() {
   return (
-    <form className="editor-create-form">
+    <form className="pages-editor__create-form">
       <div className="field">
         <label className="field__label" htmlFor="page-title">
           Title

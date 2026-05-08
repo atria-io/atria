@@ -19,16 +19,17 @@
   width: 100%;
 }
 
-.card-column__stack > div {
-  height: 100%;
-}
-
 .card-column__item {
   width: 100%;
+  height: 100%;
 }
 
 .card-column__item + .card-column__item {
   border-top: var(--border-solid);
+}
+
+.card-column__item--intrinsic {
+  height: auto;
 }
 
 .card-screen {

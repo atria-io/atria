@@ -1,0 +1,21 @@
+.pages-catalog__header,
+.pages-catalog__search {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.pages-catalog > div {
+  margin-bottom: 0.5rem;
+}
+
+.pages-catalog__header-action {
+  right: 0;
+  display: flex;
+  gap: calc(var(--layout-gap) / 2);
+  position: absolute;
+}
+
+.pages-catalog__action--create {
+  content: '';
+}

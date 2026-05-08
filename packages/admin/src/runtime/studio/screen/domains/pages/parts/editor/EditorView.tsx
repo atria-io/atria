@@ -4,9 +4,9 @@ import type { EditorViewProps } from "./types.js";
 
 export function EditorView({ creating }: EditorViewProps) {
   return (
-    <div className="card-column__item" data-type="properties">
+    <>
       <EditorHeader creating={creating} />
       <EditorMain creating={creating} />
-    </div>
+    </>
   );
 }

@@ -21,7 +21,9 @@ export const PagesView = () => {
           <CatalogView />
         </div>
         <div className="card-column" data-zone="pages:c">
-          <EditorView creating={creating} />
+          <div className="card-column__stack" data-group="editor">
+            <EditorView creating={creating} />
+          </div>
         </div>
       </div>
     </div>
