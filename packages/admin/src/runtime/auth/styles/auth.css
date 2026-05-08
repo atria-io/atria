@@ -17,7 +17,7 @@
 }
 
 .auth-card__content {
-  margin-bottom: 4vh;
+  margin-bottom: 7vh;
   border: var(--border-solid);
   border-radius: var(--radius);
   padding: calc(var(--spacing) * 5);
@@ -93,7 +93,7 @@
 
 .auth-screen__message {
   inset: 0;
-  top: 100%;
+  top: calc(100% - 7vh + 1.5rem);
   position: absolute;
 }
 
