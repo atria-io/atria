@@ -1,7 +1,11 @@
-interface EditorHeaderTitleProps {
-  creating: boolean;
-}
+import { useEditorState } from "../../services/editorState.js";
 
-export function EditorHeaderTitle({ creating }: EditorHeaderTitleProps) {
-  return <div>{creating ? "Edit Page" : "No properties"}</div>;
+export function EditorHeaderTitle() {
+  const { creating, title } = useEditorState();
+
+  if (!creating) {
+    return <div>No properties</div>;
+  }
+
+  return <div>{title.trim() ? `Edit Page / ${title}` : "Edit Page"}</div>;
 }

@@ -1,7 +1,9 @@
+import { useEditorState } from "../../services/editorState.js";
 import { EditorForm } from "./EditorForm.js";
-import type { MainProps } from "./types.js";
 
-export function EditorMain({ creating }: MainProps) {
+export function EditorMain() {
+  const { creating } = useEditorState();
+
   if (!creating) {
     return;
   }
