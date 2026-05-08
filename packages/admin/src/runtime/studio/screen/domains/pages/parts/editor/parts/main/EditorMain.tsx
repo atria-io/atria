@@ -1,9 +1,9 @@
-import type { MainProps } from "./types.js";
 import { EditorForm } from "./EditorForm.js";
+import type { MainProps } from "./types.js";
 
 export function EditorMain({ creating }: MainProps) {
   if (!creating) {
-    return <div className="card-screen"><div className="editor-main" /></div>;
+    return <div />;
   }
 
   return (

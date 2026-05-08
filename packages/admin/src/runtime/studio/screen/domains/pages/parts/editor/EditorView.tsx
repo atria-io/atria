@@ -1,9 +1,6 @@
 import { EditorHeader } from "./parts/header/EditorHeader.js";
 import { EditorMain } from "./parts/main/EditorMain.js";
-
-interface EditorViewProps {
-  creating: boolean;
-}
+import type { EditorViewProps } from "./types.js";
 
 export function EditorView({ creating }: EditorViewProps) {
   return (

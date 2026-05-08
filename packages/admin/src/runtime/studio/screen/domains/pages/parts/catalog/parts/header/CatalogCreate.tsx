@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { resolveCreatePath } from "../../../../../services/resolveCreate.js";
+import { resolveCreatePath } from "../../../../services/pagesCreateState.js";
 
 export function CatalogCreate() {
   const onCreatePage = (): void => {

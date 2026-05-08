@@ -2,7 +2,7 @@ import { CatalogView } from "./parts/catalog/CatalogView.js";
 import { EditorView } from "./parts/editor/EditorView.js";
 import { FoldersView } from "./parts/folders/FoldersView.js";
 import { RoutesView } from "./parts/routes/RoutesView.js";
-import { isCreatePath, usePagesPathname } from "./services/resolveCreate.js";
+import { isCreatePath, usePagesPathname } from "./services/pagesCreateState.js";
 
 export const PagesView = () => {
   const pathname = usePagesPathname();
