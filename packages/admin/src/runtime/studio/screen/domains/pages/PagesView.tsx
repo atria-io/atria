@@ -2,11 +2,12 @@ import { CatalogView } from "./parts/catalog/CatalogView.js";
 import { EditorView } from "./parts/editor/EditorView.js";
 import { FoldersView } from "./parts/folders/FoldersView.js";
 import { RoutesView } from "./parts/routes/RoutesView.js";
-import { isCreatePath, usePagesPathname } from "./services/pagesCreateState.js";
+import * as pageState from "./services/state/pagesState.js";
 
 export const PagesView = () => {
-  const pathname = usePagesPathname();
-  const creating = isCreatePath(pathname);
+  const pathname = pageState.usePagesPathname();
+  const route = pageState.parsePagesRoute(pathname);
+  const creating = route.mode !== "browse";
 
   return (
     <div className="studio-screen__pages">

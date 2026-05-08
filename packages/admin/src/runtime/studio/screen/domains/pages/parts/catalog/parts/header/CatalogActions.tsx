@@ -1,5 +1,5 @@
 import { Archive, ListFilter, Plus } from "lucide-react";
-import { resolveCreatePath } from "../../../../services/pagesCreateState.js";
+import { resolveCreatePath } from "../../../../services/state/pagesState.js";
 import { CatalogActionButton } from "./shared/CatalogActionButton.js";
 
 export function CatalogActions() {
