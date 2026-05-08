@@ -1,5 +1,8 @@
 import type { AppState } from "@/system/appState.js";
 import type { User, State } from "@/runtime/studio/types.js";
+import { resolveDashboardState } from "./domains/dashboard/resolveDashboardState.js";
+import { resolvePagesState } from "./domains/pages/resolvePagesState.js";
+import { resolveSettingsState } from "./domains/settings/resolveSettingsState.js";
 
 const resolveStudioScreenFromLocation = (
   basePath: string
@@ -14,15 +17,12 @@ const resolveStudioScreenFromLocation = (
     ? rawPathname.slice(normalizedBasePath.length) || "/"
     : rawPathname;
 
-  if (pathname === "/pages") {
-    return "pages";
-  }
+  const resolvedScreen =
+    resolvePagesState(pathname) ??
+    resolveSettingsState(pathname) ??
+    resolveDashboardState(pathname);
 
-  if (pathname === "/settings") {
-    return "settings";
-  }
-
-  return "dashboard";
+  return resolvedScreen ?? "dashboard";
 };
 
 export const resolveState = (basePath: string, user: User): AppState => {

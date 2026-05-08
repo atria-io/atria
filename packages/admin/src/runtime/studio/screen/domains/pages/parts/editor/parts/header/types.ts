@@ -1,3 +1,3 @@
 export type HeaderProps = {
-  onCreatePage?: () => void;
+  creating: boolean;
 };
