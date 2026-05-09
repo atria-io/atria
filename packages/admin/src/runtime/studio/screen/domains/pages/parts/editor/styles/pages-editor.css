@@ -41,3 +41,35 @@
 .pages-editor__create-form {
   padding-block: var(--space-block-sm);
 }
+
+.pages-editor__more {
+  position: relative;
+}
+
+.pages-editor__more-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 150px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--background);
+  z-index: 20;
+}
+
+.pages-editor__more-item {
+  width: 100%;
+  display: block;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pages-editor__more-item:hover {
+  background: var(--background-secondary);
+}

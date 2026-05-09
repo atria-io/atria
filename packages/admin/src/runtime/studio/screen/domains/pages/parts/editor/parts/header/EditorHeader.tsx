@@ -1,5 +1,5 @@
 import { EditorActions } from "./EditorActions.js";
-import { EditorHeaderTitle } from "./EditorHeaderTitle.js";
+import { EditorHeaderLeading } from "./EditorHeaderLeading.js";
 
 export function EditorHeader() {
   return (
@@ -7,7 +7,7 @@ export function EditorHeader() {
       <div className="card-screen">
         <div className="pages-editor pages-editor--properties">
           <div className="pages-editor__header">
-            <EditorHeaderTitle />
+            <EditorHeaderLeading />
             <EditorActions />
           </div>
         </div>
