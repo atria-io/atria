@@ -1,9 +1,11 @@
 import { Archive, ListFilter, Plus } from "lucide-react";
 import { resolveCreatePath } from "../../../../services/state/pagesState.js";
+import { startEditorCreateMode } from "../../../editor/services/editorState.js";
 import { CatalogActionButton } from "./shared/CatalogActionButton.js";
 
 export function CatalogActions() {
   const onCreatePage = (): void => {
+    startEditorCreateMode();
     const nextPath = resolveCreatePath(window.location.pathname);
     window.history.pushState({}, "", nextPath);
     window.dispatchEvent(new PopStateEvent("popstate"));

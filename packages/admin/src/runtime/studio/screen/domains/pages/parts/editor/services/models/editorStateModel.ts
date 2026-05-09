@@ -24,6 +24,7 @@ const createUuid = (): string => {
 const toCatalogItem = (payload: PageApiPayload): CatalogItem => ({
   uuid: payload.id,
   title: payload.title,
+  slug: payload.slug,
   status: "draft",
 });
 
@@ -37,19 +38,22 @@ const slugify = (value: string): string =>
     .replace(/-{2,}/g, "-")
     .slice(0, 200);
 
-const upsertDraftItem = (uuid: string, title: string): void => {
+const isManualSlug = (title: string, slug: string): boolean =>
+  slug !== slugify(title);
+
+const upsertDraftItem = (uuid: string, title: string, slug: string): void => {
   const state = getEditorState();
   const existing = state.drafts.find((item) => item.uuid === uuid);
 
   if (existing) {
     setEditorState({
-      drafts: state.drafts.map((item) => (item.uuid === uuid ? { ...item, title } : item)),
+      drafts: state.drafts.map((item) => (item.uuid === uuid ? { ...item, title, slug } : item)),
     });
     return;
   }
 
   setEditorState({
-    drafts: [{ uuid, title, status: "draft" }, ...state.drafts],
+    drafts: [{ uuid, title, slug, status: "draft" }, ...state.drafts],
   });
 };
 
@@ -65,7 +69,11 @@ const loadDrafts = async (): Promise<void> => {
 
 const loadDraftById = async (uuid: string): Promise<void> => {
   const state = getEditorState();
-  if (state.drafts.some((item) => item.uuid === uuid)) {
+  const existing = state.drafts.find((item) => item.uuid === uuid);
+  if (existing) {
+    if (state.currentUuid === uuid) {
+      setEditorState({ title: existing.title });
+    }
     return;
   }
 
@@ -74,9 +82,13 @@ const loadDraftById = async (uuid: string): Promise<void> => {
     return;
   }
 
-  upsertDraftItem(payload.id, payload.title);
+  upsertDraftItem(payload.id, payload.title, payload.slug);
   if (getEditorState().currentUuid === payload.id) {
-    setEditorState({ slug: payload.slug, slugTouched: true });
+    setEditorState({
+      title: payload.title,
+      slug: payload.slug,
+      slugTouched: isManualSlug(payload.title, payload.slug),
+    });
   }
 };
 
@@ -91,17 +103,17 @@ export const syncEditorFromRoute = (creating: boolean): void => {
   const routeUuid = route.mode === "document" ? route.uuid : null;
   const routeDraft = routeUuid ? state.drafts.find((item) => item.uuid === routeUuid) : null;
 
-  if (routeUuid) {
-    void loadDraftById(routeUuid);
-  }
-
   setEditorState({
     creating,
     currentUuid: routeUuid,
     title: routeDraft ? routeDraft.title : route.mode === "create" ? state.title : "",
-    slug: routeDraft ? state.slug : route.mode === "create" ? state.slug : "",
-    slugTouched: routeDraft ? true : state.slugTouched,
+    slug: routeDraft ? routeDraft.slug : route.mode === "create" ? state.slug : "",
+    slugTouched: routeDraft ? isManualSlug(routeDraft.title, routeDraft.slug) : state.slugTouched,
   });
+
+  if (routeUuid && !routeDraft) {
+    void loadDraftById(routeUuid);
+  }
 };
 
 export const setTitle = (title: string): void => {
@@ -118,7 +130,7 @@ export const setTitle = (title: string): void => {
     const uuid = createUuid();
     createInFlight = true;
     setEditorState({ currentUuid: uuid, title, slug: nextSlug });
-    upsertDraftItem(uuid, title);
+    upsertDraftItem(uuid, title, nextSlug || "untitled-page");
     openDraftRoute(uuid);
 
     void pagesApi.createPage(uuid, trimmed, nextSlug || "untitled-page").then((payload) => {
@@ -126,8 +138,11 @@ export const setTitle = (title: string): void => {
         return;
       }
 
-      upsertDraftItem(payload.id, payload.title);
-      setEditorState({ slug: payload.slug, slugTouched: true });
+      upsertDraftItem(payload.id, payload.title, payload.slug);
+      setEditorState({
+        slug: payload.slug,
+        slugTouched: isManualSlug(payload.title, payload.slug),
+      });
     }).finally(() => {
       createInFlight = false;
     });
@@ -137,7 +152,7 @@ export const setTitle = (title: string): void => {
   if (state.currentUuid) {
     const currentUuid = state.currentUuid;
     setEditorState({ title, slug: nextSlug });
-    upsertDraftItem(currentUuid, title);
+    upsertDraftItem(currentUuid, title, nextSlug === "" ? "untitled-page" : nextSlug);
 
     void pagesApi.updatePageTitle(
       currentUuid,
@@ -148,8 +163,11 @@ export const setTitle = (title: string): void => {
         return;
       }
 
-      upsertDraftItem(payload.id, payload.title);
-      setEditorState({ slug: payload.slug, slugTouched: true });
+      upsertDraftItem(payload.id, payload.title, payload.slug);
+      setEditorState({
+        slug: payload.slug,
+        slugTouched: isManualSlug(payload.title, payload.slug),
+      });
     });
     return;
   }
@@ -175,7 +193,19 @@ export const setSlug = (slug: string): void => {
       return;
     }
 
-    upsertDraftItem(payload.id, payload.title);
-    setEditorState({ slug: payload.slug, slugTouched: true });
+    upsertDraftItem(payload.id, payload.title, payload.slug);
+    setEditorState({
+      slug: payload.slug,
+      slugTouched: isManualSlug(payload.title, payload.slug),
+    });
+  });
+};
+
+export const beginCreateMode = (): void => {
+  setEditorState({
+    currentUuid: null,
+    title: "",
+    slug: "",
+    slugTouched: false,
   });
 };

@@ -35,6 +35,7 @@
   border-radius: var(--baseline);
   gap: calc(var(--layout-gap) / 2);
   padding: 0.625rem 0.5rem;
+  user-select: none;
   cursor: pointer;
 }
 
@@ -43,15 +44,13 @@
   background: var(--ghost-hover);
 }
 
-.pages-catalog__item-status {
+.pages-catalog__item-status.draft {
   display: flex;
-}
-
-.pages-catalog__item-status--draft {
   color: var(--draft);
 }
 
-.pages-catalog__item-status--online {
+.pages-catalog__item-status.online {
+  display: flex;
   color: var(--valid);
 }
 
@@ -59,4 +58,19 @@
   fill: currentColor;
   stroke: currentColor;
   stroke-width: 4px;
+}
+
+.pages-catalog__show-more {
+  display: flex;
+  margin-left: auto;
+  opacity: 0;
+}
+
+.pages-catalog__item:hover .pages-catalog__show-more {
+  opacity: 1;
+}
+
+.pages-catalog__show-more svg {
+  fill: currentColor;
+  stroke: currentColor;
 }

@@ -1,6 +1,7 @@
 export interface CatalogItem {
   uuid: string;
   title: string;
+  slug: string;
   status: "draft";
 }
 

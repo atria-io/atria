@@ -17,12 +17,21 @@ const resolveStudioState = (
     ? rawPathname.slice(normalizedBasePath.length) || "/"
     : rawPathname;
 
+  if (pathname === "/") {
+    const nextPathname = `${normalizedBasePath}/pages` || "/pages";
+    const nextUrl = `${nextPathname}${window.location.search}${window.location.hash}`;
+    if (window.location.pathname !== nextPathname) {
+      window.history.replaceState({}, "", nextUrl);
+    }
+    return "pages";
+  }
+
   const resolvedScreen =
     resolvePagesState(pathname) ??
     resolveSettingsState(pathname) ??
     resolveDashboardState(pathname);
 
-  return resolvedScreen ?? "dashboard";
+  return resolvedScreen ?? "pages";
 };
 
 export const resolveState = (basePath: string, user: User): AppState => {
