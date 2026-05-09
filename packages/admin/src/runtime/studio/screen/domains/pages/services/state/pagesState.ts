@@ -34,8 +34,6 @@ export const parsePagesRoute = (pathname: string): PagesRouteState => {
   return { mode: "browse", uuid: null };
 };
 
-export const isCreatePath = (pathname: string): boolean => parsePagesRoute(pathname).mode === "create";
-
 export const resolveCreatePath = (pathname: string): string => {
   const route = parsePagesRoute(pathname);
   if (route.mode === "create") {

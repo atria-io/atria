@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { parsePagesRoute, resolveDocumentPath } from "../../../services/state/pagesState.js";
 
-export interface CatalogDraftItem {
+export interface CatalogItem {
   uuid: string;
   title: string;
   status: "draft";
@@ -11,7 +11,7 @@ interface EditorState {
   creating: boolean;
   title: string;
   currentUuid: string | null;
-  drafts: CatalogDraftItem[];
+  drafts: CatalogItem[];
 }
 
 let editorState: EditorState = {

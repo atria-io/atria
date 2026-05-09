@@ -1,15 +1,15 @@
 import type { MouseEvent } from "react";
 import { useEffect, useRef } from "react";
 import { Dot } from "lucide-react";
-import type { CatalogDraftItem as CatalogDraftItemType } from "../../../../editor/services/editorState.js";
-import { resolveDocumentPath } from "../../../../../services/state/pagesState.js";
+import type { CatalogItem as CatalogItemType } from "../../../editor/services/editorState.js";
+import { resolveDocumentPath } from "../../../../services/state/pagesState.js";
 
-interface CatalogDraftItemProps {
-  item: CatalogDraftItemType;
+interface CatalogItemProps {
+  item: CatalogItemType;
   active: boolean;
 }
 
-export function CatalogDraftItem({ item, active }: CatalogDraftItemProps) {
+export function CatalogItem({ item, active }: CatalogItemProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export function CatalogDraftItem({ item, active }: CatalogDraftItemProps) {
     root.removeAttribute("active");
   }, [active]);
 
-  const onOpenDraft = (event: MouseEvent<HTMLDivElement>): void => {
+  const onOpenItem = (event: MouseEvent<HTMLDivElement>): void => {
     event.stopPropagation();
     window.history.pushState({}, "", resolveDocumentPath(item.uuid));
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -36,7 +36,7 @@ export function CatalogDraftItem({ item, active }: CatalogDraftItemProps) {
     <div
       className="pages-catalog__item"
       key={item.uuid}
-      onClick={onOpenDraft}
+      onClick={onOpenItem}
       ref={rootRef}
     >
       <span className="pages-catalog__item-status" aria-label={item.status} title={item.status}>

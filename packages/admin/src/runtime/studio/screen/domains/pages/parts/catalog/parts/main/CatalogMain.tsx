@@ -1,6 +1,6 @@
 import { useEditorState } from "../../../editor/services/editorState.js";
 import { parsePagesRoute, usePagesPathname } from "../../../../services/state/pagesState.js";
-import { CatalogDraftItem } from "./draft/CatalogDraftItem.js";
+import { CatalogItem } from "./CatalogItem.js";
 
 export function CatalogMain() {
   const { drafts } = useEditorState();
@@ -10,7 +10,7 @@ export function CatalogMain() {
   return (
     <div className="pages-catalog__main">
       {drafts.map((item) => (
-        <CatalogDraftItem
+        <CatalogItem
           key={item.uuid}
           item={item}
           active={route.mode === "document" && route.uuid === item.uuid}
