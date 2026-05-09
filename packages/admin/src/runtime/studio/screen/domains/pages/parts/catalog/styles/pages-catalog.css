@@ -44,12 +44,7 @@
   background: var(--ghost-hover);
 }
 
-.pages-catalog__item-status.draft {
-  display: flex;
-  color: var(--draft);
-}
-
-.pages-catalog__item-status.online {
+.pages-catalog__item-status--online {
   display: flex;
   color: var(--valid);
 }

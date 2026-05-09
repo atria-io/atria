@@ -9,7 +9,7 @@ export const updatePage = async (input: UpdatePageInput): Promise<PageRecord | n
     const now = getTimestamp();
 
     try {
-      const result = db.prepare(sql.update.updatePageTitle).run(input.title, input.slug, now, input.id) as { changes?: unknown };
+      const result = db.prepare(sql.update.updatePageTitle).run(input.title, input.slug, input.status, now, input.id) as { changes?: unknown };
       if ((typeof result?.changes === "number" ? result.changes : 0) < 1) {
         return null;
       }

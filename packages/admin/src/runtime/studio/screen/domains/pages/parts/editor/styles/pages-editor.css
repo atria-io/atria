@@ -6,6 +6,11 @@
   max-height: 1rem;
 }
 
+.pages-editor__header-leading {
+  display: flex;
+  gap: var(--layout-gap);
+}
+
 .pages-editor__header-title,
 .pages-editor__header-action {
   display: flex;

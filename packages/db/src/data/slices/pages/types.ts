@@ -1,4 +1,4 @@
-export type PageStatus = "draft";
+export type PageStatus = "draft" | "published";
 
 export interface PageRecord {
   id: string;
@@ -19,4 +19,5 @@ export interface UpdatePageInput {
   id: string;
   title: string;
   slug: string;
+  status: PageStatus;
 }

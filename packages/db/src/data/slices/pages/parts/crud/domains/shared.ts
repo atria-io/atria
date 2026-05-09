@@ -12,7 +12,7 @@ export const toPageRecord = (row: {
   id: toStringValue(row.id),
   title: toStringValue(row.title),
   slug: toStringValue(row.slug),
-  status: "draft",
+  status: toStringValue(row.status) === "published" ? "published" : "draft",
   createdAt: toStringValue(row.createdAt),
   updatedAt: toStringValue(row.updatedAt),
 });

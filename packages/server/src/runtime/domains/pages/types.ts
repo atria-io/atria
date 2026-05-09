@@ -1,3 +1,5 @@
+export type PageStatus = "draft" | "published";
+
 export interface CreatePageInput {
   id?: unknown;
   title?: unknown;
@@ -7,4 +9,5 @@ export interface CreatePageInput {
 export interface UpdatePageInput {
   title?: unknown;
   slug?: unknown;
+  status?: unknown;
 }

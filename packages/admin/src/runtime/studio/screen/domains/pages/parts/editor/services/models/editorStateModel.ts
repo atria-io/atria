@@ -25,7 +25,7 @@ const toCatalogItem = (payload: PageApiPayload): CatalogItem => ({
   uuid: payload.id,
   title: payload.title,
   slug: payload.slug,
-  status: "draft",
+  status: payload.status,
 });
 
 const slugify = (value: string): string =>
@@ -41,19 +41,24 @@ const slugify = (value: string): string =>
 const isManualSlug = (title: string, slug: string): boolean =>
   slug !== slugify(title);
 
-const upsertDraftItem = (uuid: string, title: string, slug: string): void => {
+const upsertDraftItem = (
+  uuid: string,
+  title: string,
+  slug: string,
+  status: "draft" | "published"
+): void => {
   const state = getEditorState();
   const existing = state.drafts.find((item) => item.uuid === uuid);
 
   if (existing) {
     setEditorState({
-      drafts: state.drafts.map((item) => (item.uuid === uuid ? { ...item, title, slug } : item)),
+      drafts: state.drafts.map((item) => (item.uuid === uuid ? { ...item, title, slug, status } : item)),
     });
     return;
   }
 
   setEditorState({
-    drafts: [{ uuid, title, slug, status: "draft" }, ...state.drafts],
+    drafts: [{ uuid, title, slug, status }, ...state.drafts],
   });
 };
 
@@ -82,7 +87,7 @@ const loadDraftById = async (uuid: string): Promise<void> => {
     return;
   }
 
-  upsertDraftItem(payload.id, payload.title, payload.slug);
+  upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
   if (getEditorState().currentUuid === payload.id) {
     setEditorState({
       title: payload.title,
@@ -130,7 +135,7 @@ export const setTitle = (title: string): void => {
     const uuid = createUuid();
     createInFlight = true;
     setEditorState({ currentUuid: uuid, title, slug: nextSlug });
-    upsertDraftItem(uuid, title, nextSlug || "untitled-page");
+    upsertDraftItem(uuid, title, nextSlug || "untitled-page", "draft");
     openDraftRoute(uuid);
 
     void pagesApi.createPage(uuid, trimmed, nextSlug || "untitled-page").then((payload) => {
@@ -138,7 +143,7 @@ export const setTitle = (title: string): void => {
         return;
       }
 
-      upsertDraftItem(payload.id, payload.title, payload.slug);
+      upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
       setEditorState({
         slug: payload.slug,
         slugTouched: isManualSlug(payload.title, payload.slug),
@@ -152,18 +157,21 @@ export const setTitle = (title: string): void => {
   if (state.currentUuid) {
     const currentUuid = state.currentUuid;
     setEditorState({ title, slug: nextSlug });
-    upsertDraftItem(currentUuid, title, nextSlug === "" ? "untitled-page" : nextSlug);
+    const currentItem = state.drafts.find((item) => item.uuid === currentUuid);
+    const currentStatus = currentItem?.status ?? "draft";
+    upsertDraftItem(currentUuid, title, nextSlug === "" ? "untitled-page" : nextSlug, currentStatus);
 
-    void pagesApi.updatePageTitle(
+    void pagesApi.updatePage(
       currentUuid,
       trimmed === "" ? "Untitled page" : trimmed,
-      (nextSlug === "" ? "untitled-page" : nextSlug)
+      (nextSlug === "" ? "untitled-page" : nextSlug),
+      currentStatus
     ).then((payload) => {
       if (!payload) {
         return;
       }
 
-      upsertDraftItem(payload.id, payload.title, payload.slug);
+      upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
       setEditorState({
         slug: payload.slug,
         slugTouched: isManualSlug(payload.title, payload.slug),
@@ -184,17 +192,44 @@ export const setSlug = (slug: string): void => {
     return;
   }
 
-  void pagesApi.updatePageTitle(
+  const currentItem = state.drafts.find((item) => item.uuid === state.currentUuid);
+  const currentStatus = currentItem?.status ?? "draft";
+
+  void pagesApi.updatePage(
     state.currentUuid,
     state.title.trim() === "" ? "Untitled page" : state.title,
-    normalized === "" ? "untitled-page" : normalized
+    normalized === "" ? "untitled-page" : normalized,
+    currentStatus
   ).then((payload) => {
     if (!payload) {
       return;
     }
 
-    upsertDraftItem(payload.id, payload.title, payload.slug);
+    upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
     setEditorState({
+      slug: payload.slug,
+      slugTouched: isManualSlug(payload.title, payload.slug),
+    });
+  });
+};
+
+export const publishCurrentPage = (): void => {
+  const state = getEditorState();
+  if (!state.currentUuid) {
+    return;
+  }
+
+  const title = state.title.trim() === "" ? "Untitled page" : state.title;
+  const slug = state.slug.trim() === "" ? "untitled-page" : state.slug;
+
+  void pagesApi.updatePage(state.currentUuid, title, slug, "published").then((payload) => {
+    if (!payload) {
+      return;
+    }
+
+    upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
+    setEditorState({
+      title: payload.title,
       slug: payload.slug,
       slugTouched: isManualSlug(payload.title, payload.slug),
     });

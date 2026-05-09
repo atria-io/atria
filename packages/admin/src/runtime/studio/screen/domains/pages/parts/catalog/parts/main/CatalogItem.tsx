@@ -14,8 +14,8 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
   const isDraft = item.status === "draft";
   const statusLabel = isDraft ? "Draft" : "Online";
   const statusClassName = isDraft
-    ? "pages-catalog__item-status draft"
-    : "pages-catalog__item-status online";
+    ? "pages-catalog__item-status pages-catalog__item-status--draft"
+    : "pages-catalog__item-status pages-catalog__item-status--online";
 
   useEffect(() => {
     const root = rootRef.current;

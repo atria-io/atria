@@ -2,7 +2,7 @@ export interface CatalogItem {
   uuid: string;
   title: string;
   slug: string;
-  status: "draft";
+  status: "draft" | "published";
 }
 
 export interface EditorState {
@@ -18,5 +18,5 @@ export interface PageApiPayload {
   id: string;
   title: string;
   slug: string;
-  status: "draft";
+  status: "draft" | "published";
 }

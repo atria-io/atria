@@ -1,7 +1,7 @@
 export const updateQueries = {
   updatePageTitle: [
     "UPDATE documents",
-    "SET title = ?, slug = ?, updated_at = ?",
+    "SET title = ?, slug = ?, status = ?, updated_at = ?",
     "WHERE id = ?"
   ].join(" "),
 } as const;
