@@ -26,22 +26,21 @@
 
 .pages-catalog__main {
   display: grid;
-  gap: calc(var(--layout-gap) / 2);
+  gap: var(--layout-gap);
 }
 
 .pages-catalog__item {
   display: flex;
   align-items: center;
   gap: var(--layout-gap);
-  background: var(--solid);
-  border: var(--border-solid);
   border-radius: var(--baseline);
   cursor: pointer;
-  padding: 1rem;
+  padding: 0.625rem 0.5rem;
 }
 
-.pages-catalog__item:hover {
-  background: var(--border-hover);
+.pages-catalog__item:hover,
+.pages-catalog__item[active] {
+  background: var(--ghost-hover);
 }
 
 .pages-catalog__item-status {

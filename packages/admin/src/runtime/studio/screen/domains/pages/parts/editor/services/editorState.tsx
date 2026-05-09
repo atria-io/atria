@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { parsePagesRoute } from "../../../services/state/pagesState.js";
+import { parsePagesRoute, resolveDocumentPath } from "../../../services/state/pagesState.js";
 
 export interface CatalogDraftItem {
   uuid: string;
@@ -52,7 +52,7 @@ const createUuid = (): string => {
 };
 
 const openDraftRoute = (uuid: string): void => {
-  window.history.pushState({}, "", `/pages;${uuid}`);
+  window.history.pushState({}, "", resolveDocumentPath(uuid));
   window.dispatchEvent(new PopStateEvent("popstate"));
 };
 
@@ -81,12 +81,25 @@ export const useEditorState = (): EditorState =>
 
 export const useEditorStateSetup = (creating: boolean): void => {
   useEffect(() => {
-    const route = parsePagesRoute(window.location.pathname);
+    const syncFromRoute = (): void => {
+      const route = parsePagesRoute(window.location.pathname);
+      const routeUuid = route.mode === "document" ? route.uuid : null;
+      const routeDraft = routeUuid
+        ? editorState.drafts.find((item) => item.uuid === routeUuid)
+        : null;
 
-    setEditorState({
-      creating,
-      currentUuid: route.mode === "document" ? route.uuid : null,
-    });
+      setEditorState({
+        creating,
+        currentUuid: routeUuid,
+        title: routeDraft ? routeDraft.title : route.mode === "create" ? editorState.title : "",
+      });
+    };
+
+    syncFromRoute();
+    window.addEventListener("popstate", syncFromRoute);
+    return () => {
+      window.removeEventListener("popstate", syncFromRoute);
+    };
   }, [creating]);
 };
 

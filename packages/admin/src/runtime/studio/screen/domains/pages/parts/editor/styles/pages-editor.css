@@ -10,13 +10,18 @@
   padding-inline: var(--space-x);
 }
 
-.pages-editor__create-form {
-  padding-block: var(--space-block-sm);
-}
-
 .pages-editor__header-action {
   right: 0;
   display: flex;
   gap: var(--layout-gap);
   position: absolute;
+}
+
+.pages-editor__header-tools {
+  display: flex;
+  gap: calc(var(--layout-gap) / 2);
+}
+
+.pages-editor__create-form {
+  padding-block: var(--space-block-sm);
 }

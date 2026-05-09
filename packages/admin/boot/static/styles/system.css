@@ -135,8 +135,8 @@
 
 /*!button-sizes*/
 .button--xs {
-  height: calc(var(--baseline) * 8.66666);
-  padding: calc(var(--spacing) * 2);
+  height: calc(var(--baseline) * 8);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
 }
 
 .button--sm {

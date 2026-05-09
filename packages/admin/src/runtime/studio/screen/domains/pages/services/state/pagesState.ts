@@ -45,6 +45,8 @@ export const resolveCreatePath = (pathname: string): string => {
   return "/pages;create";
 };
 
+export const resolveDocumentPath = (uuid: string): string => `/pages;${uuid}`;
+
 export const usePagesPathname = (): string => {
   const [pathname, setPathname] = useState(
     typeof window === "undefined" ? "/pages" : window.location.pathname
