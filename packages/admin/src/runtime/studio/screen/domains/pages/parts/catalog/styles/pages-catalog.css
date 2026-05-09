@@ -32,10 +32,10 @@
 .pages-catalog__item {
   display: flex;
   align-items: center;
-  gap: var(--layout-gap);
   border-radius: var(--baseline);
-  cursor: pointer;
+  gap: calc(var(--layout-gap) / 2);
   padding: 0.625rem 0.5rem;
+  cursor: pointer;
 }
 
 .pages-catalog__item:hover,
@@ -45,7 +45,14 @@
 
 .pages-catalog__item-status {
   display: flex;
-  color: var(--link);
+}
+
+.pages-catalog__item-status--draft {
+  color: var(--draft);
+}
+
+.pages-catalog__item-status--online {
+  color: var(--valid);
 }
 
 .pages-catalog__item-status svg {

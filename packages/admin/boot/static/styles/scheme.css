@@ -29,6 +29,7 @@
   --focus: #5c5c5c;
   --error: #f97373;
   --valid: #34d399;
+  --draft: #c2873b;
 
   --boot-track: #24252f;
   --boot-spinner: #8a8a8a;
@@ -66,8 +67,9 @@
   --link-hover: #312eaf;
 
   --focus: #005fcc;
-  --error: #dc2626;
-  --valid: #059669;
+  --error: #f97373;
+  --valid: #34d399;
+  --draft: #c2873b;
 
   --boot-track: #d7dde8;
   --boot-spinner: #1f2937;

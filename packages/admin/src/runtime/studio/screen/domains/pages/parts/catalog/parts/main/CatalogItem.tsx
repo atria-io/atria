@@ -11,6 +11,11 @@ interface CatalogItemProps {
 
 export function CatalogItem({ item, active }: CatalogItemProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const isDraft = item.status === "draft";
+  const statusLabel = isDraft ? "Draft" : "Online";
+  const statusClassName = isDraft
+    ? "pages-catalog__item-status pages-catalog__item-status--draft"
+    : "pages-catalog__item-status pages-catalog__item-status--online";
 
   useEffect(() => {
     const root = rootRef.current;
@@ -39,7 +44,7 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
       onClick={onOpenItem}
       ref={rootRef}
     >
-      <span className="pages-catalog__item-status" aria-label={item.status} title={item.status}>
+      <span className={statusClassName} aria-label={statusLabel} title={statusLabel}>
         <Dot size={16} />
       </span>
       <span className="pages_catalog__item-title">

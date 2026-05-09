@@ -16,7 +16,7 @@ export function SchemeButton({
   return (
     <button
       type="button"
-      className="button button--xs button--overlay button--has-icon"
+      className="button button--square button--overlay button--has-icon"
       aria-label="Scheme actions"
       aria-haspopup="menu"
       aria-controls={panelId}

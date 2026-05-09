@@ -1,25 +1,36 @@
 .pages-editor__header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   position: relative;
+  max-height: 1rem;
+}
+
+.pages-editor__header-title,
+.pages-editor__header-action {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--layout-gap) * 1.3);
+}
+
+.pages-editor__header-tools {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--layout-gap) / 2);
+}
+
+.pages-editor__status--draft {
+  opacity: 0.5;
+}
+
+.pages-editor__status--online {
+  color: var(--valid);
 }
 
 .pages-editor__main {
   margin: 0 auto;
   max-width: var(--space-inline-xs);
   padding-inline: var(--space-x);
-}
-
-.pages-editor__header-action {
-  right: 0;
-  display: flex;
-  gap: var(--layout-gap);
-  position: absolute;
-}
-
-.pages-editor__header-tools {
-  display: flex;
-  gap: calc(var(--layout-gap) / 2);
 }
 
 .pages-editor__create-form {

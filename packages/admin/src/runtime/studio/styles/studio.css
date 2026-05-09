@@ -33,6 +33,7 @@
 }
 
 .card-screen {
+  min-height: 3rem;
   padding: var(--layout-inset);
   height: inherit;
 }
