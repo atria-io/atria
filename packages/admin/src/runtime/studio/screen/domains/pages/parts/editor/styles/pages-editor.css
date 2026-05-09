@@ -48,28 +48,34 @@
 
 .pages-editor__more-panel {
   position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  min-width: 150px;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  top: calc(100% + 12px);
+  left: -50%;
+}
+
+.pages-editor__more-panel--open {
+  animation: var(--card-pop);
+}
+
+.pages-editor__more-panel--closing {
+  animation: var(--card-pop-reverse);
+}
+
+.pages-editor__more-panel-label {
+  font-size: 0.8rem;
+}
+
+.pages-editor__more-menu {
+  border: var(--border-solid);
   background: var(--background);
-  z-index: 20;
+  border-radius: var(--radius);
+  box-shadow: var(--box-shadow);
 }
 
-.pages-editor__more-item {
-  width: 100%;
-  display: block;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  text-align: left;
-  padding: 8px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.pages-editor__more-item:hover {
-  background: var(--background-secondary);
+.pages-editor__more-menu-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  padding: calc(var(--layout-inset) / 1.5);
+  animation: var(--card-fade);
+  opacity: 0;
 }
