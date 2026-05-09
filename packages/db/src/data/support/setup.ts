@@ -1,8 +1,10 @@
 import { withDatabase } from "../../system/withDatabase.js";
 import { AUTH_DDL } from "../../data/slices/auth/ddlApi.js";
+import { DOCUMENTS_DDL } from "../../data/slices/pages/ddlApi.js";
 
 const COMPONENTS_DDL = [
   ...AUTH_DDL,
+  ...DOCUMENTS_DDL,
 ] as const;
 
 export const ensureComponentsDDL = async (): Promise<boolean> => {

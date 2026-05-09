@@ -9,6 +9,10 @@ const toStringValue = (
 export const getOwnerState = db.auth.getOwnerState;
 export const getSessionById = db.auth.getSessionById;
 export const initializeDatabase = db.initializeDatabase;
+export const listPages = db.pages.listPages;
+export const getPageById = db.pages.getPageById;
+export const createPage = db.pages.createPage;
+export const updatePage = db.pages.updatePage;
 
 export const getBootUser = async (
   userId: string
