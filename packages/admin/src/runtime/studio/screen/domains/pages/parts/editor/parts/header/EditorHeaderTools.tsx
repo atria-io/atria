@@ -10,10 +10,10 @@ export function EditorHeaderTools({ onClose }: EditorHeaderToolsProps) {
   return (
     <div className="pages-editor__header-tools" aria-label="Page tools">
       <EditorActionButton ariaLabel="Close" tooltip="Close" icon={X} onClick={onClose} />
-      <EditorActionButton ariaLabel="JSON" tooltip="JSON" icon={Braces} />
-      <EditorActionButton ariaLabel="Translate" tooltip="Translate" icon={Languages} />
-      <EditorActionButton ariaLabel="History" tooltip="History" icon={UndoDot} />
       <EditorActionsMore />
+      <EditorActionButton ariaLabel="History" tooltip="History" icon={UndoDot} />
+      <EditorActionButton ariaLabel="Translate" tooltip="Translate" icon={Languages} />
+      <EditorActionButton ariaLabel="JSON" tooltip="JSON" icon={Braces} />
     </div>
   );
 }
