@@ -41,7 +41,7 @@ export const updatePage = async (
   id: string,
   title: string,
   slug: string,
-  status: "draft" | "published"
+  status: "draft" | "published" | "archived"
 ): Promise<PageApiPayload | null> => {
   const response = await fetch(`/api/pages/${id}`, {
     method: "PATCH",

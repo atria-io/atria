@@ -45,7 +45,7 @@ const upsertDraftItem = (
   uuid: string,
   title: string,
   slug: string,
-  status: "draft" | "published"
+  status: "draft" | "published" | "archived"
 ): void => {
   const state = getEditorState();
   const existing = state.drafts.find((item) => item.uuid === uuid);
@@ -246,6 +246,29 @@ export const unpublishCurrentPage = (): void => {
   const slug = state.slug.trim() === "" ? "untitled-page" : state.slug;
 
   void pagesApi.updatePage(state.currentUuid, title, slug, "draft").then((payload) => {
+    if (!payload) {
+      return;
+    }
+
+    upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
+    setEditorState({
+      title: payload.title,
+      slug: payload.slug,
+      slugTouched: isManualSlug(payload.title, payload.slug),
+    });
+  });
+};
+
+export const archiveCurrentPage = (): void => {
+  const state = getEditorState();
+  if (!state.currentUuid) {
+    return;
+  }
+
+  const title = state.title.trim() === "" ? "Untitled page" : state.title;
+  const slug = state.slug.trim() === "" ? "untitled-page" : state.slug;
+
+  void pagesApi.updatePage(state.currentUuid, title, slug, "archived").then((payload) => {
     if (!payload) {
       return;
     }

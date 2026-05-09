@@ -41,8 +41,8 @@ export const parseSlug = (value: unknown): string | null => {
   return normalized;
 };
 
-export const parseStatus = (value: unknown): "draft" | "published" | null => {
-  if (value === "draft" || value === "published") {
+export const parseStatus = (value: unknown): "draft" | "published" | "archived" | null => {
+  if (value === "draft" || value === "published" || value === "archived") {
     return value;
   }
 

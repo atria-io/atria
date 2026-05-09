@@ -11,11 +11,14 @@ interface CatalogItemProps {
 
 export function CatalogItem({ item, active }: CatalogItemProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const isDraft = item.status === "draft";
-  const statusLabel = isDraft ? "Draft" : "Online";
-  const statusClassName = isDraft
-    ? "pages-catalog__item-status pages-catalog__item-status--draft"
-    : "pages-catalog__item-status pages-catalog__item-status--online";
+  const statusLabel = item.status === "published"
+    ? "Online"
+    : item.status === "archived"
+      ? "Archived"
+      : "Draft";
+  const statusClassName = item.status === "published"
+    ? "pages-catalog__item-status pages-catalog__item-status--online"
+    : "pages-catalog__item-status pages-catalog__item-status--draft";
 
   useEffect(() => {
     const root = rootRef.current;

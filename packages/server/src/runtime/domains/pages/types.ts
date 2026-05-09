@@ -1,4 +1,4 @@
-export type PageStatus = "draft" | "published";
+export type PageStatus = "draft" | "published" | "archived";
 
 export interface CreatePageInput {
   id?: unknown;

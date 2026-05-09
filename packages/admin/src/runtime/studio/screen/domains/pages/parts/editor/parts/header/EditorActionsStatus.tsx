@@ -9,12 +9,17 @@ export function EditorActionsStatus() {
     ? drafts.find((item) => item.uuid === currentUuid)
     : null;
 
-  const isDraft = route.mode === "create" || currentDraft?.status === "draft";
-  const status = isDraft ? "Draft" : "Online";
+  const status = route.mode === "create"
+    ? "Draft"
+    : currentDraft?.status === "archived"
+      ? "Archived"
+      : currentDraft?.status === "published"
+        ? "Online"
+        : "Draft";
 
-  if (isDraft) {
-    return <div className="pages-editor__status--draft">{status}</div>;
+  if (status === "Online") {
+    return <div className="pages-editor__status--online">{status}</div>;
   }
 
-  return <div className="pages-editor__status--online">{status}</div>;
+  return <div className="pages-editor__status--draft">{status}</div>;
 }

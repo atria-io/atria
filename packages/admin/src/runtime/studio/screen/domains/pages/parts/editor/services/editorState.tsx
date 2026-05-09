@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import {
+  archiveCurrentPage,
   beginCreateMode,
   publishCurrentPage,
   setSlug,
@@ -46,4 +47,8 @@ export const publishEditorPage = (): void => {
 
 export const unpublishEditorPage = (): void => {
   unpublishCurrentPage();
+};
+
+export const archiveEditorPage = (): void => {
+  archiveCurrentPage();
 };

@@ -44,8 +44,11 @@
   background: var(--ghost-hover);
 }
 
-.pages-catalog__item-status--online {
+.pages-catalog__item-status {
   display: flex;
+}
+
+.pages-catalog__item-status--online {
   color: var(--valid);
 }
 

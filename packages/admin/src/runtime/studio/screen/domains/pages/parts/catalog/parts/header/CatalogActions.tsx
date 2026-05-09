@@ -1,9 +1,12 @@
-import { Archive, ListFilter, Plus } from "lucide-react";
+import { Archive, ListFilter, Plus, X } from "lucide-react";
 import { resolveCreatePath } from "../../../../services/state/pagesState.js";
 import { startEditorCreateMode } from "../../../editor/services/editorState.js";
+import { toggleArchivedOnly, useCatalogFilterState } from "../../services/state/catalogFilterState.js";
 import { CatalogActionButton } from "./shared/CatalogActionButton.js";
 
 export function CatalogActions() {
+  const { archivedOnly } = useCatalogFilterState();
+
   const onCreatePage = (): void => {
     startEditorCreateMode();
     const nextPath = resolveCreatePath(window.location.pathname);
@@ -24,10 +27,11 @@ export function CatalogActions() {
         />
         <CatalogActionButton
           actionClassName="pages-catalog__action--archived"
-          ariaLabel="Archived"
-          tooltip="Archived"
-          Icon={Archive}
-          iconSize={13}
+          ariaLabel={archivedOnly ? "Close" : "Archived"}
+          tooltip={archivedOnly ? "Close" : "Archived"}
+          Icon={archivedOnly ? X : Archive}
+          iconSize={archivedOnly ? 15 : 13}
+          onClick={toggleArchivedOnly}
         />
         <CatalogActionButton
           actionClassName="pages-catalog__action--create"
