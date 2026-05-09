@@ -47,17 +47,17 @@
   --foreground: #131316;
 
   --surface: #ffffff;
-  --surface-raised: #f6f6f8;
+  --surface-raised: #f8f8f8;
   --surface-hover: #eeeef2;
 
   --border: #eeeeee;
   --border-hover: #d7d7dc;
 
-  --solid: #f6f6f8;
-  --solid-hover: #e4e5e9;
+  --solid: #f8f8f8;
+  --solid-hover: #e7e7e7;
 
   --ghost: transparent;
-  --ghost-hover: #f0f0f3;
+  --ghost-hover: #f8f8f8;
 
   --accent: #005fcc;
   --accent-hover: #0071ff;
@@ -68,7 +68,7 @@
 
   --focus: #005fcc;
   --error: #f97373;
-  --valid: #34d399;
+  --valid: #34b273;
   --draft: #c2873b;
 
   --boot-track: #d7dde8;

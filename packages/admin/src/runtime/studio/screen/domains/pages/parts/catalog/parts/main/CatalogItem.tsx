@@ -47,7 +47,7 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
       <span className={statusClassName} aria-label={statusLabel} title={statusLabel}>
         <Dot size={16} />
       </span>
-      <span className="pages_catalog__item-title">
+      <span className="pages-catalog__item-title">
         <span>{item.title.trim() || "Untitled page"}</span>
       </span>
     </div>
