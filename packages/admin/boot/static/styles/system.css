@@ -68,6 +68,15 @@
   }
 }
 
+.button--danger {
+  color: var(--error);
+}
+
+.button--danger-hover:hover,
+.button--danger-hover:focus-visible {
+  color: var(--error);
+}
+
 /*!button-overlay*/
 .button--overlay {
   isolation: isolate;
@@ -283,7 +292,7 @@
   opacity: .8;
 }
 
-/*!-nput-states*/
+/*!input-states*/
 .input--interactive:hover {
   border-color: var(--border-hover);
   background: var(--surface-raised);

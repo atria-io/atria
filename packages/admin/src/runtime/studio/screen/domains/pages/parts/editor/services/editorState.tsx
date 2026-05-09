@@ -1,5 +1,12 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { beginCreateMode, publishCurrentPage, setSlug, setTitle, syncEditorFromRoute } from "./models/editorStateModel.js";
+import {
+  beginCreateMode,
+  publishCurrentPage,
+  setSlug,
+  setTitle,
+  syncEditorFromRoute,
+  unpublishCurrentPage
+} from "./models/editorStateModel.js";
 import { getEditorState, subscribeEditorState } from "./state/store.js";
 
 export type { CatalogItem, EditorState } from "./state/types.js";
@@ -35,4 +42,8 @@ export const startEditorCreateMode = (): void => {
 
 export const publishEditorPage = (): void => {
   publishCurrentPage();
+};
+
+export const unpublishEditorPage = (): void => {
+  unpublishCurrentPage();
 };

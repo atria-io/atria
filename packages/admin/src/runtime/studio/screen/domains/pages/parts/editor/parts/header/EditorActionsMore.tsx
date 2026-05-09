@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { Archive, Ellipsis, EyeOff, Trash2 } from "lucide-react";
 import { usePopoverState } from "@/runtime/studio/chrome/header/parts/actions/account/service/usePopoverState.js";
+import { unpublishEditorPage } from "../../services/editorState.js";
 
 const PANEL_ID = "pages-editor-more-panel-menu";
 
@@ -41,11 +42,16 @@ export function EditorActionsMore() {
                 <span className="button__icon" aria-hidden="true"><Archive size={13} /></span>
                 <span className="button__label pages-editor__more-panel-label">Archive</span>
               </button>
-              <button type="button" className="button button--square button--overlay button--has-icon button--start" role="menuitem">
+              <button
+                type="button"
+                className="button button--square button--overlay button--has-icon button--start"
+                role="menuitem"
+                onClick={unpublishEditorPage}
+              >
                 <span className="button__icon" aria-hidden="true"><EyeOff size={13} /></span>
                 <span className="button__label pages-editor__more-panel-label">Unpublish</span>
               </button>
-              <button type="button" className="button button--square button--overlay button--has-icon button--start" role="menuitem">
+              <button type="button" className="button button--danger-hover button--overlay button--square button--has-icon button--start" role="menuitem">
                 <span className="button__icon" aria-hidden="true"><Trash2 size={13} /></span>
                 <span className="button__label pages-editor__more-panel-label">Delete</span>
               </button>
