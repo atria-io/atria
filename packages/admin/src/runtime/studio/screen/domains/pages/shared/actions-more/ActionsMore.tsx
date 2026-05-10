@@ -89,7 +89,7 @@ export function ActionsMore({
                   <button
                     key={item.key}
                     type="button"
-                    className={`button button--square button--overlay button--has-icon button--start${item.danger ? " button--danger-hover" : ""}`}
+                    className={`button button--square button--overlay button--has-icon button--start${item.danger ? " button--danger" : ""}`}
                     role="menuitem"
                     onClick={(event) => onClickItem(event, item.onClick)}
                   >

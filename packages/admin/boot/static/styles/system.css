@@ -134,8 +134,14 @@
 }
 
 .button--danger {
-  --button-color: var(--error);
+  --button-color: var(--text);
   --button-color-hover: var(--error);
+}
+
+.button--danger-solid {
+  --button-color: var(--error);
+  --button-color-hover: var(--text);
+  --button-background-hover: var(--error);
 }
 
 /*!button-sizes*/

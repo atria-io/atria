@@ -61,28 +61,30 @@ export function DeletePageConfirm() {
   return (
     <div className="pages-delete-confirm" role="dialog" aria-modal="true" aria-label="Delete page confirmation">
       <div className="pages-delete-confirm__backdrop" onClick={onCancel} />
-      <div className="pages-delete-confirm__card">
-        <h3 className="pages-delete-confirm__title">Delete this page?</h3>
-        <p className="pages-delete-confirm__text">
-          Are you sure you want to permanently delete <strong>{request.title.trim() || "Untitled page"}</strong>?
-        </p>
-        <div className="pages-delete-confirm__actions">
-          <button
-            type="button"
-            className="button button--solid button--danger button--danger-fill-hover button--sm button--overlay button--center"
-            onClick={onDelete}
-            disabled={loading}
-          >
-            Delete
-          </button>
-          <button
-            type="button"
-            className="button button--solid button--sm button--overlay button--center"
-            onClick={onCancel}
-            disabled={loading}
-          >
-            Cancel
-          </button>
+      <div>
+        <div className="pages-delete-confirm__card">
+          <h3 className="pages-delete-confirm__title">Delete this page?</h3>
+          <p className="pages-delete-confirm__text">
+            Are you sure you want to permanently delete <strong>{request.title.trim() || "Untitled page"}</strong>?
+          </p>
+          <div className="pages-delete-confirm__actions">
+            <button
+              type="button"
+              className="button button--solid button--danger button--danger-solid button--sm button--center"
+              onClick={onDelete}
+              disabled={loading}
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              className="button button--solid button--sm button--center"
+              onClick={onCancel}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>
