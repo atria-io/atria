@@ -1,0 +1,12 @@
+.pages-folders__header {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.pages-folders__header-action {
+  right: 0;
+  display: flex;
+  gap: calc(var(--layout-gap) / 2);
+  position: absolute;
+}
