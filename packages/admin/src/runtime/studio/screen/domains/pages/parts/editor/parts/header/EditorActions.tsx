@@ -5,7 +5,7 @@ import {
   useEditorState
 } from "../../services/editorState.js";
 import { Archive, EyeOff, Trash2, Upload } from "lucide-react";
-import { ActionsMore } from "../../../../shared/ActionsMore.js";
+import { ActionsMore } from "../../../../shared/actions-more/ActionsMore.js";
 import { EditorActionsStatus } from "./EditorActionsStatus.js";
 import { EditorActionButton } from "./shared/EditorActionButton.js";
 
@@ -22,6 +22,7 @@ export function EditorActions() {
     <div className="pages-editor__header-action">
       <ActionsMore
         panelId="pages-editor-more-panel-menu"
+        variant="editor"
         items={[
           isArchived
             ? { key: "unarchive", label: "Unarchive", icon: Upload, onClick: unpublishEditorPage }

@@ -1,3 +1,7 @@
+@import "../parts/catalog/styles/pages-catalog.css";
+@import "../parts/editor/styles/pages-editor.css";
+@import "../shared/actions-more/actions-more.css";
+
 .studio-screen__pages {
   display: flex;
   height: 100%;

@@ -1,4 +1,4 @@
-import { useRef, type MouseEvent } from "react";
+import { useEffect, useRef, type MouseEvent } from "react";
 import { Ellipsis, type LucideIcon } from "lucide-react";
 import { usePopoverState } from "@/runtime/studio/chrome/header/parts/actions/account/service/usePopoverState.js";
 
@@ -14,12 +14,20 @@ export interface ActionsMoreItem {
 interface ActionsMoreProps {
   panelId: string;
   items: ActionsMoreItem[];
+  variant: "editor" | "catalog";
   stopPropagation?: boolean;
+  catalogItemKey?: string;
 }
 
-export function ActionsMore({ panelId, items, stopPropagation = false }: ActionsMoreProps) {
+export function ActionsMore({
+  panelId,
+  items,
+  variant,
+  stopPropagation = false,
+  catalogItemKey
+}: ActionsMoreProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const { isOpen, isClosing, isMounted, togglePanel, onPanelAnimationEnd } = usePopoverState(rootRef);
+  const { isOpen, isClosing, isMounted, togglePanel, closePanel, onPanelAnimationEnd } = usePopoverState(rootRef);
 
   const onClickMore = (event: MouseEvent<HTMLButtonElement>): void => {
     if (stopPropagation) {
@@ -35,8 +43,27 @@ export function ActionsMore({ panelId, items, stopPropagation = false }: Actions
     onClick?.();
   };
 
+  useEffect(() => {
+    if (variant !== "catalog") {
+      return;
+    }
+
+    const onCatalogHover = (event: Event): void => {
+      const detail = (event as CustomEvent<{ key?: string }>).detail;
+      if (!detail?.key || detail.key === catalogItemKey) {
+        return;
+      }
+      closePanel();
+    };
+
+    window.addEventListener("atria:pages:catalog-hover", onCatalogHover);
+    return () => {
+      window.removeEventListener("atria:pages:catalog-hover", onCatalogHover);
+    };
+  }, [variant, catalogItemKey, closePanel]);
+
   return (
-    <div className="pages-editor__more" ref={rootRef}>
+    <div className={`pages-actions-more pages-actions-more--${variant}`} ref={rootRef}>
       <button
         type="button"
         className="button button--square button--overlay button--has-icon"
@@ -44,7 +71,7 @@ export function ActionsMore({ panelId, items, stopPropagation = false }: Actions
         aria-haspopup="menu"
         aria-controls={panelId}
         aria-expanded={isOpen}
-        data-tooltip="More"
+        data-tooltip={isOpen ? undefined : "More"}
         onClick={onClickMore}
       >
         <div className="button__icon">
@@ -57,13 +84,13 @@ export function ActionsMore({ panelId, items, stopPropagation = false }: Actions
           id={panelId}
           className={
             !isClosing
-              ? "pages-editor__more-panel pages-editor__more-panel--open"
-              : "pages-editor__more-panel pages-editor__more-panel--closing"
+              ? `pages-actions-more__panel pages-actions-more__panel--${variant} pages-actions-more__panel--open`
+              : `pages-actions-more__panel pages-actions-more__panel--${variant} pages-actions-more__panel--closing`
           }
           onAnimationEnd={onPanelAnimationEnd}
         >
-          <div className="pages-editor__more-menu">
-            <div className="pages-editor__more-menu-content" aria-label="Page actions">
+          <div className="pages-actions-more__menu">
+            <div className="pages-actions-more__menu-content" aria-label="Page actions">
               {items.map((item) => {
                 if (item.hidden) {
                   return null;
@@ -78,7 +105,7 @@ export function ActionsMore({ panelId, items, stopPropagation = false }: Actions
                     onClick={(event) => onClickItem(event, item.onClick)}
                   >
                     <span className="button__icon" aria-hidden="true"><item.icon size={13} /></span>
-                    <span className="button__label pages-editor__more-panel-label">{item.label}</span>
+                    <span className="button__label pages-actions-more__label">{item.label}</span>
                   </button>
                 );
               })}

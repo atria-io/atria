@@ -118,6 +118,7 @@ export const usePopoverState = (
     isClosing,
     isMounted,
     togglePanel,
+    closePanel,
     onPanelAnimationEnd,
   };
 };

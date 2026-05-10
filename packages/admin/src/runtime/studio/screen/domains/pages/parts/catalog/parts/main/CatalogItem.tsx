@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { Archive, Dot, EyeOff, Trash2, Upload } from "lucide-react";
 import type { CatalogItem as CatalogItemType } from "../../../editor/services/editorState.js";
 import { resolveDocumentPath } from "../../../../services/state/pagesState.js";
-import { ActionsMore } from "../../../../shared/ActionsMore.js";
+import { ActionsMore } from "../../../../shared/actions-more/ActionsMore.js";
 
 interface CatalogItemProps {
   item: CatalogItemType;
@@ -41,11 +41,16 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
+  const onHoverItem = (): void => {
+    window.dispatchEvent(new CustomEvent("atria:pages:catalog-hover", { detail: { key: item.uuid } }));
+  };
+
   return (
     <div
       className="pages-catalog__item"
       key={item.uuid}
       onClick={onOpenItem}
+      onMouseEnter={onHoverItem}
       ref={rootRef}
     >
       <span className={statusClassName} aria-label={statusLabel} title={statusLabel}>
@@ -57,7 +62,9 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
       <div className="pages-catalog__show-more">
         <ActionsMore
           panelId={`pages-catalog-more-panel-menu-${item.uuid}`}
+          variant="catalog"
           stopPropagation
+          catalogItemKey={item.uuid}
           items={[
             item.status === "archived"
               ? { key: "unarchive", label: "Unarchive", icon: Upload }
