@@ -1,6 +1,6 @@
 {
   "name": "@atria/server",
-  "version": "0.0.38",
+  "version": "0.0.39",
   "description": "Server package",
   "license": "MIT",
   "type": "module",
@@ -15,6 +15,6 @@
     "prepublishOnly": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@atria/db": "workspace:*"
+    "@atria/db": "0.0.25"
   }
 }

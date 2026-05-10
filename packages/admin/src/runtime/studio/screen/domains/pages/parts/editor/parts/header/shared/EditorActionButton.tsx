@@ -19,7 +19,7 @@ export function EditorActionButton({
 }: EditorActionButtonProps) {
   const className = Icon
     ? "button button--square button--overlay button--has-icon"
-    : "button button--solid button--xs button--overlay button--center";
+    : "button button--solid button--sm button--overlay button--center";
 
   return (
     <button
