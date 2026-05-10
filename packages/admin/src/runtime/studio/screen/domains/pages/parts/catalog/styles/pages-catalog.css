@@ -52,16 +52,17 @@
   inset: 0;
 }
 
-.pages-catalog__item:hover::after {
-  background: var(--ghost-hover);
-}
-
-.pages-catalog__item[active] {
+.pages-catalog__item:hover::after,
+.pages-catalog__item[data-more-open]::after {
   background: var(--ghost-hover);
 }
 
 .pages-catalog__item[data-more-open] {
   z-index: 1;
+}
+
+.pages-catalog__item[active] {
+  background: var(--ghost-hover);
 }
 
 .pages-catalog__item-status {

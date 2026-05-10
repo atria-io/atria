@@ -68,28 +68,6 @@
   }
 }
 
-.button--danger {
-  --button-color: var(--error);
-  --button-color-hover: var(--error);
-  color: var(--error);
-}
-
-.button--danger-hover:hover,
-.button--danger-hover:focus-visible {
-  color: var(--error);
-}
-
-.button--danger-fill-hover {
-  --button-color: var(--error);
-  --button-color-hover: var(--accent-text);
-  --button-background-hover: var(--error);
-}
-
-.button--danger-fill-hover:hover,
-.button--danger-fill-hover:focus-visible {
-  border-color: var(--error);
-}
-
 /*!button-overlay*/
 .button--overlay {
   isolation: isolate;
@@ -153,6 +131,11 @@
 .button--link-muted {
   --button-color: var(--text-ghost);
   --button-color-hover: var(--text-hover);
+}
+
+.button--danger {
+  --button-color: var(--error);
+  --button-color-hover: var(--error);
 }
 
 /*!button-sizes*/
