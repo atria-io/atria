@@ -61,7 +61,7 @@ export const ButtonProviders = ({ mode }: ButtonProvidersProps) => {
               key={provider.id}
               type="button"
               className={toLoadingButtonClass(
-                "button button--solid button--sm button--full button--has-icon auth-provider-button",
+                "button button--solid button--md button--full button--has-icon auth-provider-button",
                 isLoading
               )}
               onClick={() => handleProviderClick(provider.id)}

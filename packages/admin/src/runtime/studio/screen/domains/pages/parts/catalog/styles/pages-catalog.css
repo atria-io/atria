@@ -39,7 +39,6 @@
   cursor: pointer;
 }
 
-.pages-catalog__item:hover,
 .pages-catalog__item[active] {
   background: var(--ghost-hover);
 }
@@ -73,6 +72,11 @@
 
 .pages-catalog__item:hover .pages-catalog__show-more {
   opacity: 1;
+}
+
+.pages-catalog__show-more .pages-editor__more-panel {
+  left: auto;
+  right: 0;
 }
 
 .pages-catalog__show-more svg {

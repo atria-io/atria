@@ -1,8 +1,9 @@
 import type { MouseEvent } from "react";
 import { useEffect, useRef } from "react";
-import { Dot, Ellipsis } from "lucide-react";
+import { Archive, Dot, EyeOff, Trash2, Upload } from "lucide-react";
 import type { CatalogItem as CatalogItemType } from "../../../editor/services/editorState.js";
 import { resolveDocumentPath } from "../../../../services/state/pagesState.js";
+import { ActionsMore } from "../../../../shared/ActionsMore.js";
 
 interface CatalogItemProps {
   item: CatalogItemType;
@@ -53,15 +54,19 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
       <span className="pages-catalog__item-title">
         <span>{item.title.trim() || "Untitled page"}</span>
       </span>
-        <button
-          type="button"
-          className="button button--square button--overlay button--has-icon pages-catalog__show-more"
-          aria-label="More"
-        >
-        <div className="button__icon" data-tooltip="More">
-          <Ellipsis size={16} />
-        </div>
-      </button>
+      <div className="pages-catalog__show-more">
+        <ActionsMore
+          panelId={`pages-catalog-more-panel-menu-${item.uuid}`}
+          stopPropagation
+          items={[
+            item.status === "archived"
+              ? { key: "unarchive", label: "Unarchive", icon: Upload }
+              : { key: "archive", label: "Archive", icon: Archive },
+            { key: "unpublish", label: "Unpublish", icon: EyeOff, hidden: item.status === "archived" },
+            { key: "delete", label: "Delete", icon: Trash2, danger: true },
+          ]}
+        />
+      </div>
     </div>
   );
 }

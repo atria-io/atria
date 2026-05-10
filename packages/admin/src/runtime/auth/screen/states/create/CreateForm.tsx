@@ -37,9 +37,9 @@ export const CreateForm = ({
       </p>
 
       <div className="auth-form__fields">
-        <div className="field">
+        <div className="field field--gap-md">
           <label
-            className="field__label"
+            className="field__label field--label-xs"
             htmlFor="auth-create-first-name"
           >
             First name
@@ -58,9 +58,9 @@ export const CreateForm = ({
           />
         </div>
 
-        <div className="field">
+        <div className="field field--gap-md">
           <label
-            className="field__label"
+            className="field__label field--label-xs"
             htmlFor="auth-create-last-name"
           >
             Last name
@@ -79,9 +79,9 @@ export const CreateForm = ({
           />
         </div>
 
-        <div className="field">
+        <div className="field field--gap-md">
           <label
-            className="field__label"
+            className="field__label field--label-xs"
             htmlFor="auth-create-email"
           >
             Email
@@ -100,9 +100,9 @@ export const CreateForm = ({
           />
         </div>
 
-        <div className="field">
+        <div className="field field--gap-md">
           <label
-            className="field__label"
+            className="field__label field--label-xs"
             htmlFor="auth-create-password"
           >
             Password
@@ -121,9 +121,9 @@ export const CreateForm = ({
           />
         </div>
 
-        <div className="field">
+        <div className="field field--gap-md">
           <label
-            className="field__label"
+            className="field__label field--label-xs"
             htmlFor="auth-create-confirm-password"
           >
             Confirm password
@@ -154,7 +154,7 @@ export const CreateForm = ({
         <button
           type="submit"
           className={toLoadingButtonClass(
-            "button button--solid button--sm button--full",
+            "button button--solid button--md button--full",
             disabled
           )}
           disabled={disabled}

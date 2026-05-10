@@ -38,8 +38,23 @@ const slugify = (value: string): string =>
     .replace(/-{2,}/g, "-")
     .slice(0, 200);
 
+const normalizeManualSlug = (value: string): string =>
+  value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\//g, "")
+    .replace(/[^a-z0-9-]/g, "")
+    .slice(0, 200);
+
+const isValidPersistedSlug = (value: string): boolean =>
+  /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
+
 const isManualSlug = (title: string, slug: string): boolean =>
   slug !== slugify(title);
+
+const keepSlugLocked = (title: string, slug: string): boolean =>
+  getEditorState().slugTouched || isManualSlug(title, slug);
 
 const upsertDraftItem = (
   uuid: string,
@@ -92,7 +107,7 @@ const loadDraftById = async (uuid: string): Promise<void> => {
     setEditorState({
       title: payload.title,
       slug: payload.slug,
-      slugTouched: isManualSlug(payload.title, payload.slug),
+      slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   }
 };
@@ -113,7 +128,7 @@ export const syncEditorFromRoute = (creating: boolean): void => {
     currentUuid: routeUuid,
     title: routeDraft ? routeDraft.title : route.mode === "create" ? state.title : "",
     slug: routeDraft ? routeDraft.slug : route.mode === "create" ? state.slug : "",
-    slugTouched: routeDraft ? isManualSlug(routeDraft.title, routeDraft.slug) : state.slugTouched,
+    slugTouched: route.mode === "document" ? true : state.slugTouched,
   });
 
   if (routeUuid && !routeDraft) {
@@ -146,7 +161,7 @@ export const setTitle = (title: string): void => {
       upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
       setEditorState({
         slug: payload.slug,
-        slugTouched: isManualSlug(payload.title, payload.slug),
+        slugTouched: keepSlugLocked(payload.title, payload.slug),
       });
     }).finally(() => {
       createInFlight = false;
@@ -174,7 +189,7 @@ export const setTitle = (title: string): void => {
       upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
       setEditorState({
         slug: payload.slug,
-        slugTouched: isManualSlug(payload.title, payload.slug),
+        slugTouched: keepSlugLocked(payload.title, payload.slug),
       });
     });
     return;
@@ -185,10 +200,14 @@ export const setTitle = (title: string): void => {
 
 export const setSlug = (slug: string): void => {
   const state = getEditorState();
-  const normalized = slugify(slug);
+  const normalized = normalizeManualSlug(slug);
   setEditorState({ slug: normalized, slugTouched: true });
 
   if (!state.currentUuid) {
+    return;
+  }
+
+  if (!isValidPersistedSlug(normalized)) {
     return;
   }
 
@@ -208,9 +227,18 @@ export const setSlug = (slug: string): void => {
     upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
     setEditorState({
       slug: payload.slug,
-      slugTouched: isManualSlug(payload.title, payload.slug),
+      slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   });
+};
+
+export const lockAutoSlug = (): void => {
+  const state = getEditorState();
+  if (state.slugTouched) {
+    return;
+  }
+
+  setEditorState({ slugTouched: true });
 };
 
 export const publishCurrentPage = (): void => {
@@ -231,7 +259,7 @@ export const publishCurrentPage = (): void => {
     setEditorState({
       title: payload.title,
       slug: payload.slug,
-      slugTouched: isManualSlug(payload.title, payload.slug),
+      slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   });
 };
@@ -254,7 +282,7 @@ export const unpublishCurrentPage = (): void => {
     setEditorState({
       title: payload.title,
       slug: payload.slug,
-      slugTouched: isManualSlug(payload.title, payload.slug),
+      slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   });
 };
@@ -277,7 +305,7 @@ export const archiveCurrentPage = (): void => {
     setEditorState({
       title: payload.title,
       slug: payload.slug,
-      slugTouched: isManualSlug(payload.title, payload.slug),
+      slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   });
 };

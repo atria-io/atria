@@ -25,8 +25,8 @@ export const SignInForm = ({
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
       <div className="auth-form__fields">
-        <div className="field">
-          <label className="field__label" htmlFor="auth-signin-email">
+        <div className="field field--gap-md">
+          <label className="field__label field--label-xs" htmlFor="auth-signin-email">
             Email
           </label>
 
@@ -43,8 +43,8 @@ export const SignInForm = ({
           />
         </div>
 
-        <div className="field">
-          <label className="field__label" htmlFor="auth-signin-password">
+        <div className="field field--gap-md">
+          <label className="field__label field--label-xs" htmlFor="auth-signin-password">
             Password
           </label>
 
@@ -68,7 +68,7 @@ export const SignInForm = ({
 
       <div className="auth-form__actions">
         <button
-          className="button button--solid button--sm button--full"
+          className="button button--solid button--md button--full"
           type="submit"
           disabled={disabled}
         >

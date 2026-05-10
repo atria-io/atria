@@ -15,4 +15,5 @@ export interface BootUser {
 export interface BootPayload {
   state: BootState;
   user?: BootUser;
+  frontendUrl?: string;
 }

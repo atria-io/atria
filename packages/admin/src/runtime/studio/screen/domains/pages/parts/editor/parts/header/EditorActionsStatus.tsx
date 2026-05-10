@@ -18,8 +18,16 @@ export function EditorActionsStatus() {
         : "Draft";
 
   if (status === "Online") {
-    return <div className="pages-editor__status--online">{status}</div>;
+    return (
+      <div className="pages-editor__status pages-editor__status--online">
+        {status}
+      </div>
+    );
   }
 
-  return <div className="pages-editor__status--draft">{status}</div>;
+  return (
+    <div className="pages-editor__status pages-editor__status--draft">
+      {status}
+    </div>
+  );
 }

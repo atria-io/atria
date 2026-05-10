@@ -29,7 +29,7 @@ export const BrokerView = () => {
               <form onSubmit={onSubmitConfirm}>
                 <button
                   type="submit"
-                  className="button button--solid button--sm button--full button--has-icon auth-provider-button"
+                  className="button button--solid button--md button--full button--has-icon auth-provider-button"
                   disabled={isSubmitting}
                 >
                   <span className="button__label">
@@ -50,7 +50,7 @@ export const BrokerView = () => {
               <button
               type="submit"
               className={toLoadingButtonClass(
-                "button button--solid button--sm button--full button--has-icon auth-provider-button",
+                "button button--solid button--md button--full button--has-icon auth-provider-button",
                 isSubmitting
               )}
               disabled={isSubmitting}>

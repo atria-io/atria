@@ -1,5 +1,6 @@
 import type { AppState } from "../appState.js";
 import type { BootPayload } from "./bootAppState.js";
+import { setFrontendUrl } from "../config/runtimeConfig.js";
 import { resolveAppState } from "./resolve/resolveAppState.js";
 
 export type { BootPayload, BootSnapshot } from "./bootAppState.js";
@@ -15,5 +16,6 @@ export const getAppState = async (
   }
 
   const payload = (await response.json()) as Partial<BootPayload>;
+  setFrontendUrl(payload.frontendUrl);
   return resolveAppState(payload, basePath);
 };

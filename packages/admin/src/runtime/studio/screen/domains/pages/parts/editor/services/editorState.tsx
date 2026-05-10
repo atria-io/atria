@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import {
   archiveCurrentPage,
   beginCreateMode,
+  lockAutoSlug,
   publishCurrentPage,
   setSlug,
   setTitle,
@@ -31,6 +32,10 @@ export const useEditorStateSetup = (creating: boolean): void => {
 
 export const setEditorTitle = (title: string): void => {
   setTitle(title);
+};
+
+export const lockEditorAutoSlug = (): void => {
+  lockAutoSlug();
 };
 
 export const setEditorSlug = (slug: string): void => {

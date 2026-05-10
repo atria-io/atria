@@ -31,7 +31,7 @@ export const SignInView = () => {
             <div className="auth-card__actions">
               <button
                 type="button"
-                className="button button--solid button--sm button--full auth-provider-button"
+                className="button button--solid button--md button--full auth-provider-button"
                 onClick={onEnableEmailForm}
               >
                 <span className="button__label">Continue with Email</span>

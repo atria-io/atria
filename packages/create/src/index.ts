@@ -24,7 +24,6 @@ const ADMIN_RUNTIME_SOURCE_DIR = existsSync(BUNDLED_ADMIN_RUNTIME_SOURCE_DIR)
 const DEFAULT_PROJECT_LABEL = "My Studio Project";
 const DEFAULT_PROJECT_DIR = "my-project";
 const STUDIO_PACKAGE_NAME = "studio";
-const DEFAULT_AUTH_BROKER_ORIGIN = "https://api.atrialabs.pt";
 
 type PackageManager = "npm" | "pnpm" | "yarn";
 
@@ -47,23 +46,17 @@ interface ProjectSelection {
 
 const createEnvExampleFile = (): string =>
   [
-    "# Preferred",
-    "ATRIA_DATABASE_URL=",
+    "# Preferred Database",
+    "# ATRIA_DATABASE_URL=",
     "",
     "# Compatibility",
     "# DATABASE_URL=",
     "",
-    "# Central OAuth broker origin (recommended)",
-    `ATRIA_AUTH_BROKER_ORIGIN=${DEFAULT_AUTH_BROKER_ORIGIN}`,
+    "# Studio URL",
+    "ATRIA_STUDIO_URL=http://localhost:3333",
     "",
-    "# Self-host OAuth fallback (optional)",
-    "# ATRIA_AUTH_GOOGLE_CLIENT_ID=",
-    "# ATRIA_AUTH_GOOGLE_CLIENT_SECRET=",
-    "# ATRIA_AUTH_GITHUB_CLIENT_ID=",
-    "# ATRIA_AUTH_GITHUB_CLIENT_SECRET=",
-    "",
-    "# Optional Studio origin override (default: http://localhost:3333)",
-    "# ATRIA_AUTH_ORIGIN=",
+    "# Frontend URL",
+    "ATRIA_FRONTEND_URL=http://localhost:4444",
     ""
   ].join("\n");
 

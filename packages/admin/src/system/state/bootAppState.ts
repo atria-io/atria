@@ -4,6 +4,7 @@ import type { User } from "../../runtime/studio/types.js";
 export interface BootPayload {
   state: State | "authenticated";
   user?: User;
+  frontendUrl?: string;
 }
 
 export type BootState = BootPayload["state"];

@@ -41,7 +41,7 @@ export const CreateView = () => {
               <button
                 type="button"
                 className={toLoadingButtonClass(
-                  "button button--solid button--sm button--full auth-provider-button",
+                  "button button--solid button--md button--full auth-provider-button",
                   isEmailSubmitting
                 )}
                 onClick={onEnableEmailFormWithLoading}
