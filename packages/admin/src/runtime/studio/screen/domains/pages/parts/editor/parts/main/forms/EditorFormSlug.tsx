@@ -30,7 +30,7 @@ export function EditorFormSlug() {
             type="text"
             value={slug}
             onChange={(event) => setEditorSlug(event.target.value)}
-            className="input pages-editor__slug-input"
+            className="input input--interactive pages-editor__slug-input"
             placeholder="page-slug"
           />
           {hasDuplicateSlug ? (

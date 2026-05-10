@@ -69,12 +69,25 @@
 }
 
 .button--danger {
+  --button-color: var(--error);
+  --button-color-hover: var(--error);
   color: var(--error);
 }
 
 .button--danger-hover:hover,
 .button--danger-hover:focus-visible {
   color: var(--error);
+}
+
+.button--danger-fill-hover {
+  --button-color: var(--error);
+  --button-color-hover: var(--accent-text);
+  --button-background-hover: var(--error);
+}
+
+.button--danger-fill-hover:hover,
+.button--danger-fill-hover:focus-visible {
+  border-color: var(--error);
 }
 
 /*!button-overlay*/

@@ -310,6 +310,32 @@ export const archiveCurrentPage = (): void => {
   });
 };
 
+export const deletePageById = async (uuid: string): Promise<boolean> => {
+  const deleted = await pagesApi.deletePage(uuid);
+  if (!deleted) {
+    return false;
+  }
+
+  const state = getEditorState();
+  const wasCurrent = state.currentUuid === uuid;
+  const nextDrafts = state.drafts.filter((item) => item.uuid !== uuid);
+
+  setEditorState({
+    drafts: nextDrafts,
+    currentUuid: wasCurrent ? null : state.currentUuid,
+    title: wasCurrent ? "" : state.title,
+    slug: wasCurrent ? "" : state.slug,
+    slugTouched: wasCurrent ? false : state.slugTouched,
+  });
+
+  if (wasCurrent) {
+    window.history.pushState({}, "", "/pages");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }
+
+  return true;
+};
+
 export const beginCreateMode = (): void => {
   setEditorState({
     currentUuid: null,

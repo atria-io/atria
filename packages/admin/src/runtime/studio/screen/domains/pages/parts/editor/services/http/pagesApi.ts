@@ -55,3 +55,8 @@ export const updatePage = async (
 
   return (await response.json()) as PageApiPayload;
 };
+
+export const deletePage = async (id: string): Promise<boolean> => {
+  const response = await fetch(`/api/pages/${id}`, { method: "DELETE" });
+  return response.status === 204;
+};

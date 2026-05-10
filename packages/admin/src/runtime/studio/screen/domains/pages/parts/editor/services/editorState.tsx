@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import {
   archiveCurrentPage,
   beginCreateMode,
+  deletePageById,
   lockAutoSlug,
   publishCurrentPage,
   setSlug,
@@ -56,4 +57,8 @@ export const unpublishEditorPage = (): void => {
 
 export const archiveEditorPage = (): void => {
   archiveCurrentPage();
+};
+
+export const deleteEditorPageById = (uuid: string): Promise<boolean> => {
+  return deletePageById(uuid);
 };

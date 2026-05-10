@@ -16,7 +16,7 @@ interface ActionsMoreProps {
   items: ActionsMoreItem[];
   variant: "editor" | "catalog";
   stopPropagation?: boolean;
-  catalogItemKey?: string;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function ActionsMore({
@@ -24,7 +24,7 @@ export function ActionsMore({
   items,
   variant,
   stopPropagation = false,
-  catalogItemKey
+  onOpenChange
 }: ActionsMoreProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const { isOpen, isClosing, isMounted, togglePanel, closePanel, onPanelAnimationEnd } = usePopoverState(rootRef);
@@ -34,6 +34,10 @@ export function ActionsMore({
       event.stopPropagation();
     }
     togglePanel();
+    if (!isOpen) {
+      event.currentTarget.blur();
+      event.currentTarget.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
+    }
   };
 
   const onClickItem = (event: MouseEvent<HTMLButtonElement>, onClick?: () => void): void => {
@@ -44,34 +48,19 @@ export function ActionsMore({
   };
 
   useEffect(() => {
-    if (variant !== "catalog") {
-      return;
-    }
-
-    const onCatalogHover = (event: Event): void => {
-      const detail = (event as CustomEvent<{ key?: string }>).detail;
-      if (!detail?.key || detail.key === catalogItemKey) {
-        return;
-      }
-      closePanel();
-    };
-
-    window.addEventListener("atria:pages:catalog-hover", onCatalogHover);
-    return () => {
-      window.removeEventListener("atria:pages:catalog-hover", onCatalogHover);
-    };
-  }, [variant, catalogItemKey, closePanel]);
+    onOpenChange?.(isMounted);
+  }, [isMounted, onOpenChange]);
 
   return (
     <div className={`pages-actions-more pages-actions-more--${variant}`} ref={rootRef}>
       <button
         type="button"
-        className="button button--square button--overlay button--has-icon"
+        className={`button button--square button--overlay button--has-icon${isMounted ? " pages-actions-more__trigger--open" : ""}`}
         aria-label="More"
         aria-haspopup="menu"
         aria-controls={panelId}
         aria-expanded={isOpen}
-        data-tooltip={isOpen ? undefined : "More"}
+        data-tooltip={isMounted ? undefined : "More"}
         onClick={onClickMore}
       >
         <div className="button__icon">

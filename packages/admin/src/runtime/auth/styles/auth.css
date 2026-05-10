@@ -20,7 +20,7 @@
   margin-bottom: 7vh;
   border: var(--border-solid);
   border-radius: var(--radius);
-  padding: calc(var(--spacing) * 5);
+  padding: calc(var(--layout-inset) * 1.25);
 }
 
 .auth-card__header-text {
@@ -35,7 +35,7 @@
 }
 
 .auth-card__actions button+button {
-  margin-top: calc(var(--layout-gap) * 2);
+  margin-top: var(--layout-gap);
 }
 
 .auth-provider-button svg {

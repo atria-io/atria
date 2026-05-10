@@ -37,11 +37,31 @@
   padding: 0.625rem 0.5rem;
   user-select: none;
   cursor: pointer;
+  position: relative;
+  isolation: isolate;
 }
 
-.pages-catalog__item:hover,
+.pages-catalog__item::after {
+  content: "";
+  position: absolute;
+  border-radius: inherit;
+  background: transparent;
+  transition: none !important;
+  opacity: 0.25;
+  z-index: -1;
+  inset: 0;
+}
+
+.pages-catalog__item:hover::after {
+  background: var(--ghost-hover);
+}
+
 .pages-catalog__item[active] {
   background: var(--ghost-hover);
+}
+
+.pages-catalog__item[data-more-open] {
+  z-index: 1;
 }
 
 .pages-catalog__item-status {
@@ -71,7 +91,9 @@
   opacity: 0;
 }
 
-.pages-catalog__item:hover .pages-catalog__show-more {
+.pages-catalog__item[active] .pages-catalog__show-more,
+.pages-catalog__item:hover .pages-catalog__show-more,
+.pages-catalog__item[data-more-open="true"] .pages-catalog__show-more {
   opacity: 1;
 }
 

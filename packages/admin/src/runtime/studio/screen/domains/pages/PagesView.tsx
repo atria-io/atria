@@ -2,6 +2,7 @@ import { CatalogView } from "./parts/catalog/CatalogView.js";
 import { EditorView } from "./parts/editor/EditorView.js";
 import { FoldersView } from "./parts/folders/FoldersView.js";
 import { RoutesView } from "./parts/routes/RoutesView.js";
+import { DeletePageConfirm } from "./shared/delete-confirm/DeletePageConfirm.js";
 import * as pageState from "./services/state/pagesState.js";
 
 export const PagesView = () => {
@@ -27,6 +28,7 @@ export const PagesView = () => {
           </div>
         </div>
       </div>
+      <DeletePageConfirm />
     </div>
   );
 };

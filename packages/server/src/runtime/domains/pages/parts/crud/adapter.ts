@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { CreatePageInput, UpdatePageInput } from "../../types.js";
-import { resolvePageCreate, resolvePageGet, resolvePagePatch, resolvePagesList } from "./logic.js";
+import { resolvePageCreate, resolvePageDelete, resolvePageGet, resolvePagePatch, resolvePagesList } from "./logic.js";
 
 const writeJson = (response: ServerResponse, statusCode: number, payload: unknown): void => {
   response.statusCode = statusCode;
@@ -80,6 +80,19 @@ export const handleCrudRoutes = async (
     }
 
     writeJson(response, 200, result.payload);
+    return true;
+  }
+
+  if (request.method === "DELETE" && parts.length === 3) {
+    const deleted = await resolvePageDelete(uuid);
+    if (!deleted) {
+      response.statusCode = 404;
+      response.end();
+      return true;
+    }
+
+    response.statusCode = 204;
+    response.end();
     return true;
   }
 

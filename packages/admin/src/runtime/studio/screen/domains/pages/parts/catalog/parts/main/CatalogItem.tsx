@@ -1,9 +1,15 @@
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { useEffect, useRef } from "react";
 import { Archive, Dot, EyeOff, Trash2, Upload } from "lucide-react";
-import type { CatalogItem as CatalogItemType } from "../../../editor/services/editorState.js";
+import {
+  archiveEditorPage,
+  publishEditorPage,
+  unpublishEditorPage,
+  type CatalogItem as CatalogItemType
+} from "../../../editor/services/editorState.js";
 import { resolveDocumentPath } from "../../../../services/state/pagesState.js";
 import { ActionsMore } from "../../../../shared/actions-more/ActionsMore.js";
+import { openDeletePageConfirm } from "../../../../shared/delete-confirm/DeletePageConfirm.js";
 
 interface CatalogItemProps {
   item: CatalogItemType;
@@ -12,6 +18,7 @@ interface CatalogItemProps {
 
 export function CatalogItem({ item, active }: CatalogItemProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
   const statusLabel = item.status === "published"
     ? "Online"
     : item.status === "archived"
@@ -41,8 +48,10 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
-  const onHoverItem = (): void => {
-    window.dispatchEvent(new CustomEvent("atria:pages:catalog-hover", { detail: { key: item.uuid } }));
+  const runItemAction = (action: () => void) => (): void => {
+    window.history.pushState({}, "", resolveDocumentPath(item.uuid));
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    window.setTimeout(action, 0);
   };
 
   return (
@@ -50,7 +59,7 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
       className="pages-catalog__item"
       key={item.uuid}
       onClick={onOpenItem}
-      onMouseEnter={onHoverItem}
+      data-more-open={moreOpen ? "true" : undefined}
       ref={rootRef}
     >
       <span className={statusClassName} aria-label={statusLabel} title={statusLabel}>
@@ -64,13 +73,32 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
           panelId={`pages-catalog-more-panel-menu-${item.uuid}`}
           variant="catalog"
           stopPropagation
-          catalogItemKey={item.uuid}
+          onOpenChange={setMoreOpen}
           items={[
             item.status === "archived"
-              ? { key: "unarchive", label: "Unarchive", icon: Upload }
-              : { key: "archive", label: "Archive", icon: Archive },
-            { key: "unpublish", label: "Unpublish", icon: EyeOff, hidden: item.status === "archived" },
-            { key: "delete", label: "Delete", icon: Trash2, danger: true },
+              ? { key: "unarchive", label: "Unarchive", icon: Upload, onClick: runItemAction(unpublishEditorPage) }
+              : { key: "archive", label: "Archive", icon: Archive, onClick: runItemAction(archiveEditorPage) },
+            {
+              key: "publish",
+              label: "Publish",
+              icon: Upload,
+              hidden: item.status === "published",
+              onClick: runItemAction(publishEditorPage),
+            },
+            {
+              key: "unpublish",
+              label: "Unpublish",
+              icon: EyeOff,
+              hidden: item.status !== "published",
+              onClick: runItemAction(unpublishEditorPage),
+            },
+            {
+              key: "delete",
+              label: "Delete",
+              icon: Trash2,
+              danger: true,
+              onClick: () => openDeletePageConfirm(item.uuid, item.title),
+            },
           ]}
         />
       </div>

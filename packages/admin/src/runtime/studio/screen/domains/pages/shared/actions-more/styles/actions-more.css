@@ -2,8 +2,17 @@
   position: relative;
 }
 
+.pages-actions-more__trigger--open {
+  pointer-events: none;
+}
+
+.pages-actions-more__trigger--open::after {
+  background: var(--button-background-hover, var(--ghost-hover));
+}
+
 .pages-actions-more__panel {
   position: absolute;
+  z-index: 1;
 }
 
 .pages-actions-more__panel--editor {
