@@ -34,3 +34,11 @@ export const useCatalogFilterState = (): CatalogFilterState =>
 export const toggleArchivedOnly = (): void => {
   setState({ archivedOnly: !state.archivedOnly });
 };
+
+export const closeArchivedOnly = (): void => {
+  if (!state.archivedOnly) {
+    return;
+  }
+
+  setState({ archivedOnly: false });
+};

@@ -5,7 +5,9 @@ export function EditorMain() {
   const { creating } = useEditorState();
 
   if (!creating) {
-    return;
+    return (
+      <div className="card-column__item" data-type="edit"></div>
+    );
   }
 
   return (

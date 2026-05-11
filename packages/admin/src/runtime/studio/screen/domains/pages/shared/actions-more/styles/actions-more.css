@@ -7,7 +7,7 @@
 }
 
 .pages-actions-more__trigger--open::after {
-  background: var(--button-background-hover, var(--ghost-hover));
+  background: var(--ghost-hover);
 }
 
 .pages-actions-more__panel {

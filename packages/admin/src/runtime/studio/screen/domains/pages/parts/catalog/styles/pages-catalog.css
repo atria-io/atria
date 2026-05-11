@@ -24,6 +24,10 @@
   content: '';
 }
 
+.pages-catalog__action--archived[active]::after {
+  background: var(--ghost-hover);
+}
+
 .pages-catalog__main {
   display: grid;
   gap: var(--layout-gap);
