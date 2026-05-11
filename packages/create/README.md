@@ -42,7 +42,7 @@ npx create-atria my-project
 - `published/public/.gitkeep`
 - `published/theme/.gitkeep`
 - `published/media/.gitkeep`
-- `published/htm/.gitkeep`
+- `published/html/.gitkeep`
 - `.atria/runtime/index.html`
 - `.atria/runtime/app.js`
 
