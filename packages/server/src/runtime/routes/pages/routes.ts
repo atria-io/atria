@@ -74,8 +74,7 @@ export const handlePagesRoutes = async (
     if (request.method === "GET" && parts.length === 3) {
       const result = await resolvePageGet(uuid);
       if (result.status !== "ok") {
-        response.statusCode = result.status === "invalid_id" ? 400 : 404;
-        response.end();
+        writeJson(response, 404, { error: "Not Found" });
         return true;
       }
 
@@ -86,8 +85,13 @@ export const handlePagesRoutes = async (
     if (request.method === "PATCH" && parts.length === 3) {
       const result = await resolvePagePatch(uuid, await readJSONBody<UpdatePageInput>(request));
       if (result.status !== "ok") {
-        response.statusCode = result.status === "invalid_payload" ? 400 : 404;
-        response.end();
+        if (result.status === "invalid_payload") {
+          response.statusCode = 400;
+          response.end();
+          return true;
+        }
+
+        writeJson(response, 404, { error: "Not Found" });
         return true;
       }
 
@@ -98,8 +102,7 @@ export const handlePagesRoutes = async (
     if (request.method === "DELETE" && parts.length === 3) {
       const deleted = await resolvePageDelete(uuid);
       if (!deleted) {
-        response.statusCode = 404;
-        response.end();
+        writeJson(response, 404, { error: "Not Found" });
         return true;
       }
 

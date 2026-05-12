@@ -8,6 +8,11 @@ import {
   resolveCreateOwner
 } from "./create.logic.js";
 import type { SignInPayload } from "../types.js";
+import {
+  allowAuthRequest,
+  buildSessionCookie,
+  isTrustedOrigin,
+} from "../security.js";
 
 const readJSONBody = async (
   request: IncomingMessage
@@ -49,6 +54,18 @@ export const handleCreateViewRoutes = async (
   }
 
   if (request.method === "POST" && pathname === "/auth/create-owner") {
+    if (!isTrustedOrigin(request)) {
+      response.statusCode = 403;
+      response.end();
+      return true;
+    }
+
+    if (!allowAuthRequest(request, "auth:create-owner")) {
+      response.statusCode = 429;
+      response.end();
+      return true;
+    }
+
     const payload = await readJSONBody(request);
     const firstName = parseFirstName(payload?.firstName);
     const lastName = parseLastName(payload?.lastName);
@@ -75,7 +92,7 @@ export const handleCreateViewRoutes = async (
     }
 
     response.statusCode = 204;
-    response.setHeader("Set-Cookie", `session=${result.sessionId}; Path=/; HttpOnly`);
+    response.setHeader("Set-Cookie", buildSessionCookie(request, result.sessionId));
     response.end();
     return true;
   }

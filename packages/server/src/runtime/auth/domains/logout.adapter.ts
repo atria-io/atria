@@ -1,5 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { revokeSession } from "./logout.logic.js";
+import {
+  allowAuthRequest,
+  buildSessionClearCookie,
+  isTrustedOrigin,
+} from "../security.js";
 
 const getSessionIdFromCookie = (
   request: IncomingMessage
@@ -39,10 +44,22 @@ export const handleLogoutViewRoutes = async (
     return false;
   }
 
+  if (!isTrustedOrigin(request)) {
+    response.statusCode = 403;
+    response.end();
+    return true;
+  }
+
+  if (!allowAuthRequest(request, "auth:logout")) {
+    response.statusCode = 429;
+    response.end();
+    return true;
+  }
+
   await revokeSession(getSessionIdFromCookie(request));
 
   response.statusCode = 204;
-  response.setHeader("Set-Cookie", "session=; Path=/; HttpOnly; Max-Age=0");
+  response.setHeader("Set-Cookie", buildSessionClearCookie(request));
   response.end();
   return true;
 };

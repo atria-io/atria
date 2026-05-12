@@ -2,6 +2,14 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { sendProviderSignInStart } from "./broker.adapter.js";
 import { parseEmail, parsePassword, resolveSignIn } from "./login.logic.js";
 import type { SignInPayload } from "../types.js";
+import {
+  allowAuthRequest,
+  buildSessionCookie,
+  clearLoginFailures,
+  isLoginLocked,
+  isTrustedOrigin,
+  markLoginFailure,
+} from "../security.js";
 
 const readJSONBody = async (
   request: IncomingMessage
@@ -43,6 +51,18 @@ export const handleLoginViewRoutes = async (
   }
 
   if (request.method === "POST" && pathname === "/auth/sign-in") {
+    if (!isTrustedOrigin(request)) {
+      response.statusCode = 403;
+      response.end();
+      return true;
+    }
+
+    if (!allowAuthRequest(request, "auth:sign-in")) {
+      response.statusCode = 429;
+      response.end();
+      return true;
+    }
+
     const payload = await readJSONBody(request);
     const email = parseEmail(payload?.email);
     const password = parsePassword(payload?.password);
@@ -53,15 +73,23 @@ export const handleLoginViewRoutes = async (
       return true;
     }
 
-    const result = await resolveSignIn(email, password);
-    if (result.status !== "ok") {
+    if (isLoginLocked(email)) {
       response.statusCode = 401;
       response.end();
       return true;
     }
 
+    const result = await resolveSignIn(email, password);
+    if (result.status !== "ok") {
+      markLoginFailure(email);
+      response.statusCode = 401;
+      response.end();
+      return true;
+    }
+
+    clearLoginFailures(email);
     response.statusCode = 204;
-    response.setHeader("Set-Cookie", `session=${result.sessionId}; Path=/; HttpOnly`);
+    response.setHeader("Set-Cookie", buildSessionCookie(request, result.sessionId));
     response.end();
     return true;
   }

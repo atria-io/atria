@@ -6,6 +6,12 @@ import type {
   BrokerConfirmErrorResponse,
   BrokerProvider,
 } from "./broker.types.js";
+import {
+  allowAuthRequest,
+  buildTransientCookie,
+  buildSessionCookie,
+  isTrustedOrigin,
+} from "../security.js";
 
 const writeJson = (
   response: ServerResponse,
@@ -29,15 +35,26 @@ const writeBrokerConfirmError = (
   );
 };
 
+const writeGenericBrokerFailure = (
+  response: ServerResponse,
+  statusCode: number
+): void => {
+  writeBrokerConfirmError(response, statusCode, {
+    code: "session_creation_failed",
+    title: "Authentication failed",
+    message: "Unable to complete authentication.",
+    retryable: statusCode >= 500,
+    backToSignIn: true,
+  });
+};
+
 const sendOAuthFailureRedirect = (
+  request: IncomingMessage,
   response: ServerResponse,
   location: string
 ): void => {
   response.statusCode = 302;
-  response.setHeader(
-    "Set-Cookie",
-    "atria_signin_error=oauth_failed; Path=/; Max-Age=30"
-  );
+  response.setHeader("Set-Cookie", buildTransientCookie(request, "atria_signin_error", "oauth_failed", 30));
   response.setHeader("Location", location);
   response.end();
 };
@@ -96,6 +113,18 @@ export const sendBrokerConfirm = async (
   request: IncomingMessage,
   response: ServerResponse
 ): Promise<void> => {
+  if (!isTrustedOrigin(request)) {
+    response.statusCode = 403;
+    response.end();
+    return;
+  }
+
+  if (!allowAuthRequest(request, "auth:broker-consent")) {
+    response.statusCode = 429;
+    response.end();
+    return;
+  }
+
   const payload = await readJSONBody(request);
   const provider = toStringValue(payload?.provider).toLowerCase();
   const projectId = toStringValue(payload?.project_id);
@@ -111,65 +140,32 @@ export const sendBrokerConfirm = async (
 
   if (outcome.status === "ok") {
     response.statusCode = 204;
-    response.setHeader(
-      "Set-Cookie",
-      `session=${outcome.sessionId}; Path=/; HttpOnly`
-    );
+    response.setHeader("Set-Cookie", buildSessionCookie(request, outcome.sessionId));
     response.end();
     return;
   }
 
   if (outcome.code === "invalid_payload") {
-    writeBrokerConfirmError(response, 400, {
-      code: "invalid_payload",
-      title: "Invalid consent payload",
-      message: "Missing or invalid broker consent fields.",
-      retryable: false,
-      backToSignIn: true,
-    });
+    writeGenericBrokerFailure(response, 400);
     return;
   }
 
   if (outcome.code === "consent_rejected") {
-    writeBrokerConfirmError(response, 401, {
-      code: "consent_rejected",
-      title: "Consent rejected",
-      message: "Broker did not accept this consent request.",
-      retryable: true,
-      backToSignIn: true,
-    });
+    writeGenericBrokerFailure(response, 401);
     return;
   }
 
   if (outcome.code === "broker_confirm_failed") {
-    writeBrokerConfirmError(response, 502, {
-      code: "broker_confirm_failed",
-      title: "Broker unavailable",
-      message: "Could not complete broker exchange.",
-      retryable: true,
-      backToSignIn: false,
-    });
+    writeGenericBrokerFailure(response, 502);
     return;
   }
 
   if (outcome.code === "no_user_available") {
-    writeBrokerConfirmError(response, 401, {
-      code: "no_user_available",
-      title: "No eligible user",
-      message: "No local user is available for authenticated session.",
-      retryable: false,
-      backToSignIn: true,
-    });
+    writeGenericBrokerFailure(response, 401);
     return;
   }
 
-  writeBrokerConfirmError(response, 401, {
-    code: "session_creation_failed",
-    title: "Session failed",
-    message: "Could not create authenticated session.",
-    retryable: true,
-    backToSignIn: true,
-  });
+  writeGenericBrokerFailure(response, 401);
 };
 
 const getRequestProtocol = (
@@ -330,15 +326,12 @@ export const sendBrokerProviderCallback = async (
   if (brokerCode !== "") {
     const sessionResult = await resolveBrokerCodeToSession(brokerCode, projectId);
     if (sessionResult.status !== "ok") {
-      sendOAuthFailureRedirect(response, getSignInFailureReturnPath(request));
+      sendOAuthFailureRedirect(request, response, getSignInFailureReturnPath(request));
       return;
     }
 
     response.statusCode = 302;
-    response.setHeader(
-      "Set-Cookie",
-      `session=${sessionResult.sessionId}; Path=/; HttpOnly`
-    );
+    response.setHeader("Set-Cookie", buildSessionCookie(request, sessionResult.sessionId));
     response.setHeader("Location", nextPath === "/" ? "/" : nextPath);
     response.end();
     return;
@@ -361,5 +354,5 @@ export const sendBrokerProviderCallback = async (
     return;
   }
 
-  sendOAuthFailureRedirect(response, getSignInFailureReturnPath(request));
+  sendOAuthFailureRedirect(request, response, getSignInFailureReturnPath(request));
 };
