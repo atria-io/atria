@@ -8,7 +8,7 @@
 
 .pages-editor__header-leading {
   display: flex;
-  gap: var(--layout-gap);
+  gap: var(--layout-inset);
 }
 
 .pages-editor__header-title,

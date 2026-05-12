@@ -1,7 +1,16 @@
 import type { EditorState } from "./types.js";
+import { parsePagesRoute } from "../../../../services/state/pagesState.js";
+
+const resolveInitialCreating = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return parsePagesRoute(window.location.pathname).mode === "create";
+};
 
 let editorState: EditorState = {
-  creating: false,
+  creating: resolveInitialCreating(),
   title: "",
   slug: "",
   slugTouched: false,

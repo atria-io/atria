@@ -5,7 +5,7 @@ interface EditorHeaderTitleProps {
 export function EditorHeaderTitle({ title }: EditorHeaderTitleProps) {
   return (
     <div className="pages-editor__header-title">
-      <div>{title.trim() ? `${title}` : "Edit Page"}</div>
+      <div>{title.trim() ? `${title}` : "Create Page"}</div>
     </div>
   );
 }

@@ -7,11 +7,17 @@ interface EditorHeaderToolsProps {
 
 export function EditorHeaderTools({ onClose }: EditorHeaderToolsProps) {
   return (
-    <div className="pages-editor__header-tools" aria-label="Page tools">
-      <EditorActionButton ariaLabel="Close" tooltip="Close" icon={X} onClick={onClose} />
-      <EditorActionButton ariaLabel="History" tooltip="History" icon={UndoDot} />
-      <EditorActionButton ariaLabel="JSON" tooltip="JSON" icon={Braces} />
-      <EditorActionButton ariaLabel="Translate" tooltip="Translate" icon={Languages} />
-    </div>
+    <>
+      <div className="pages-editor__header-close" aria-label="Close Page">
+        <EditorActionButton ariaLabel="Close" tooltip="Close" icon={X} onClick={onClose} />
+      </div>
+      <div className="pages-editor__header-tools" aria-label="Page tools">
+        {/*
+        <EditorActionButton ariaLabel="History" tooltip="History" icon={UndoDot} />
+        <EditorActionButton ariaLabel="JSON" tooltip="JSON" icon={Braces} />
+        <EditorActionButton ariaLabel="Translate" tooltip="Translate" icon={Languages} />
+        */}
+      </div>
+    </>
   );
 }

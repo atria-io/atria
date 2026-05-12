@@ -130,7 +130,7 @@ export const syncEditorFromRoute = (): void => {
 
   setEditorState({
     creating,
-    currentUuid: routeUuid,
+    currentUuid: route.mode === "create" ? state.currentUuid : routeUuid,
     title: routeDraft ? routeDraft.title : route.mode === "create" ? state.title : "",
     slug: routeDraft ? routeDraft.slug : route.mode === "create" ? state.slug : "",
     slugTouched: route.mode === "document" ? true : state.slugTouched,
@@ -173,7 +173,6 @@ export const setTitle = (title: string): void => {
     createInFlight = true;
     setEditorState({ currentUuid: uuid, title, slug: nextSlug });
     upsertDraftItem(uuid, title, nextSlug || "untitled-page", "draft");
-    openDraftRoute(uuid);
 
     void pagesApi.createPage(uuid, trimmed, nextSlug || "untitled-page").then((payload) => {
       if (!payload) {
@@ -182,9 +181,14 @@ export const setTitle = (title: string): void => {
 
       upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
       setEditorState({
+        currentUuid: payload.id,
         slug: payload.slug,
-        slugTouched: keepSlugLocked(payload.title, payload.slug),
+        slugTouched: true,
       });
+
+      if (parsePagesRoute(window.location.pathname).mode === "create") {
+        openDraftRoute(payload.id);
+      }
     }).finally(() => {
       createInFlight = false;
     });
