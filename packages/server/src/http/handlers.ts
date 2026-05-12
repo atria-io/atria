@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import * as db from "@atria/db";
 import { handleAdminRoutes } from "../runtime/admin/routes.js";
 import { handleAuthRoutes } from "../runtime/auth/routes.js";
-import { handlePagesRoutes } from "../runtime/domains/pages/routes.js";
+import { handlePagesRoutes } from "../runtime/routes/pages/routes.js";
 
 const getSessionIdFromCookie = (
   request: IncomingMessage

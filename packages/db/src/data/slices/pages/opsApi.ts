@@ -1,4 +1,4 @@
-export { createPage } from "./parts/crud/domains/create/service.js";
-export { listPages, getPageById } from "./parts/crud/domains/read/service.js";
-export { updatePage } from "./parts/crud/domains/update/service.js";
-export { deletePage } from "./parts/crud/domains/delete/service.js";
+export { createPage } from "./domains/create/ops.js";
+export { listPages, getPageById } from "./domains/read/ops.js";
+export { updatePage } from "./domains/update/ops.js";
+export { deletePage } from "./domains/delete/ops.js";

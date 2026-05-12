@@ -1,7 +1,7 @@
-import { createQueries } from "./parts/crud/domains/create/queries.js";
-import { readQueries } from "./parts/crud/domains/read/queries.js";
-import { updateQueries } from "./parts/crud/domains/update/queries.js";
-import { deleteQueries } from "./parts/crud/domains/delete/queries.js";
+import { createQueries } from "./domains/create/dml.js";
+import { readQueries } from "./domains/read/dml.js";
+import { updateQueries } from "./domains/update/dml.js";
+import { deleteQueries } from "./domains/delete/dml.js";
 
 export const sql = {
   create: createQueries,
