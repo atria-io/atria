@@ -9,7 +9,7 @@ import {
 } from "./create.logic.js";
 import type { SignInPayload } from "../types.js";
 
-const readJsonBody = async (
+const readJSONBody = async (
   request: IncomingMessage
 ): Promise<SignInPayload | null> => {
   const chunks: Buffer[] = [];
@@ -49,7 +49,7 @@ export const handleCreateViewRoutes = async (
   }
 
   if (request.method === "POST" && pathname === "/auth/create-owner") {
-    const payload = await readJsonBody(request);
+    const payload = await readJSONBody(request);
     const firstName = parseFirstName(payload?.firstName);
     const lastName = parseLastName(payload?.lastName);
     const email = parseEmail(payload?.email);

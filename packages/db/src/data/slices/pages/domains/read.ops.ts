@@ -1,7 +1,7 @@
 import { withDatabase } from "@/system/withDatabase.js";
 import { sql } from "../dml.api.js";
+import { toPageRecord } from "../shared.js";
 import type { PageRecord } from "../types.js";
-import { toPageRecord } from "./shared.js";
 
 export const listPages = async (): Promise<PageRecord[]> => {
   return withDatabase<PageRecord[]>([], (db) => {

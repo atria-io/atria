@@ -3,7 +3,7 @@ import { sendProviderSignInStart } from "./broker.adapter.js";
 import { parseEmail, parsePassword, resolveSignIn } from "./login.logic.js";
 import type { SignInPayload } from "../types.js";
 
-const readJsonBody = async (
+const readJSONBody = async (
   request: IncomingMessage
 ): Promise<SignInPayload | null> => {
   const chunks: Buffer[] = [];
@@ -43,7 +43,7 @@ export const handleLoginViewRoutes = async (
   }
 
   if (request.method === "POST" && pathname === "/auth/sign-in") {
-    const payload = await readJsonBody(request);
+    const payload = await readJSONBody(request);
     const email = parseEmail(payload?.email);
     const password = parsePassword(payload?.password);
 

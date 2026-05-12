@@ -8,7 +8,14 @@ export const createPage = async (input: CreatePageInput): Promise<PageRecord | n
     const now = getTimestamp();
 
     try {
-      db.prepare(sql.create.insertPage).run(input.id, input.title, input.slug, "draft", now, now);
+      db.prepare(sql.create.insertPage).run(
+        input.id,
+        input.title,
+        input.slug,
+        "draft",
+        now,
+        now
+      );
       return {
         id: input.id,
         title: input.title,

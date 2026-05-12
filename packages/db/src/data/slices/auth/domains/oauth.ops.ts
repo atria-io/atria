@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { sql } from "../../dml.api.js";
+import { sql } from "../dml.api.js";
 import { withDatabase } from "@/system/withDatabase.js";
 import { getTimestamp, toString } from "@/data/support/shared.js";
-import type { AuthOAuthProfileInput, AuthOAuthProvider } from "../../types.js";
+import type { AuthOAuthProfileInput, AuthOAuthProvider } from "../types.js";
 
 export const getIdentityUserId = async (
   provider: AuthOAuthProvider,

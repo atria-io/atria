@@ -3,10 +3,10 @@ import {
   randomBytes,
   scryptSync
 } from "node:crypto";
-import { sql } from "../../dml.api.js";
+import { sql } from "../dml.api.js";
 import { withDatabase } from "@/system/withDatabase.js";
 import { getTimestamp, toCount, toString } from "@/data/support/shared.js";
-import type { AuthOwnerInput, OwnerSetupState } from "../../types.js";
+import type { AuthOwnerInput, OwnerSetupState } from "../types.js";
 
 const hashPassword = (password: string): string => {
   const salt = randomBytes(16).toString("hex");

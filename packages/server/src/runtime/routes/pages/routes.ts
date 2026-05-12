@@ -19,7 +19,7 @@ const writeJson = (response: ServerResponse, statusCode: number, payload: unknow
   response.end(JSON.stringify(payload));
 };
 
-const readJsonBody = async <T>(request: IncomingMessage): Promise<T | null> => {
+const readJSONBody = async <T>(request: IncomingMessage): Promise<T | null> => {
   const chunks: Buffer[] = [];
   for await (const chunk of request) {
     chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
@@ -52,7 +52,7 @@ export const handlePagesRoutes = async (
   }
 
   if (request.method === "POST" && parts.length === 2) {
-    const result = await resolvePageCreate(await readJsonBody<CreatePageInput>(request));
+    const result = await resolvePageCreate(await readJSONBody<CreatePageInput>(request));
     if (result.status === "invalid_payload") {
       response.statusCode = 400;
       response.end();
@@ -84,7 +84,7 @@ export const handlePagesRoutes = async (
     }
 
     if (request.method === "PATCH" && parts.length === 3) {
-      const result = await resolvePagePatch(uuid, await readJsonBody<UpdatePageInput>(request));
+      const result = await resolvePagePatch(uuid, await readJSONBody<UpdatePageInput>(request));
       if (result.status !== "ok") {
         response.statusCode = result.status === "invalid_payload" ? 400 : 404;
         response.end();

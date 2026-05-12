@@ -1,7 +1,7 @@
-import { sql } from "../../dml.api.js";
+import { sql } from "../dml.api.js";
 import { withDatabase } from "@/system/withDatabase.js";
 import { toString } from "@/data/support/shared.js";
-import type { AuthUser } from "../../types.js";
+import type { AuthUser } from "../types.js";
 
 export const getUserByEmail = async (
   email: string

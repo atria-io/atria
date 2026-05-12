@@ -52,7 +52,7 @@ const isSupportedProvider = (
 ): provider is BrokerProvider =>
   provider === "google" || provider === "github";
 
-const readJsonBody = async (
+const readJSONBody = async (
   request: IncomingMessage
 ): Promise<BrokerConfirmPayload | null> => {
   const chunks: Buffer[] = [];
@@ -96,7 +96,7 @@ export const sendBrokerConfirm = async (
   request: IncomingMessage,
   response: ServerResponse
 ): Promise<void> => {
-  const payload = await readJsonBody(request);
+  const payload = await readJSONBody(request);
   const provider = toStringValue(payload?.provider).toLowerCase();
   const projectId = toStringValue(payload?.project_id);
   const brokerConsentToken = toStringValue(payload?.broker_consent_token);

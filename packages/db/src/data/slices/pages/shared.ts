@@ -1,5 +1,5 @@
 import { toStringValue } from "@/data/support/shared.js";
-import type { PageRecord } from "../types.js";
+import type { PageRecord } from "./types.js";
 
 export const toPageRecord = (row: {
   id?: unknown;
