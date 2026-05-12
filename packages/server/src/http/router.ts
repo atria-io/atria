@@ -10,5 +10,11 @@ export const routeRequest = async (
     return;
   }
 
+  const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
+  if (pathname.startsWith("/api/")) {
+    sendNotFound(response);
+    return;
+  }
+
   sendNotFound(response);
 };

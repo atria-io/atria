@@ -3,16 +3,22 @@ import type { PageRecord } from "./types.js";
 
 export const toPageRecord = (row: {
   id?: unknown;
+  type?: unknown;
+  status?: unknown;
   title?: unknown;
   slug?: unknown;
-  status?: unknown;
   createdAt?: unknown;
+  publishedAt?: unknown;
   updatedAt?: unknown;
 }): PageRecord => ({
   id: toStringValue(row.id),
+  type: "page",
+  status: toStringValue(row.status) === "published" ? "published" : (toStringValue(row.status) === "archived" ? "archived" : "draft"),
   title: toStringValue(row.title),
   slug: toStringValue(row.slug),
-  status: toStringValue(row.status) === "published" ? "published" : (toStringValue(row.status) === "archived" ? "archived" : "draft"),
-  createdAt: toStringValue(row.createdAt),
-  updatedAt: toStringValue(row.updatedAt),
+  timestamps: {
+    createdAt: toStringValue(row.createdAt),
+    publishedAt: toStringValue(row.publishedAt) === "" ? null : toStringValue(row.publishedAt),
+    updatedAt: toStringValue(row.updatedAt),
+  },
 });

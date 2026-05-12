@@ -10,30 +10,30 @@ import { resolveFrontendUrl } from "./config.js";
 export const resolveBootState = async (
   sessionId: string | null
 ): Promise<BootPayload> => {
-  const frontendUrl = await resolveFrontendUrl();
   const ownerState = await getOwnerState();
   if (ownerState === "setup") {
-    return { state: "setup", frontendUrl };
+    return { state: "setup" };
   }
 
   if (ownerState === "create") {
-    return { state: "create", frontendUrl };
+    return { state: "create" };
   }
 
   if (!sessionId) {
-    return { state: "sign-in", frontendUrl };
+    return { state: "sign-in" };
   }
 
   const session = await getSessionById(sessionId);
   if (!session) {
-    return { state: "sign-in", frontendUrl };
+    return { state: "sign-in" };
   }
 
   const user = await getBootUser(session.userId);
   if (!user) {
-    return { state: "sign-in", frontendUrl };
+    return { state: "sign-in" };
   }
 
+  const frontendUrl = await resolveFrontendUrl();
   return { state: "authenticated", user, frontendUrl };
 };
 

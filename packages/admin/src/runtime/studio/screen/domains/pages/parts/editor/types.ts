@@ -1,3 +1,1 @@
-export interface EditorViewProps {
-  creating: boolean;
-}
+export {};

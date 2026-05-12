@@ -87,19 +87,19 @@ const loadDrafts = async (): Promise<void> => {
   setEditorState({ drafts: items.map(toCatalogItem) });
 };
 
-const loadDraftById = async (uuid: string): Promise<void> => {
+const loadDraftById = async (uuid: string): Promise<boolean> => {
   const state = getEditorState();
   const existing = state.drafts.find((item) => item.uuid === uuid);
   if (existing) {
     if (state.currentUuid === uuid) {
       setEditorState({ title: existing.title });
     }
-    return;
+    return true;
   }
 
   const payload = await pagesApi.getPage(uuid);
   if (!payload) {
-    return;
+    return false;
   }
 
   upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
@@ -110,9 +110,11 @@ const loadDraftById = async (uuid: string): Promise<void> => {
       slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   }
+
+  return true;
 };
 
-export const syncEditorFromRoute = (creating: boolean): void => {
+export const syncEditorFromRoute = (): void => {
   if (!isBootstrapped) {
     isBootstrapped = true;
     void loadDrafts();
@@ -122,6 +124,9 @@ export const syncEditorFromRoute = (creating: boolean): void => {
   const route = parsePagesRoute(window.location.pathname);
   const routeUuid = route.mode === "document" ? route.uuid : null;
   const routeDraft = routeUuid ? state.drafts.find((item) => item.uuid === routeUuid) : null;
+  const creating =
+    route.mode === "create" ||
+    (route.mode === "document" && routeDraft !== null);
 
   setEditorState({
     creating,
@@ -132,7 +137,24 @@ export const syncEditorFromRoute = (creating: boolean): void => {
   });
 
   if (routeUuid && !routeDraft) {
-    void loadDraftById(routeUuid);
+    void loadDraftById(routeUuid).then((found) => {
+      if (found) {
+        return;
+      }
+
+      const latest = getEditorState();
+      if (latest.currentUuid !== routeUuid) {
+        return;
+      }
+
+      setEditorState({
+        creating: false,
+        currentUuid: null,
+        title: "",
+        slug: "",
+        slugTouched: false,
+      });
+    });
   }
 };
 

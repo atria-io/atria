@@ -10,9 +10,11 @@ export const updatePage = async (input: UpdatePageInput): Promise<PageRecord | n
 
     try {
       const result = db.prepare(sql.update.updatePageTitle).run(
+        input.status,
         input.title,
         input.slug,
         input.status,
+        now,
         now,
         input.id
       ) as { changes?: unknown };
@@ -23,10 +25,12 @@ export const updatePage = async (input: UpdatePageInput): Promise<PageRecord | n
       const row = db.prepare(sql.read.selectPageById).get(input.id) as
         | {
             id?: unknown;
+            type?: unknown;
+            status?: unknown;
             title?: unknown;
             slug?: unknown;
-            status?: unknown;
             createdAt?: unknown;
+            publishedAt?: unknown;
             updatedAt?: unknown
           }
         | undefined;

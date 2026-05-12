@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import * as db from "@atria/db";
+import { sendNotFound } from "./errors.js";
 import { handleAdminRoutes } from "../runtime/admin/routes.js";
 import { handleAuthRoutes } from "../runtime/auth/routes.js";
 import { handlePagesRoutes } from "../runtime/routes/pages/routes.js";
@@ -62,15 +63,13 @@ export const handleServerRoutes = async (
   if (requiresAuthenticatedSession(pathname)) {
     const sessionId = getSessionIdFromCookie(request);
     if (!sessionId) {
-      response.statusCode = 401;
-      response.end();
+      sendNotFound(response);
       return true;
     }
 
     const session = await db.auth.getSessionById(sessionId);
     if (!session) {
-      response.statusCode = 401;
-      response.end();
+      sendNotFound(response);
       return true;
     }
   }

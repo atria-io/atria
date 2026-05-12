@@ -1,7 +1,7 @@
 export const updateQueries = {
   updatePageTitle: [
     "UPDATE documents",
-    "SET title = ?, slug = ?, status = ?, updated_at = ?",
+    "SET status = ?, title = ?, slug = ?, published_at = CASE WHEN ? = 'published' THEN COALESCE(published_at, ?) ELSE NULL END, updated_at = ?",
     "WHERE id = ?"
   ].join(" "),
 } as const;

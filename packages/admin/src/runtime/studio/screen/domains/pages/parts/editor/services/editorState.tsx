@@ -1,15 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
-import {
-  archiveCurrentPage,
-  beginCreateMode,
-  deletePageById,
-  lockAutoSlug,
-  publishCurrentPage,
-  setSlug,
-  setTitle,
-  syncEditorFromRoute,
-  unpublishCurrentPage
-} from "./models/editorStateModel.js";
+import * as editorStateModel from "./models/editorStateModel.js";
 import { getEditorState, subscribeEditorState } from "./state/store.js";
 
 export type { CatalogItem, EditorState } from "./state/types.js";
@@ -17,10 +7,10 @@ export type { CatalogItem, EditorState } from "./state/types.js";
 export const useEditorState = () =>
   useSyncExternalStore(subscribeEditorState, getEditorState, getEditorState);
 
-export const useEditorStateSetup = (creating: boolean): void => {
+export const useEditorStateSetup = (): void => {
   useEffect(() => {
     const sync = (): void => {
-      syncEditorFromRoute(creating);
+      editorStateModel.syncEditorFromRoute();
     };
 
     sync();
@@ -28,37 +18,37 @@ export const useEditorStateSetup = (creating: boolean): void => {
     return () => {
       window.removeEventListener("popstate", sync);
     };
-  }, [creating]);
+  }, []);
 };
 
 export const setEditorTitle = (title: string): void => {
-  setTitle(title);
+  editorStateModel.setTitle(title);
 };
 
 export const lockEditorAutoSlug = (): void => {
-  lockAutoSlug();
+  editorStateModel.lockAutoSlug();
 };
 
 export const setEditorSlug = (slug: string): void => {
-  setSlug(slug);
+  editorStateModel.setSlug(slug);
 };
 
 export const startEditorCreateMode = (): void => {
-  beginCreateMode();
+  editorStateModel.beginCreateMode();
 };
 
 export const publishEditorPage = (): void => {
-  publishCurrentPage();
+  editorStateModel.publishCurrentPage();
 };
 
 export const unpublishEditorPage = (): void => {
-  unpublishCurrentPage();
+  editorStateModel.unpublishCurrentPage();
 };
 
 export const archiveEditorPage = (): void => {
-  archiveCurrentPage();
+  editorStateModel.archiveCurrentPage();
 };
 
 export const deleteEditorPageById = (uuid: string): Promise<boolean> => {
-  return deletePageById(uuid);
+  return editorStateModel.deletePageById(uuid);
 };

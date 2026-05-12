@@ -8,10 +8,12 @@ export const listPages = async (): Promise<PageRecord[]> => {
     try {
       const rows = db.prepare(sql.read.selectPages).all() as Array<{
         id?: unknown;
+        type?: unknown;
+        status?: unknown;
         title?: unknown;
         slug?: unknown;
-        status?: unknown;
         createdAt?: unknown;
+        publishedAt?: unknown;
         updatedAt?: unknown;
       }>;
 
@@ -26,7 +28,16 @@ export const getPageById = async (id: string): Promise<PageRecord | null> => {
   return withDatabase<PageRecord | null>(null, (db) => {
     try {
       const row = db.prepare(sql.read.selectPageById).get(id) as
-        | { id?: unknown; title?: unknown; slug?: unknown; status?: unknown; createdAt?: unknown; updatedAt?: unknown }
+        | {
+            id?: unknown;
+            type?: unknown;
+            status?: unknown;
+            title?: unknown;
+            slug?: unknown;
+            createdAt?: unknown;
+            publishedAt?: unknown;
+            updatedAt?: unknown;
+          }
         | undefined;
 
       if (!row) {

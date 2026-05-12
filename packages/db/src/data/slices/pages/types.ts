@@ -1,12 +1,18 @@
 export type PageStatus = "draft" | "published" | "archived";
 
+export interface PageTimestamps {
+  createdAt: string;
+  publishedAt: string | null;
+  updatedAt: string;
+}
+
 export interface PageRecord {
   id: string;
+  type: "page";
+  status: PageStatus;
   title: string;
   slug: string;
-  status: PageStatus;
-  createdAt: string;
-  updatedAt: string;
+  timestamps: PageTimestamps;
 }
 
 export interface CreatePageInput {

@@ -14,6 +14,7 @@ export const ensureComponentsDDL = async (): Promise<boolean> => {
         database.prepare(statement).run();
       }
       ensureUserNameColumns(database);
+      ensureDocumentColumns(database);
       return true;
     } catch {
       return false;
@@ -45,5 +46,32 @@ const ensureUserNameColumns = (
 
   if (!names.has("last_name")) {
     database.prepare("ALTER TABLE users ADD COLUMN last_name TEXT").run();
+  }
+};
+
+const ensureDocumentColumns = (
+  database: {
+    prepare: (sql: string) => {
+      all: (...args: unknown[]) => unknown;
+      run: (...args: unknown[]) => unknown;
+    };
+  }
+): void => {
+  const rows = database.prepare("PRAGMA table_info(documents)").all() as
+    | Array<{ name?: unknown }>
+    | undefined;
+
+  const names = new Set(
+    (rows ?? [])
+      .map((row) => (typeof row.name === "string" ? row.name : ""))
+      .filter((value) => value !== "")
+  );
+
+  if (!names.has("type")) {
+    database.prepare("ALTER TABLE documents ADD COLUMN type TEXT NOT NULL DEFAULT 'page'").run();
+  }
+
+  if (!names.has("published_at")) {
+    database.prepare("ALTER TABLE documents ADD COLUMN published_at TEXT").run();
   }
 };

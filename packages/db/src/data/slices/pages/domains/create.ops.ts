@@ -10,19 +10,25 @@ export const createPage = async (input: CreatePageInput): Promise<PageRecord | n
     try {
       db.prepare(sql.create.insertPage).run(
         input.id,
+        "page",
+        "draft",
         input.title,
         input.slug,
-        "draft",
         now,
+        null,
         now
       );
       return {
         id: input.id,
+        type: "page",
+        status: "draft",
         title: input.title,
         slug: input.slug,
-        status: "draft",
-        createdAt: now,
-        updatedAt: now,
+        timestamps: {
+          createdAt: now,
+          publishedAt: null,
+          updatedAt: now,
+        },
       };
     } catch {
       return null;
