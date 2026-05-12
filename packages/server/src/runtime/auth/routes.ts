@@ -1,8 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { handleBrokerRoutes } from "./domains/broker/routes.js";
-import { handleCreateViewRoutes } from "./domains/create/adapter.js";
-import { handleLoginViewRoutes } from "./domains/login/adapter.js";
-import { handleLogoutViewRoutes } from "./domains/logout/adapter.js";
+import { handleBrokerRoutes } from "./domains/broker.routes.js";
+import { handleCreateViewRoutes } from "./domains/create.adapter.js";
+import { handleLoginViewRoutes } from "./domains/login.adapter.js";
+import { handleLogoutViewRoutes } from "./domains/logout.adapter.js";
 import { readAuthPathname } from "./path.js";
 
 const getStartMode = (

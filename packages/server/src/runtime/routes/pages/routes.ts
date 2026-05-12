@@ -10,7 +10,7 @@ import {
   resolvePagesList,
   resolvePublicationRoute,
   resolveVersionRoute,
-} from "./opsApi.js";
+} from "./ops.js";
 import { readPathParts } from "./path.js";
 
 const writeJson = (response: ServerResponse, statusCode: number, payload: unknown): void => {
