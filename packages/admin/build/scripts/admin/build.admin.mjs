@@ -24,7 +24,7 @@ export const runAdminBuild = async (packageRoot) => {
 const getBuildPaths = (packageRoot) => {
   const distDir = path.join(packageRoot, "dist");
   const frontendDir = path.join(distDir, "frontend");
-  const runtimeSourceDir = path.join(packageRoot, "boot");
+  const runtimeSourceDir = path.join(packageRoot, "src", "boot");
   const tscEntry = path.resolve(
     packageRoot,
     "..",

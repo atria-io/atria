@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 const getPaths = (packageRoot) => {
 
-  const schemeCssFile = path.join(packageRoot, "boot", "static", "styles", "scheme.css");
+  const schemeCssFile = path.join(packageRoot, "src", "boot", "static", "styles", "scheme.css");
   const outputFile = path.join(packageRoot, "dist", "frontend", "static", "js", "scheme.js");
 
   return { schemeCssFile, outputFile };
