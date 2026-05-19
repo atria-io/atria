@@ -1,0 +1,64 @@
+.dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--layout-inset);
+}
+
+.dialog--open {
+  display: flex;
+}
+
+.dialog__backdrop {
+  inset: 0;
+  position: absolute;
+  background: color-mix(in srgb, var(--background) 65%, transparent);
+}
+
+.dialog__container {
+  width: min(100%, 16rem);
+  animation: var(--card-pop);
+  z-index: 1;
+}
+
+.dialog--sm .dialog__container {
+  max-width: calc(var(--max-width-xs) / 2);
+}
+
+.dialog--md .dialog__container {
+  max-width: calc(var(--max-width-xs) / 1.5);
+}
+
+.dialog--lg .dialog__container {
+  max-width: var(--max-width-xs);
+}
+
+.dialog__surface {
+  width: 100%;
+  position: relative;
+  border: var(--border-solid);
+  border-radius: var(--radius);
+  box-shadow: var(--box-shadow);
+  background: var(--background);
+  padding: var(--layout-inset);
+  animation: var(--card-fade);
+  opacity: 0;
+}
+
+.dialog__header-title {
+  margin: 0 0 calc(var(--spacing) * 2);
+  font-size: var(--text-lg);
+}
+
+.dialog__body-text {
+  margin: 0 0 calc(var(--spacing) * 3);
+  color: var(--text-ghost);
+}
+
+.dialog__footer-actions {
+  display: grid;
+  gap: var(--layout-gap);
+}

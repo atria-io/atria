@@ -1,0 +1,55 @@
+import * as React from "react";
+
+type ResolvedScheme = "light" | "dark";
+
+interface RuntimeScheme {
+  resolved?: string;
+  subscribe?: (
+    onChange: (resolved: ResolvedScheme) => void
+  ) => (() => void) | void;
+}
+
+interface RuntimeAtria {
+  scheme?: RuntimeScheme;
+}
+
+declare global {
+  interface Window {
+    __atria__?: RuntimeAtria;
+  }
+}
+
+const readResolvedScheme = (): ResolvedScheme => {
+  const resolved = window.__atria__?.scheme?.resolved;
+  if (resolved === "dark" || resolved === "light") {
+    return resolved;
+  }
+
+  const schemeAttr = document.documentElement.getAttribute("data-scheme");
+  return schemeAttr === "dark" ? "dark" : "light";
+};
+
+export const useSchemeState = (): ResolvedScheme => {
+  const [resolved, setResolved] = React.useState<ResolvedScheme>(() => readResolvedScheme());
+
+  React.useEffect(() => {
+    setResolved(readResolvedScheme());
+
+    const subscribe = window.__atria__?.scheme?.subscribe;
+    if (typeof subscribe !== "function") {
+      return;
+    }
+
+    const unsubscribe = subscribe((nextResolved) => {
+      setResolved(nextResolved === "dark" ? "dark" : "light");
+    });
+
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  return resolved;
+};

@@ -1,3 +1,3 @@
-export { openDatabase, ensureDatabaseFile } from "./system/openDatabase.js";
-export { initializeDatabase } from "./system/bootDatabase.js";
-export * from "./data/support/api.js";
+export * from "./system/open.js";
+export * from "./system/boot.js";
+export * from "./data/api.js";

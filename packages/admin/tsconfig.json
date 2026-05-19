@@ -3,7 +3,8 @@
   "compilerOptions": {
     "ignoreDeprecations": "5.0",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@atria/ui/*": ["../ui/dist/*"]
     },
     "jsx": "react-jsx",
     "rootDir": "src",

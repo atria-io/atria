@@ -355,7 +355,7 @@ const requestRestart = () => {
 
   restartTimer = setTimeout(() => {
     restartTimer = null;
-    void restartDevServer();
+    void restartServer();
   }, RESTART_DEBOUNCE_MS);
 };
 
@@ -369,14 +369,18 @@ const stopDevServer = async () => {
   await terminateChildProcess(current);
 };
 
-const startDevServer = () => {
+const startServer = () => {
   if (shuttingDown) {
     return;
   }
 
   devProcess = spawnBackgroundProcess(
-    "node",
-    [path.join("..", "packages", "atria", "dist", "bin.js"), "dev"],
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      "import { runCli } from \"../packages/cli/dist/runCli.js\"; runCli([process.execPath, \"atria\", \"dev\", \".\"]).catch((error) => { const message = error instanceof Error ? error.message : String(error); console.error(`[atria] ${message}`); process.exit(1); });"
+    ],
     workspaceDir
   );
 
@@ -396,7 +400,7 @@ const startDevServer = () => {
  *
  * @returns {Promise<void>}
  */
-const restartDevServer = async () => {
+const restartServer = async () => {
   if (shuttingDown) {
     return;
   }
@@ -408,12 +412,12 @@ const restartDevServer = async () => {
 
   restartingDev = true;
   await stopDevServer();
-  startDevServer();
+  startServer();
   restartingDev = false;
 
   if (pendingRestart) {
     pendingRestart = false;
-    void restartDevServer();
+    void restartServer();
   }
 };
 
@@ -758,7 +762,7 @@ const main = async () => {
 
   console.log("[live] Starting workspace dev server...");
   await ensureDevPortsAvailable();
-  startDevServer();
+  startServer();
 };
 
 void main();

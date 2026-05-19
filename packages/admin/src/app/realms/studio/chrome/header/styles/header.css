@@ -1,0 +1,41 @@
+.admin-header {
+  --height: calc(var(--header) - 1px);
+
+  top: 0;
+  flex: 0;
+  width: 100%;
+  height: var(--header);
+  background: var(--background);
+  border-bottom: var(--border-solid);
+  position: sticky;
+  z-index: 1;
+}
+
+.admin-header__container {
+  position: relative;
+  height: var(--height);
+}
+
+.admin-header__commun {
+  height: var(--height);
+  width: var(--header);
+  border-right: var(--border-solid);
+  float: left;
+}
+
+.admin-header__path {
+  margin-left: var(--space-x);
+  line-height: var(--height);
+  display: inline;
+  float: left;
+}
+
+.admin-header__actions {
+  top: 0;
+  display: flex;
+  position: absolute;
+  align-items: center;
+  height: var(--height);
+  right: calc(var(--space-x) * 2);
+  gap: var(--layout-gap);
+}

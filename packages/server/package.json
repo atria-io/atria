@@ -1,20 +1,27 @@
 {
   "name": "@atria/server",
-  "version": "0.0.40",
+  "version": "0.0.41",
   "description": "Server package",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "files": [
-    "dist"
+    "src"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
-    "prepublishOnly": "tsc -p tsconfig.json"
+    "build": "rm -rf dist && cp -R src dist",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@atria/db": "0.0.25"
+    "@atria/db": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./*": "./src/*"
   }
 }

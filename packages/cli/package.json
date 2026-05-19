@@ -1,6 +1,6 @@
 {
   "name": "@atria/cli",
-  "version": "0.0.56",
+  "version": "0.0.57",
   "description": "CLI for atria project bootstrap and development",
   "keywords": [
     "atria",
@@ -29,9 +29,9 @@
     "prepublishOnly": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@atria/admin": "0.1.26",
-    "@atria/server": "0.0.39",
-    "@atria/shared": "0.0.36"
+    "@atria/admin": "workspace:*",
+    "@atria/server": "workspace:*",
+    "@atria/shared": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

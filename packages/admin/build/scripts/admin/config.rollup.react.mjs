@@ -108,7 +108,7 @@ const resolveAdminSourceAlias = () => ({
 });
 
 export default {
-  input: 'dist/system/createRoot.js',
+  input: 'dist/app/createRoot.js',
   onwarn(warning, warn) {
     if (
       warning.code === 'MODULE_LEVEL_DIRECTIVE' &&
@@ -131,12 +131,12 @@ export default {
         return 'vendor';
       }
 
-      const moduleMatch = id.match(/\/runtime\/studio\/modules\/([^/]+)\//);
+      const moduleMatch = id.match(/\/app\/domains\/studio\/modules\/([^/]+)\//);
       if (moduleMatch) {
         return moduleMatch[1];
       }
 
-      const realmDirMatch = id.match(/\/runtime\/([^/.]+)\//);
+      const realmDirMatch = id.match(/\/app\/domains\/([^/.]+)\//);
       if (realmDirMatch && realmDirMatch[1] !== 'studio') {
         return realmDirMatch[1];
       }
@@ -147,7 +147,7 @@ export default {
         return realm === 'studio' ? 'studio' : realm;
       }
 
-      if (id.includes('/runtime/studio/')) {
+      if (id.includes('/app/realms/studio/')) {
         return 'studio';
       }
 

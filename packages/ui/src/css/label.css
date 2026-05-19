@@ -1,0 +1,66 @@
+/*!field-base */
+.field {
+  --field-label-size: var(--text-sm);
+
+  display: grid;
+}
+
+.field__label {
+  color: var(--input-label);
+  font-size: var(--field-label-size);
+  pointer-events: none;
+  line-height: 1;
+  margin: 0;
+}
+
+.field__hint {
+  color: var(--text-ghost);
+  font-size: var(--text-sm);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.field__error {
+  color: var(--error);
+  font-size: var(--text-sm);
+  line-height: 1.3;
+  margin: 0;
+}
+
+/*gap-modifiers*/
+.field--gap-xs {
+  gap: calc(var(--spacing) * 0.5);
+}
+
+.field--gap-sm {
+  gap: var(--spacing);
+}
+
+.field--gap-md {
+  gap: calc(var(--spacing) * 1.5);
+}
+
+.field--gap-lg {
+  gap: calc(var(--spacing) * 3);
+}
+
+.field--gap-xl {
+  gap: calc(var(--spacing) * 4.5);
+}
+
+/*label-size-modifiers */
+.field--label-xs {
+  --field-label-size: var(--text-xs);
+}
+
+.field--label-sm {
+  --field-label-size: var(--text-sm);
+}
+
+.field--label-md {
+  --field-label-size: var(--text-base);
+}
+
+.field--label-lg {
+  --field-label-size: var(--text-lg);
+}

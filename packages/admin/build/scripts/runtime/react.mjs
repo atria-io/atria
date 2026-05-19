@@ -177,8 +177,8 @@ const collectScreenFiles = async (runtimeRoot) => {
 };
 
 export const applyLazyImports = async (packageRoot) => {
-  const runtimeRoot = path.join(packageRoot, "dist", "runtime");
-  const routerFile = path.join(runtimeRoot, "Router.js");
+  const runtimeRoot = path.join(packageRoot, "dist", "app");
+  const routerFile = path.join(runtimeRoot, "createRoot.js");
 
   await ensureLoadRuntimeFile(runtimeRoot);
   await transformRouterFile(routerFile);

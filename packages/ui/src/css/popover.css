@@ -1,0 +1,58 @@
+.popover {
+  position: absolute;
+  top: calc(100% - 1px);
+  right: 0;
+  z-index: 1;
+}
+
+.popover--xs {
+  width: 12rem;
+}
+
+.popover--sm {
+  width: 14rem;
+}
+
+.popover--md {
+  width: 16rem;
+}
+
+.popover--lg {
+  width: 20rem;
+}
+
+.popover--text-xs .popover__content {
+  font-size: var(--text-xs);
+}
+
+.popover--text-sm .popover__content {
+  font-size: var(--text-sm);
+}
+
+.popover--text-md .popover__content {
+  font-size: var(--text-base);
+}
+
+.popover--open {
+  animation: var(--card-pop);
+}
+
+.popover--closing {
+  animation: var(--card-pop-reverse);
+}
+
+.popover__surface {
+  border: var(--border-solid);
+  background: var(--background);
+  border-radius: var(--radius);
+  box-shadow: var(--box-shadow);
+}
+
+.popover__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  padding: var(--popover-content-padding, calc(var(--layout-inset) / 1.5));
+  animation: var(--card-fade);
+  opacity: 0;
+}

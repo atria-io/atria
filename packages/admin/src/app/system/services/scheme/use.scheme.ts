@@ -1,0 +1,51 @@
+import * as React from "react";
+import { useSchemeState } from "./use.scheme.state.js";
+import type {
+  RuntimeScheme,
+  SchemeMode,
+  UseSchemeResult,
+} from "./scheme.types.js";
+
+const SCHEME_MODES: readonly SchemeMode[] = ["system", "dark", "light"];
+
+const getRuntimeScheme = (): RuntimeScheme | null => {
+  const runtimeScheme = (
+    window as { __atria__?: { scheme?: Partial<RuntimeScheme> } }
+  ).__atria__?.scheme;
+
+  if (!runtimeScheme) {
+    return null;
+  }
+
+  if (
+    (runtimeScheme.mode !== "system" && runtimeScheme.mode !== "light" && runtimeScheme.mode !== "dark") ||
+    typeof runtimeScheme.setMode !== "function"
+  ) {
+    return null;
+  }
+
+  return runtimeScheme as RuntimeScheme;
+};
+
+const readRuntimeMode = (): SchemeMode => getRuntimeScheme()?.mode ?? "system";
+
+export const useScheme = (): UseSchemeResult => {
+  const resolved = useSchemeState();
+  const [mode, setCurrentMode] = React.useState<SchemeMode>(() => readRuntimeMode());
+
+  React.useEffect(() => {
+    setCurrentMode(readRuntimeMode());
+  }, [resolved]);
+
+  const setMode = (nextMode: SchemeMode): void => {
+    getRuntimeScheme()?.setMode(nextMode);
+    setCurrentMode(readRuntimeMode());
+  };
+
+  return {
+    mode,
+    resolved,
+    modes: SCHEME_MODES,
+    setMode,
+  };
+};

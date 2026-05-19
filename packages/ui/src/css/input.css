@@ -1,0 +1,121 @@
+/*!input-base*/
+.input {
+  --input-border: var(--border);
+  --input-border-hover: var(--border-hover);
+  --input-border-focus: var(--focus);
+  --input-focus-color: var(--border-hover);
+  --input-background: var(--surface);
+  --input-background-hover: var(--surface-raised);
+
+  width: auto;
+  border: 1px solid var(--input-border);
+  border-radius: var(--baseline);
+
+  color: var(--text);
+  background: var(--input-background);
+
+  font: inherit;
+  font-size: var(--text-xs);
+  line-height: 1;
+
+  outline: none;
+
+  padding-block: calc(var(--spacing) * 2.5);
+  padding-inline: calc(var(--spacing) * 2.5);
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  box-shadow: 0 0 0 1000px var(--input-background) inset;
+  transition: background-color 9999s ease-in-out 0s;
+  border-color: var(--input-border);
+}
+
+.input:-webkit-autofill:focus {
+  border-color: var(--input-border-focus);
+}
+
+.input::placeholder {
+  color: var(--text-ghost);
+  opacity: .8;
+}
+
+/*!input-states*/
+.input--interactive:hover {
+  border-color: var(--input-border-hover);
+  background: var(--input-background-hover);
+}
+
+.input:focus {
+  border-color: var(--input-border-focus);
+}
+
+.input--focus-line:focus {
+  border-color: transparent;
+  border-bottom-color: var(--border-hover);
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-radius: 0;
+}
+
+.input--focus-color:focus {
+  border-color: var(--input-focus-color);
+}
+
+.input:disabled,
+.input[aria-disabled="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/*input-variants*/
+.input--solid {
+  --input-background: var(--solid);
+  --input-background-hover: var(--solid-hover);
+  --input-border: var(--border);
+  --input-border-hover: var(--border-hover);
+  --input-border-focus: var(--focus);
+}
+
+.input--ghost {
+  --input-background: var(--ghost);
+  --input-background-hover: var(--ghost-hover);
+  --input-border: transparent;
+  --input-border-hover: transparent;
+  --input-border-focus: var(--focus);
+}
+
+.input--danger {
+  --input-border: var(--error);
+  --input-border-hover: var(--error);
+  --input-border-focus: var(--error);
+}
+
+.input--subtle {
+  border-color: transparent;
+}
+
+/*input-sizes*/
+.input--sm {
+  height: calc(var(--baseline) * 11);
+  padding-inline: calc(var(--spacing) * 2.5);
+}
+
+.input--md {
+  height: 2.5rem;
+  padding-inline: calc(var(--spacing) * 4);
+}
+
+.input--lg {
+  height: 3rem;
+  padding-inline: calc(var(--spacing) * 5);
+}
+
+.input--full {
+  width: 100%;
+}
