@@ -16,6 +16,7 @@ export const runAdminBuild = async (packageRoot) => {
   await applyLazyImports(paths.packageRoot);
   await bundleApp(paths.packageRoot, paths.rollupEntry, paths.reactRollupConfig);
   await copyRuntime(paths.runtimeSourceDir, paths.frontendDir);
+  await copyInterfaceStyles(paths.interfaceStylesDir, paths.runtimeStylesDistDir);
   await bundleBoot(paths.packageRoot, paths.rollupEntry, paths.bootRollupConfig);
   await buildTooltipRuntime(paths.packageRoot);
   await minifyRuntimeStyles(paths.frontendDir);
@@ -24,7 +25,9 @@ export const runAdminBuild = async (packageRoot) => {
 const getBuildPaths = (packageRoot) => {
   const distDir = path.join(packageRoot, "dist");
   const frontendDir = path.join(distDir, "frontend");
-  const runtimeSourceDir = path.join(packageRoot, "src", "boot");
+  const runtimeSourceDir = path.join(packageRoot, "src", "runtime");
+  const interfaceStylesDir = path.join(packageRoot, "src", "app", "interface", "styles");
+  const runtimeStylesDistDir = path.join(frontendDir, "static", "styles");
   const tscEntry = path.resolve(
     packageRoot,
     "..",
@@ -50,6 +53,8 @@ const getBuildPaths = (packageRoot) => {
     distDir,
     frontendDir,
     runtimeSourceDir,
+    interfaceStylesDir,
+    runtimeStylesDistDir,
     tscEntry,
     rollupEntry,
     reactRollupConfig,
@@ -109,6 +114,11 @@ const bundleBoot = (packageRoot, rollupEntry, rollupConfig) =>
 
 const copyRuntime = async (runtimeSourceDir, runtimeDistDir) => {
   await cp(runtimeSourceDir, runtimeDistDir, { recursive: true });
+};
+
+const copyInterfaceStyles = async (interfaceStylesDir, runtimeStylesDistDir) => {
+  await mkdir(runtimeStylesDistDir, { recursive: true });
+  await cp(interfaceStylesDir, runtimeStylesDistDir, { recursive: true });
 };
 
 const minifyRuntimeStyles = async (runtimeDistDir) => {

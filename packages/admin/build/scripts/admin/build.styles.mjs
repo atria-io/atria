@@ -11,12 +11,12 @@ export const runStyleBundle = async (packageRoot) => {
 };
 
 const getPaths = (packageRoot) => {
-  const modulesDir = path.join(packageRoot, "src", "runtime");
+  const modulesDir = path.join(packageRoot, "src", "app");
   const outputFile = path.join(packageRoot, "dist", "frontend", "static", "styles", "globals.css");
   const baseFiles = [
-    path.join(packageRoot, "src", "boot", "static", "styles", "globals.css"),
-    path.join(packageRoot, "src", "boot", "static", "styles", "admin.css"),
-    path.join(packageRoot, "src", "boot", "static", "styles", "system.css")
+    path.join(packageRoot, "src", "app", "interface", "styles", "globals.css"),
+    path.join(packageRoot, "src", "app", "interface", "styles", "admin.css"),
+    path.join(packageRoot, "src", "app", "interface", "styles", "system.css")
   ];
 
   return { modulesDir, outputFile, baseFiles };
