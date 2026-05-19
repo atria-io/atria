@@ -1,6 +1,6 @@
 {
   "name": "@atria/cli",
-  "version": "0.0.57",
+  "version": "0.0.61",
   "description": "CLI for atria project bootstrap and development",
   "keywords": [
     "atria",
@@ -40,5 +40,8 @@
     "type": "git",
     "url": "git+https://github.com/atria-io/atria.git",
     "directory": "packages/cli"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

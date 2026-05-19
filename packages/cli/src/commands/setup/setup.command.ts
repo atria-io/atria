@@ -20,6 +20,15 @@ const printSetupHelp = (): void => {
   );
 };
 
+const bootDatabase = async (): Promise<void> => {
+  const packageName = "@atria/db";
+  const dbModule = (await import(packageName)) as { bootDB?: () => Promise<boolean> };
+  if (typeof dbModule.bootDB !== "function") {
+    throw new Error("Database bootstrap is unavailable.");
+  }
+  await dbModule.bootDB();
+};
+
 const parseDatabaseMode = (value: string): DatabaseMode | null => {
   if (value === "sqlite" || value === "postgres") {
     return value;
@@ -285,6 +294,14 @@ export const runSetupCommand = async (args: string[]): Promise<void> => {
       ? doneField(".env", envPath)
       : `${terminal.dim("•")} .env not found, skipped update`
   );
+
+  const previousCwd = process.cwd();
+  process.chdir(projectRoot);
+  try {
+    await bootDatabase();
+  } finally {
+    process.chdir(previousCwd);
+  }
 
   if (parsedArgs.flags["database-only"] === true) {
     console.log(done("Setup finished in database-only mode."));

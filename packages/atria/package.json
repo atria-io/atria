@@ -1,6 +1,6 @@
 {
   "name": "atria",
-  "version": "0.0.48",
+  "version": "0.0.53",
   "description": "Unscoped atria CLI wrapper package",
   "keywords": [
     "atria",
@@ -25,7 +25,7 @@
     "prepublishOnly": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@atria/cli": "workspace:*"
+    "@atria/cli": "0.0.61"
   },
   "publishConfig": {
     "access": "public"
@@ -34,5 +34,8 @@
     "type": "git",
     "url": "git+https://github.com/atria-io/atria.git",
     "directory": "packages/atria"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

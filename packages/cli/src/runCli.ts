@@ -1,12 +1,9 @@
-import { runBuildCommand } from "./commands/build/build.command.js";
-import { runDevCommand } from "./commands/dev/dev.command.js";
-import { runSetupCommand } from "./commands/setup/setup.command.js";
 import type { CliCommand } from "./types.js";
 
-const commands: Record<string, CliCommand> = {
-  dev: runDevCommand,
-  setup: runSetupCommand,
-  build: runBuildCommand
+const commandLoaders: Record<string, () => Promise<CliCommand>> = {
+  dev: async () => (await import("./commands/dev/dev.command.js")).runDevCommand,
+  setup: async () => (await import("./commands/setup/setup.command.js")).runSetupCommand,
+  build: async () => (await import("./commands/build/build.command.js")).runBuildCommand
 };
 
 const printHelp = (): void => {
@@ -27,10 +24,11 @@ export const runCli = async (argv: string[]): Promise<void> => {
     return;
   }
 
-  const runCommand = commands[command];
-  if (!runCommand) {
+  const commandLoader = commandLoaders[command];
+  if (!commandLoader) {
     throw new Error(`Unknown command "${command}". Run "atria --help" for usage.`);
   }
 
+  const runCommand = await commandLoader();
   await runCommand(argv.slice(3));
 };

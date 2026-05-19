@@ -1,6 +1,6 @@
 {
   "name": "create-atria",
-  "version": "0.0.62",
+  "version": "0.0.64",
   "description": "Bootstrap a new atria project",
   "keywords": [
     "atria",
@@ -35,5 +35,8 @@
     "type": "git",
     "url": "git+https://github.com/atria-io/atria.git",
     "directory": "packages/create"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

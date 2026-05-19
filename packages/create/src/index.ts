@@ -24,6 +24,7 @@ const ADMIN_RUNTIME_SOURCE_DIR = existsSync(BUNDLED_ADMIN_RUNTIME_SOURCE_DIR)
 const DEFAULT_PROJECT_LABEL = "My Studio Project";
 const DEFAULT_PROJECT_DIR = "my-project";
 const STUDIO_PACKAGE_NAME = "studio";
+const MIN_SUPPORTED_NODE_MAJOR = 22;
 
 type PackageManager = "npm" | "pnpm" | "yarn";
 
@@ -331,7 +332,25 @@ const printHelp = (): void => {
   console.log("  -h, --help            Show help");
 };
 
+const assertSupportedNodeVersion = (): void => {
+  const nodeVersion = process.versions.node;
+  const majorRaw = nodeVersion.split(".", 1)[0];
+  const major = Number.parseInt(majorRaw, 10);
+
+  if (!Number.isInteger(major)) {
+    throw new Error(`Unable to parse Node.js version: ${nodeVersion}`);
+  }
+
+  if (major < MIN_SUPPORTED_NODE_MAJOR) {
+    throw new Error(
+      `Unsupported Node.js ${nodeVersion}. Use Node.js ${MIN_SUPPORTED_NODE_MAJOR}.x or newer.`
+    );
+  }
+};
+
 const run = async (): Promise<void> => {
+  assertSupportedNodeVersion();
+
   const parsedArgs = parseArgs(process.argv.slice(2));
   if (parsedArgs.flags.help) {
     printHelp();
