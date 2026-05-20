@@ -222,7 +222,9 @@ const callback = async (req, res, provider) => {
   }
 
   const redirectNext = next(req);
-  const code = s(req.query?.broker_code || req.query?.code);
+  const code = mode === "create"
+    ? s(req.query?.broker_code || req.query?.code)
+    : s(req.query?.code);
 
   if (code) {
     const profile = await exchange(code, projectId);

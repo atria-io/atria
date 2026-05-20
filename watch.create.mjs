@@ -97,6 +97,8 @@ const forceLocalWorkspaceLinks = () => {
 
   const mappings = [
     ["admin", path.join(rootDir, "packages", "admin")],
+    ["core", path.join(rootDir, "packages", "core")],
+    ["db", path.join(rootDir, "packages", "db")],
     ["ui", path.join(rootDir, "packages", "ui")],
     ["cli", path.join(rootDir, "packages", "cli")],
     ["server", path.join(rootDir, "packages", "server")],
@@ -128,6 +130,8 @@ const forceLocalCliResolutionLinks = () => {
 
   const mappings = [
     ["admin", path.join(rootDir, "packages", "admin")],
+    ["core", path.join(rootDir, "packages", "core")],
+    ["db", path.join(rootDir, "packages", "db")],
     ["ui", path.join(rootDir, "packages", "ui")],
     ["server", path.join(rootDir, "packages", "server")],
     ["shared", path.join(rootDir, "packages", "shared")]
