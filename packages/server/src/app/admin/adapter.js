@@ -2,6 +2,22 @@ import * as db from "@atria/db";
 import { frontendUrl } from "./config.js";
 import { getAuthUser } from "./db.js";
 
+const dbEnoent = (error) => {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  if ("code" in error && error.code === "ENOENT") {
+    return true;
+  }
+
+  if ("message" in error && typeof error.message === "string") {
+    return error.message.includes("ENOENT");
+  }
+
+  return false;
+};
+
 const getSessionIdFromCookie = (req) => {
   const rawCookie = req.headers.cookie;
   if (typeof rawCookie !== "string") {
@@ -19,7 +35,16 @@ const getSessionIdFromCookie = (req) => {
 };
 
 export const bootstrap = async (req, res) => {
-  const ownerState = await db.auth.getOwnerState();
+  let ownerState;
+  try {
+    ownerState = await db.auth.getOwnerState();
+  } catch (error) {
+    if (dbEnoent(error)) {
+      res.json({ state: "setup" });
+      return;
+    }
+    throw error;
+  }
 
   if (ownerState === "setup") {
     res.json({ state: "setup" });
@@ -37,13 +62,31 @@ export const bootstrap = async (req, res) => {
     return;
   }
 
-  const session = await db.auth.getSessionById(sessionId);
+  let session;
+  try {
+    session = await db.auth.getSessionById(sessionId);
+  } catch (error) {
+    if (dbEnoent(error)) {
+      res.json({ state: "setup" });
+      return;
+    }
+    throw error;
+  }
   if (!session) {
     res.json({ state: "sign-in" });
     return;
   }
 
-  const user = await getAuthUser(session.userId);
+  let user;
+  try {
+    user = await getAuthUser(session.userId);
+  } catch (error) {
+    if (dbEnoent(error)) {
+      res.json({ state: "setup" });
+      return;
+    }
+    throw error;
+  }
   if (!user) {
     res.json({ state: "sign-in" });
     return;
