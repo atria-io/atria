@@ -40,6 +40,9 @@ const normalizeManualSlug = (value: string): string =>
 const isValidPersistedSlug = (value: string): boolean =>
   /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 
+const resolvePersistedSlug = (value: string): string =>
+  value === "" ? "untitled-page" : value;
+
 const upsertDraftItem = (
   uuid: string,
   title: string,
@@ -143,6 +146,7 @@ export const setTitle = (title: string): void => {
   const state = getEditorState();
   const trimmed = title.trim();
   const nextSlug = state.slug;
+  const persistedSlug = resolvePersistedSlug(nextSlug);
 
   if (state.creating && !state.currentUuid && trimmed !== "") {
     if (createInFlight) {
@@ -153,17 +157,16 @@ export const setTitle = (title: string): void => {
     const uuid = createUuid();
     createInFlight = true;
     setEditorState({ currentUuid: uuid, title });
-    upsertDraftItem(uuid, title, nextSlug || "untitled-page", "draft");
+    upsertDraftItem(uuid, title, nextSlug, "draft");
 
-    void pagesApi.createPage(uuid, trimmed, nextSlug || "untitled-page").then((payload) => {
+    void pagesApi.createPage(uuid, trimmed, persistedSlug).then((payload) => {
       if (!payload) {
         return;
       }
 
-      upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
+      upsertDraftItem(payload.id, payload.title, nextSlug, payload.status);
       setEditorState({
         currentUuid: payload.id,
-        slug: payload.slug,
       });
 
       if (parsePagesRoute(window.location.pathname).mode === "create") {
@@ -177,30 +180,27 @@ export const setTitle = (title: string): void => {
 
   if (state.currentUuid) {
     const currentUuid = state.currentUuid;
-    setEditorState({ title, slug: nextSlug });
+    setEditorState({ title });
     const currentItem = state.drafts.find((item) => item.uuid === currentUuid);
     const currentStatus = currentItem?.status ?? "draft";
-    upsertDraftItem(currentUuid, title, nextSlug === "" ? "untitled-page" : nextSlug, currentStatus);
+    upsertDraftItem(currentUuid, title, nextSlug, currentStatus);
 
     void pagesApi.updatePage(
       currentUuid,
       trimmed === "" ? "Untitled" : trimmed,
-      (nextSlug === "" ? "untitled-page" : nextSlug),
+      persistedSlug,
       currentStatus
     ).then((payload) => {
       if (!payload) {
         return;
       }
 
-      upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
-      setEditorState({
-        slug: payload.slug,
-      });
+      upsertDraftItem(payload.id, payload.title, nextSlug, payload.status);
     });
     return;
   }
 
-  setEditorState({ title, slug: nextSlug });
+  setEditorState({ title });
 };
 
 export const setSlug = (slug: string): void => {
