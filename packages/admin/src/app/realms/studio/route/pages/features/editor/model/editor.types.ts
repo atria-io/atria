@@ -9,7 +9,6 @@ export interface EditorState {
   creating: boolean;
   title: string;
   slug: string;
-  slugTouched: boolean;
   currentUuid: string | null;
   drafts: CatalogItem[];
 }

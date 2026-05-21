@@ -1,4 +1,4 @@
-import { lockEditorAutoSlug, setEditorTitle, useEditorState } from "../../model/editor.state.js";
+import { setEditorTitle, useEditorState } from "../../model/editor.state.js";
 
 export function EditorFormTitle() {
   const { title } = useEditorState();
@@ -15,7 +15,6 @@ export function EditorFormTitle() {
           type="text"
           value={title}
           onChange={(event) => setEditorTitle(event.target.value)}
-          onBlur={lockEditorAutoSlug}
           className="input input--sm input--full input--interactive"
           placeholder="Page title"
         />

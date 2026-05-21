@@ -25,10 +25,6 @@ export const setEditorTitle = (title: string): void => {
   editorStateModel.setTitle(title);
 };
 
-export const lockEditorAutoSlug = (): void => {
-  editorStateModel.lockAutoSlug();
-};
-
 export const setEditorSlug = (slug: string): void => {
   editorStateModel.setSlug(slug);
 };

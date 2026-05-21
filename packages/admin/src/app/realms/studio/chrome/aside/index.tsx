@@ -2,7 +2,7 @@ import * as React from "react";
 import * as Icon from "lucide-react";
 import type { Props } from "../../model/studio.types.js";
 import { Button } from "@atria/ui";
-import { useLogout } from "@/app/realms/auth/model/uselogout.js";
+import { useLogout } from "@/app/realms/auth/model/useLogout.js";
 
 interface SidebarItem {
   name: "Pages" | "Settings" | "Logout";

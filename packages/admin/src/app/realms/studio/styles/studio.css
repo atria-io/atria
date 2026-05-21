@@ -37,7 +37,7 @@
   flex: 1 1 0;
 }
 
-.card-column__item + .card-column__item {
+.card-column__item + div {
   border-top: var(--border-solid);
 }
 

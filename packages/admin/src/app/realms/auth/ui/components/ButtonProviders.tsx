@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button } from "@atria/ui";
 import icons from "@/boot/static/svg/icons.providers.js";
-import { useProviderButtons } from "./useproviderbuttons.js";
+import { useProviderButtons } from "./useProviderButtons.js";
 import type { Mode, Provider } from "../../model/auth.types.js";
 
 interface ButtonProvidersProps {

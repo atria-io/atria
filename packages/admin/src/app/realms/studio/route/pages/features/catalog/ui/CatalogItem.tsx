@@ -65,7 +65,7 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
         <Icon.Dot size={16} />
       </span>
       <span className="pages-catalog__item-title">
-        <span>{item.title.trim() || "Untitled page"}</span>
+        <span>{item.title.trim() || "Untitled"}</span>
       </span>
       <div className="pages-catalog__show-more">
         <ActionsMore

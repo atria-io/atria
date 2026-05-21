@@ -51,14 +51,19 @@
 .pages-editor__main {
   margin: 0 auto;
   max-width: var(--max-width-xs);
+  padding-inline: var(--space-x);
 }
 
 .pages-editor__create-form {
-  padding-block: var(--space-block-xs);
+  padding-block: var(--space-block-md);
 }
 
 .pages-editor__field {
   margin-block: var(--space-block-sm);
+}
+
+.pages-editor__title {
+  font-size: var(--text-base);
 }
 
 .pages-editor__slug-wrap {

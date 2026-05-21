@@ -28,16 +28,6 @@ const toCatalogItem = (payload: PageApiPayload): CatalogItem => ({
   status: payload.status,
 });
 
-const slugify = (value: string): string =>
-  value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-{2,}/g, "-")
-    .slice(0, 200);
-
 const normalizeManualSlug = (value: string): string =>
   value
     .normalize("NFKD")
@@ -49,12 +39,6 @@ const normalizeManualSlug = (value: string): string =>
 
 const isValidPersistedSlug = (value: string): boolean =>
   /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
-
-const isManualSlug = (title: string, slug: string): boolean =>
-  slug !== slugify(title);
-
-const keepSlugLocked = (title: string, slug: string): boolean =>
-  getEditorState().slugTouched || isManualSlug(title, slug);
 
 const upsertDraftItem = (
   uuid: string,
@@ -107,7 +91,6 @@ const loadDraftById = async (uuid: string): Promise<boolean> => {
     setEditorState({
       title: payload.title,
       slug: payload.slug,
-      slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   }
 
@@ -133,7 +116,6 @@ export const syncEditorFromRoute = (): void => {
     currentUuid: route.mode === "create" ? state.currentUuid : routeUuid,
     title: routeDraft ? routeDraft.title : route.mode === "create" ? state.title : "",
     slug: routeDraft ? routeDraft.slug : route.mode === "create" ? state.slug : "",
-    slugTouched: route.mode === "document" ? true : state.slugTouched,
   });
 
   if (routeUuid && !routeDraft) {
@@ -152,7 +134,6 @@ export const syncEditorFromRoute = (): void => {
         currentUuid: null,
         title: "",
         slug: "",
-        slugTouched: false,
       });
     });
   }
@@ -161,17 +142,17 @@ export const syncEditorFromRoute = (): void => {
 export const setTitle = (title: string): void => {
   const state = getEditorState();
   const trimmed = title.trim();
-  const nextSlug = state.slugTouched ? state.slug : slugify(trimmed);
+  const nextSlug = state.slug;
 
   if (state.creating && !state.currentUuid && trimmed !== "") {
     if (createInFlight) {
-      setEditorState({ title, slug: nextSlug });
+      setEditorState({ title });
       return;
     }
 
     const uuid = createUuid();
     createInFlight = true;
-    setEditorState({ currentUuid: uuid, title, slug: nextSlug });
+    setEditorState({ currentUuid: uuid, title });
     upsertDraftItem(uuid, title, nextSlug || "untitled-page", "draft");
 
     void pagesApi.createPage(uuid, trimmed, nextSlug || "untitled-page").then((payload) => {
@@ -183,7 +164,6 @@ export const setTitle = (title: string): void => {
       setEditorState({
         currentUuid: payload.id,
         slug: payload.slug,
-        slugTouched: true,
       });
 
       if (parsePagesRoute(window.location.pathname).mode === "create") {
@@ -204,7 +184,7 @@ export const setTitle = (title: string): void => {
 
     void pagesApi.updatePage(
       currentUuid,
-      trimmed === "" ? "Untitled page" : trimmed,
+      trimmed === "" ? "Untitled" : trimmed,
       (nextSlug === "" ? "untitled-page" : nextSlug),
       currentStatus
     ).then((payload) => {
@@ -215,7 +195,6 @@ export const setTitle = (title: string): void => {
       upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
       setEditorState({
         slug: payload.slug,
-        slugTouched: keepSlugLocked(payload.title, payload.slug),
       });
     });
     return;
@@ -227,7 +206,7 @@ export const setTitle = (title: string): void => {
 export const setSlug = (slug: string): void => {
   const state = getEditorState();
   const normalized = normalizeManualSlug(slug);
-  setEditorState({ slug: normalized, slugTouched: true });
+  setEditorState({ slug: normalized });
 
   if (!state.currentUuid) {
     return;
@@ -242,7 +221,7 @@ export const setSlug = (slug: string): void => {
 
   void pagesApi.updatePage(
     state.currentUuid,
-    state.title.trim() === "" ? "Untitled page" : state.title,
+    state.title.trim() === "" ? "Untitled" : state.title,
     normalized === "" ? "untitled-page" : normalized,
     currentStatus
   ).then((payload) => {
@@ -253,18 +232,8 @@ export const setSlug = (slug: string): void => {
     upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
     setEditorState({
       slug: payload.slug,
-      slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   });
-};
-
-export const lockAutoSlug = (): void => {
-  const state = getEditorState();
-  if (state.slugTouched) {
-    return;
-  }
-
-  setEditorState({ slugTouched: true });
 };
 
 export const publishCurrentPage = (): void => {
@@ -273,7 +242,7 @@ export const publishCurrentPage = (): void => {
     return;
   }
 
-  const title = state.title.trim() === "" ? "Untitled page" : state.title;
+  const title = state.title.trim() === "" ? "Untitled" : state.title;
   const slug = state.slug.trim() === "" ? "untitled-page" : state.slug;
 
   void pagesApi.updatePage(state.currentUuid, title, slug, "published").then((payload) => {
@@ -285,7 +254,6 @@ export const publishCurrentPage = (): void => {
     setEditorState({
       title: payload.title,
       slug: payload.slug,
-      slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   });
 };
@@ -296,7 +264,7 @@ export const unpublishCurrentPage = (): void => {
     return;
   }
 
-  const title = state.title.trim() === "" ? "Untitled page" : state.title;
+  const title = state.title.trim() === "" ? "Untitled" : state.title;
   const slug = state.slug.trim() === "" ? "untitled-page" : state.slug;
 
   void pagesApi.updatePage(state.currentUuid, title, slug, "draft").then((payload) => {
@@ -308,7 +276,6 @@ export const unpublishCurrentPage = (): void => {
     setEditorState({
       title: payload.title,
       slug: payload.slug,
-      slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   });
 };
@@ -319,7 +286,7 @@ export const archiveCurrentPage = (): void => {
     return;
   }
 
-  const title = state.title.trim() === "" ? "Untitled page" : state.title;
+  const title = state.title.trim() === "" ? "Untitled" : state.title;
   const slug = state.slug.trim() === "" ? "untitled-page" : state.slug;
 
   void pagesApi.updatePage(state.currentUuid, title, slug, "archived").then((payload) => {
@@ -331,7 +298,6 @@ export const archiveCurrentPage = (): void => {
     setEditorState({
       title: payload.title,
       slug: payload.slug,
-      slugTouched: keepSlugLocked(payload.title, payload.slug),
     });
   });
 };
@@ -351,7 +317,6 @@ export const deletePageById = async (uuid: string): Promise<boolean> => {
     currentUuid: wasCurrent ? null : state.currentUuid,
     title: wasCurrent ? "" : state.title,
     slug: wasCurrent ? "" : state.slug,
-    slugTouched: wasCurrent ? false : state.slugTouched,
   });
 
   if (wasCurrent) {
@@ -367,6 +332,5 @@ export const beginCreateMode = (): void => {
     currentUuid: null,
     title: "",
     slug: "",
-    slugTouched: false,
   });
 };

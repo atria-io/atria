@@ -48,7 +48,7 @@ function DialogDeletePage() {
     disabled: loading,
     onClose,
   });
-  const title = (request?.title ?? "").trim() || "Untitled page";
+  const title = (request?.title ?? "").trim() || "Untitled";
   const onDelete = React.useCallback(async (): Promise<void> => {
     if (!request) {
       return;

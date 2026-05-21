@@ -1,6 +1,6 @@
 import { Path } from "./sections/path/Path.js";
 import { Account } from "./sections/actions/Account.js";
-import { useLogout } from "@/app/realms/auth/model/uselogout.js";
+import { useLogout } from "@/app/realms/auth/model/useLogout.js";
 import { Scheme } from "./sections/actions/Scheme.js";
 import type { User, State } from "@/app/realms/studio/model/studio.types.js";
 
