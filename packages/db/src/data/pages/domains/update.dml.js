@@ -6,7 +6,7 @@ export const updateQueries = {
       "status = ?,",
       "title = ?,",
       "slug = ?,",
-      "published_at = CASE WHEN ? = 'published' THEN COALESCE(published_at, ?) ELSE NULL END,",
+      "published_at = CASE WHEN ? = 'published' THEN ? ELSE NULL END,",
       "updated_at = ?",
     ].join(" "),
     "WHERE id = ?",
