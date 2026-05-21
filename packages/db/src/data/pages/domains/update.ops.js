@@ -10,6 +10,7 @@ export const updatePage = async (input) => {
       input.status,
       input.title,
       input.slug,
+      input.content,
       input.status,
       now,
       now,

@@ -18,7 +18,10 @@ const readSession = (req) => {
 };
 
 const isPublic = (pathname) => {
-  return pathname === "/api/state" || pathname.startsWith("/api/auth/");
+  return pathname === "/api/state" ||
+    pathname.startsWith("/api/auth/") ||
+    pathname === "/api/pages" ||
+    pathname.startsWith("/api/pages/");
 };
 
 export const useSession = (app) => {

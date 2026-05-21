@@ -13,6 +13,7 @@ export const createPage = async (input) => {
         "draft",
         input.title,
         input.slug,
+        input.content,
         now,
         null,
         now
@@ -24,6 +25,7 @@ export const createPage = async (input) => {
       status: "draft",
       title: input.title,
       slug: input.slug,
+      content: input.content,
       timestamps: {
         createdAt: now,
         publishedAt: null,

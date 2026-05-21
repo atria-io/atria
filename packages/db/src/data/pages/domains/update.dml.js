@@ -6,6 +6,7 @@ export const updateQueries = {
       "status = ?,",
       "title = ?,",
       "slug = ?,",
+      "content = ?,",
       "published_at = CASE WHEN ? = 'published' THEN ? ELSE NULL END,",
       "updated_at = ?",
     ].join(" "),

@@ -29,8 +29,16 @@ export const setEditorSlug = (slug: string): void => {
   editorStateModel.setSlug(slug);
 };
 
+export const setEditorContent = (content: string): void => {
+  editorStateModel.setContent(content);
+};
+
 export const applyPendingEditorSlugFromTitle = (): void => {
   editorStateModel.applyPendingSlugFromTitle();
+};
+
+export const touchEditorCreateInteraction = (): void => {
+  editorStateModel.touchCreateInteraction();
 };
 
 export const startEditorCreateMode = (): void => {

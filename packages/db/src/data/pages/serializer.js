@@ -13,6 +13,7 @@ export const toPageRecord = (row) => ({
   status: toPageStatus(toStringValue(row.status)),
   title: toStringValue(row.title),
   slug: toStringValue(row.slug),
+  content: toStringValue(row.content),
   timestamps: {
     createdAt: toStringValue(row.createdAt),
     publishedAt:

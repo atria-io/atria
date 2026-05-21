@@ -1,6 +1,6 @@
 import * as db from "@atria/db";
 import { readBody } from "@atria/server/body.js";
-import { parseSlug, parseStatus, parseTitle, parseUuid } from "./shared.js";
+import { parseContent, parseSlug, parseStatus, parseTitle, parseUuid } from "./shared.js";
 
 export const routes = (app) => {
   app.get("/api/pages", async (req, res) => {
@@ -12,8 +12,9 @@ export const routes = (app) => {
     const id = parseUuid(payload?.id);
     const title = parseTitle(payload?.title);
     const slug = parseSlug(payload?.slug);
+    const content = parseContent(payload?.content);
 
-    if (!id || !title || !slug) {
+    if (!id || title === null || slug === null || content === null) {
       res.statusCode = 400;
       res.end();
       return;
@@ -23,7 +24,8 @@ export const routes = (app) => {
       {
         id,
         title,
-        slug
+        slug,
+        content,
       }
     );
     if (!page) {
@@ -67,15 +69,16 @@ export const routes = (app) => {
       const payload = await readBody(req);
       const title = parseTitle(payload?.title);
       const slug = parseSlug(payload?.slug);
+      const content = parseContent(payload?.content);
       const status = parseStatus(payload?.status);
 
-      if (!title || !slug || !status) {
+      if (title === null || slug === null || content === null || !status) {
         res.statusCode = 400;
         res.end();
         return;
       }
 
-      const page = await db.pages.updatePage({ id, title, slug, status });
+      const page = await db.pages.updatePage({ id, title, slug, content, status });
       if (!page) {
         res.json({ error: "Not Found" }, 404);
         return;

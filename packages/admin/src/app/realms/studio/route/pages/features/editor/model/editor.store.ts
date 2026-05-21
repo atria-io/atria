@@ -13,6 +13,7 @@ let editorState: EditorState = {
   creating: resolveInitialCreating(),
   title: "",
   slug: "",
+  content: "",
   currentUuid: null,
   drafts: [],
 };

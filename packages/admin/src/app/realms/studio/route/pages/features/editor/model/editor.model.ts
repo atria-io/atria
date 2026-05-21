@@ -6,6 +6,7 @@ import type { CatalogItem, PageApiPayload } from "./editor.types.js";
 let isBootstrapped = false;
 let createInFlight = false;
 let slugTouched = false;
+const persistedIds = new Set<string>();
 
 const createUuid = (): string => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -26,6 +27,7 @@ const toCatalogItem = (payload: PageApiPayload): CatalogItem => ({
   uuid: payload.id,
   title: payload.title,
   slug: payload.slug,
+  content: payload.content,
   status: payload.status,
 });
 
@@ -39,7 +41,7 @@ const normalizeManualSlug = (value: string): string =>
     .slice(0, 200);
 
 const isValidPersistedSlug = (value: string): boolean =>
-  /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
+  value === "" || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 
 const resolveSlugFromTitle = (value: string): string =>
   normalizeManualSlug(value).replace(/^-+|-+$/g, "");
@@ -48,6 +50,7 @@ const upsertDraftItem = (
   uuid: string,
   title: string,
   slug: string,
+  content: string,
   status: "draft" | "published" | "archived"
 ): void => {
   const state = getEditorState();
@@ -55,13 +58,15 @@ const upsertDraftItem = (
 
   if (existing) {
     setEditorState({
-      drafts: state.drafts.map((item) => (item.uuid === uuid ? { ...item, title, slug, status } : item)),
+      drafts: state.drafts.map((item) =>
+        item.uuid === uuid ? { ...item, title, slug, content, status } : item
+      ),
     });
     return;
   }
 
   setEditorState({
-    drafts: [{ uuid, title, slug, status }, ...state.drafts],
+    drafts: [{ uuid, title, slug, content, status }, ...state.drafts],
   });
 };
 
@@ -72,6 +77,7 @@ const openDraftRoute = (uuid: string): void => {
 
 const loadDrafts = async (): Promise<void> => {
   const items = await pagesApi.listPages();
+  items.forEach((item) => persistedIds.add(item.id));
   setEditorState({ drafts: items.map(toCatalogItem) });
 };
 
@@ -80,7 +86,7 @@ const loadDraftById = async (uuid: string): Promise<boolean> => {
   const existing = state.drafts.find((item) => item.uuid === uuid);
   if (existing) {
     if (state.currentUuid === uuid) {
-      setEditorState({ title: existing.title });
+      setEditorState({ title: existing.title, slug: existing.slug, content: existing.content });
     }
     return true;
   }
@@ -90,15 +96,90 @@ const loadDraftById = async (uuid: string): Promise<boolean> => {
     return false;
   }
 
-  upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
+  persistedIds.add(payload.id);
+  upsertDraftItem(payload.id, payload.title, payload.slug, payload.content, payload.status);
   if (getEditorState().currentUuid === payload.id) {
     setEditorState({
       title: payload.title,
       slug: payload.slug,
+      content: payload.content,
     });
   }
 
   return true;
+};
+
+const persistDraft = (status?: "draft" | "published" | "archived"): void => {
+  const state = getEditorState();
+  if (!state.currentUuid) {
+    return;
+  }
+
+  const uuid = state.currentUuid;
+  const title = state.title.trim();
+  const slug = state.slug.trim();
+  const content = state.content;
+  const nextStatus = status ?? (state.drafts.find((item) => item.uuid === uuid)?.status ?? "draft");
+
+  if (!isValidPersistedSlug(slug)) {
+    return;
+  }
+
+  upsertDraftItem(uuid, state.title, state.slug, state.content, nextStatus);
+
+  if (!persistedIds.has(uuid)) {
+    if (createInFlight) {
+      return;
+    }
+
+    createInFlight = true;
+    void pagesApi.createPage(uuid, title, slug, content).then((payload) => {
+      if (!payload) {
+        return;
+      }
+
+      persistedIds.add(payload.id);
+      upsertDraftItem(payload.id, payload.title, payload.slug, payload.content, payload.status);
+      setEditorState({ currentUuid: payload.id });
+
+      const latest = getEditorState();
+      if (latest.currentUuid !== payload.id) {
+        return;
+      }
+
+      void pagesApi.updatePage(
+        payload.id,
+        latest.title.trim(),
+        latest.slug.trim(),
+        latest.content,
+        latest.drafts.find((item) => item.uuid === payload.id)?.status ?? "draft"
+      ).then((updatedPayload) => {
+        if (!updatedPayload) {
+          return;
+        }
+
+        upsertDraftItem(
+          updatedPayload.id,
+          updatedPayload.title,
+          updatedPayload.slug,
+          updatedPayload.content,
+          updatedPayload.status
+        );
+      });
+    }).finally(() => {
+      createInFlight = false;
+    });
+    return;
+  }
+
+  void pagesApi.updatePage(uuid, title, slug, content, nextStatus).then((payload) => {
+    if (!payload) {
+      return;
+    }
+
+    persistedIds.add(payload.id);
+    upsertDraftItem(payload.id, payload.title, payload.slug, payload.content, payload.status);
+  });
 };
 
 export const syncEditorFromRoute = (): void => {
@@ -111,15 +192,14 @@ export const syncEditorFromRoute = (): void => {
   const route = parsePagesRoute(window.location.pathname);
   const routeUuid = route.mode === "document" ? route.uuid : null;
   const routeDraft = routeUuid ? state.drafts.find((item) => item.uuid === routeUuid) : null;
-  const creating =
-    route.mode === "create" ||
-    (route.mode === "document" && routeDraft !== null);
+  const creating = route.mode === "create" || (route.mode === "document" && routeDraft !== null);
 
   setEditorState({
     creating,
     currentUuid: route.mode === "create" ? state.currentUuid : routeUuid,
     title: routeDraft ? routeDraft.title : route.mode === "create" ? state.title : "",
     slug: routeDraft ? routeDraft.slug : route.mode === "create" ? state.slug : "",
+    content: routeDraft ? routeDraft.content : route.mode === "create" ? state.content : "",
   });
 
   if (routeUuid && !routeDraft) {
@@ -138,118 +218,51 @@ export const syncEditorFromRoute = (): void => {
         currentUuid: null,
         title: "",
         slug: "",
+        content: "",
       });
     });
   }
+};
+
+export const touchCreateInteraction = (): void => {
+  const state = getEditorState();
+  if (!state.creating || state.currentUuid) {
+    return;
+  }
+
+  const uuid = createUuid();
+  slugTouched = false;
+  setEditorState({ currentUuid: uuid });
+  upsertDraftItem(uuid, state.title, state.slug, state.content, "draft");
+
+  if (parsePagesRoute(window.location.pathname).mode === "create") {
+    openDraftRoute(uuid);
+  }
+
+  persistDraft("draft");
 };
 
 export const setTitle = (title: string): void => {
-  const state = getEditorState();
-  const trimmed = title.trim();
-  const nextSlug = state.slug;
-  const persistedSlug = nextSlug === "" ? resolveSlugFromTitle(trimmed) : nextSlug;
-
-  if (state.creating && !state.currentUuid && trimmed !== "") {
-    if (createInFlight) {
-      setEditorState({ title });
-      return;
-    }
-    if (!isValidPersistedSlug(persistedSlug)) {
-      setEditorState({ title });
-      return;
-    }
-
-    const uuid = createUuid();
-    createInFlight = true;
-    setEditorState({ currentUuid: uuid, title });
-    upsertDraftItem(uuid, title, nextSlug, "draft");
-
-    void pagesApi.createPage(uuid, trimmed, persistedSlug).then((payload) => {
-      if (!payload) {
-        return;
-      }
-
-      upsertDraftItem(payload.id, payload.title, nextSlug, payload.status);
-      setEditorState({
-        currentUuid: payload.id,
-      });
-
-      if (parsePagesRoute(window.location.pathname).mode === "create") {
-        openDraftRoute(payload.id);
-      }
-    }).finally(() => {
-      createInFlight = false;
-    });
-    return;
-  }
-
-  if (state.currentUuid) {
-    const currentUuid = state.currentUuid;
-    setEditorState({ title });
-    const currentItem = state.drafts.find((item) => item.uuid === currentUuid);
-    const currentStatus = currentItem?.status ?? "draft";
-    upsertDraftItem(currentUuid, title, nextSlug, currentStatus);
-
-    if (!isValidPersistedSlug(persistedSlug)) {
-      return;
-    }
-
-    void pagesApi.updatePage(
-      currentUuid,
-      trimmed === "" ? "Untitled" : trimmed,
-      persistedSlug,
-      currentStatus
-    ).then((payload) => {
-      if (!payload) {
-        return;
-      }
-
-      upsertDraftItem(payload.id, payload.title, nextSlug, payload.status);
-    });
-    return;
-  }
-
   setEditorState({ title });
+  persistDraft();
 };
 
 const setSlugInternal = (slug: string, manual: boolean): void => {
-  const state = getEditorState();
   const normalized = normalizeManualSlug(slug);
   if (manual) {
     slugTouched = true;
   }
   setEditorState({ slug: normalized });
-
-  if (!state.currentUuid) {
-    return;
-  }
-
-  if (!isValidPersistedSlug(normalized)) {
-    return;
-  }
-
-  const currentItem = state.drafts.find((item) => item.uuid === state.currentUuid);
-  const currentStatus = currentItem?.status ?? "draft";
-
-  void pagesApi.updatePage(
-    state.currentUuid,
-    state.title.trim() === "" ? "Untitled" : state.title,
-    normalized === "" ? "untitled-page" : normalized,
-    currentStatus
-  ).then((payload) => {
-    if (!payload) {
-      return;
-    }
-
-    upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
-    setEditorState({
-      slug: payload.slug,
-    });
-  });
+  persistDraft();
 };
 
 export const setSlug = (slug: string): void => {
   setSlugInternal(slug, true);
+};
+
+export const setContent = (content: string): void => {
+  setEditorState({ content });
+  persistDraft();
 };
 
 export const applyPendingSlugFromTitle = (): void => {
@@ -258,7 +271,7 @@ export const applyPendingSlugFromTitle = (): void => {
     return;
   }
 
-  const normalized = normalizeManualSlug(state.title).replace(/^-+|-+$/g, "");
+  const normalized = resolveSlugFromTitle(state.title);
   if (!isValidPersistedSlug(normalized)) {
     return;
   }
@@ -267,69 +280,15 @@ export const applyPendingSlugFromTitle = (): void => {
 };
 
 export const publishCurrentPage = (): void => {
-  const state = getEditorState();
-  if (!state.currentUuid) {
-    return;
-  }
-
-  const title = state.title.trim() === "" ? "Untitled" : state.title;
-  const slug = state.slug.trim() === "" ? "untitled-page" : state.slug;
-
-  void pagesApi.updatePage(state.currentUuid, title, slug, "published").then((payload) => {
-    if (!payload) {
-      return;
-    }
-
-    upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
-    setEditorState({
-      title: payload.title,
-      slug: payload.slug,
-    });
-  });
+  persistDraft("published");
 };
 
 export const unpublishCurrentPage = (): void => {
-  const state = getEditorState();
-  if (!state.currentUuid) {
-    return;
-  }
-
-  const title = state.title.trim() === "" ? "Untitled" : state.title;
-  const slug = state.slug.trim() === "" ? "untitled-page" : state.slug;
-
-  void pagesApi.updatePage(state.currentUuid, title, slug, "draft").then((payload) => {
-    if (!payload) {
-      return;
-    }
-
-    upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
-    setEditorState({
-      title: payload.title,
-      slug: payload.slug,
-    });
-  });
+  persistDraft("draft");
 };
 
 export const archiveCurrentPage = (): void => {
-  const state = getEditorState();
-  if (!state.currentUuid) {
-    return;
-  }
-
-  const title = state.title.trim() === "" ? "Untitled" : state.title;
-  const slug = state.slug.trim() === "" ? "untitled-page" : state.slug;
-
-  void pagesApi.updatePage(state.currentUuid, title, slug, "archived").then((payload) => {
-    if (!payload) {
-      return;
-    }
-
-    upsertDraftItem(payload.id, payload.title, payload.slug, payload.status);
-    setEditorState({
-      title: payload.title,
-      slug: payload.slug,
-    });
-  });
+  persistDraft("archived");
 };
 
 export const deletePageById = async (uuid: string): Promise<boolean> => {
@@ -342,11 +301,14 @@ export const deletePageById = async (uuid: string): Promise<boolean> => {
   const wasCurrent = state.currentUuid === uuid;
   const nextDrafts = state.drafts.filter((item) => item.uuid !== uuid);
 
+  persistedIds.delete(uuid);
+
   setEditorState({
     drafts: nextDrafts,
     currentUuid: wasCurrent ? null : state.currentUuid,
     title: wasCurrent ? "" : state.title,
     slug: wasCurrent ? "" : state.slug,
+    content: wasCurrent ? "" : state.content,
   });
 
   if (wasCurrent) {
@@ -363,5 +325,6 @@ export const beginCreateMode = (): void => {
     currentUuid: null,
     title: "",
     slug: "",
+    content: "",
   });
 };

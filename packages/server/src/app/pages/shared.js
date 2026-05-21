@@ -14,7 +14,7 @@ export const parseTitle = (value) => {
     return null;
   }
   const normalized = value.trim();
-  if (normalized === "" || normalized.length > 200) {
+  if (normalized.length > 200) {
     return null;
   }
   return normalized;
@@ -25,12 +25,18 @@ export const parseSlug = (value) => {
     return null;
   }
   const normalized = value.trim().toLowerCase();
-  if (normalized === "" ||
-    normalized.length > 200 ||
-    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) {
+  if (normalized.length > 200 ||
+    (normalized !== "" && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized))) {
     return null;
   }
   return normalized;
+};
+
+export const parseContent = (value) => {
+  if (typeof value !== "string") {
+    return null;
+  }
+  return value;
 };
 
 export const parseStatus = (value) => {

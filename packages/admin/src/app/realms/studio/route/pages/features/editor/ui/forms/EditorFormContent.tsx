@@ -1,4 +1,8 @@
+import { setEditorContent, useEditorState } from "../../model/editor.state.js";
+
 export function EditorFormContent() {
+  const { content } = useEditorState();
+
   return (
     <div className="pages-editor__field">
       <div className="field field--gap-lg">
@@ -9,6 +13,8 @@ export function EditorFormContent() {
           id="page-content"
           name="content"
           rows={14}
+          value={content}
+          onChange={(event) => setEditorContent(event.target.value)}
           className="textarea textarea--full textarea--interactive"
           placeholder="Page content"
         />

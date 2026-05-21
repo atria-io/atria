@@ -6,6 +6,7 @@ export const pagesDDL = [
     "status TEXT NOT NULL,",
     "title TEXT NOT NULL,",
     "slug TEXT NOT NULL,",
+    "content TEXT NOT NULL,",
     "created_at TEXT NOT NULL,",
     "published_at TEXT,",
     "updated_at TEXT NOT NULL",

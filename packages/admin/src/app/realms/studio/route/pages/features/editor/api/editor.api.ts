@@ -23,11 +23,16 @@ export const getPage = async (id: string): Promise<PageApiPayload | null> => {
   return (await response.json()) as PageApiPayload;
 };
 
-export const createPage = async (id: string, title: string, slug: string): Promise<PageApiPayload | null> => {
+export const createPage = async (
+  id: string,
+  title: string,
+  slug: string,
+  content: string,
+): Promise<PageApiPayload | null> => {
   const response = await fetch("/api/pages", {
     method: "POST",
     headers: JSON_HEADERS,
-    body: JSON.stringify({ id, title, slug }),
+    body: JSON.stringify({ id, title, slug, content }),
   });
 
   if (!response.ok) {
@@ -41,12 +46,13 @@ export const updatePage = async (
   id: string,
   title: string,
   slug: string,
-  status: "draft" | "published" | "archived"
+  content: string,
+  status: "draft" | "published" | "archived",
 ): Promise<PageApiPayload | null> => {
   const response = await fetch(`/api/pages/${id}`, {
     method: "PATCH",
     headers: JSON_HEADERS,
-    body: JSON.stringify({ title, slug, status }),
+    body: JSON.stringify({ title, slug, content, status }),
   });
 
   if (!response.ok) {
