@@ -1,9 +1,9 @@
 import * as React from "react";
 import * as Icon from "lucide-react";
 import {
-  archiveEditorPage,
-  publishEditorPage,
-  unpublishEditorPage,
+  archive,
+  publish,
+  unpublish,
   type CatalogItem as CatalogItemType
 } from "../../editor/model/editor.state.js";
 import { resolveDocumentPath } from "../../../routes/pages.routes.js";
@@ -75,21 +75,21 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
           onOpenChange={setMoreOpen}
           items={[
             item.status === "archived"
-              ? { key: "unarchive", label: "Unarchive", icon: Icon.Upload, onClick: runItemAction(unpublishEditorPage) }
-              : { key: "archive", label: "Archive", icon: Icon.Archive, onClick: runItemAction(archiveEditorPage) },
+              ? { key: "unarchive", label: "Unarchive", icon: Icon.Upload, onClick: runItemAction(unpublish) }
+              : { key: "archive", label: "Archive", icon: Icon.Archive, onClick: runItemAction(archive) },
             {
               key: "publish",
               label: "Publish",
               icon: Icon.Upload,
               hidden: item.status === "published",
-              onClick: runItemAction(publishEditorPage),
+              onClick: runItemAction(publish),
             },
             {
               key: "unpublish",
               label: "Unpublish",
               icon: Icon.EyeOff,
               hidden: item.status !== "published",
-              onClick: runItemAction(unpublishEditorPage),
+              onClick: runItemAction(unpublish),
             },
             {
               key: "delete",

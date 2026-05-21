@@ -7,7 +7,9 @@ export interface CatalogItem {
 }
 
 export interface EditorState {
+  isResolving: boolean;
   creating: boolean;
+  hasEditorChanges: boolean;
   title: string;
   slug: string;
   content: string;

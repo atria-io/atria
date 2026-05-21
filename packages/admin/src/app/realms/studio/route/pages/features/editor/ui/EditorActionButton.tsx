@@ -1,39 +1,29 @@
-import type * as Icon from "lucide-react";
+import { Button } from "@atria/ui";
 
 interface EditorActionButtonProps {
   ariaLabel: string;
-  label?: string;
+  label: string;
   tooltip?: string;
-  icon?: Icon.LucideIcon;
-  iconSize?: number;
+  accent?: boolean;
+  disabledPointer?: boolean;
   onClick?: () => void;
 }
 
-export function EditorActionButton({
-  ariaLabel,
-  label,
-  tooltip,
-  icon: Icon,
-  iconSize = 16,
-  onClick,
-}: EditorActionButtonProps) {
-  const className = Icon
-    ? "button button--square button--overlay button--icon"
-    : "button button--fill button--sm button--overlay button--center";
+export function EditorActionButton(props: EditorActionButtonProps) {
+  const { ariaLabel, tooltip, onClick, label, accent = false, disabledPointer = false } = props;
 
   return (
-    <button
+    <Button
       type="button"
-      className={className}
+      size="sm"
+      align="center"
+      variant={["fill", "overlay"]}
+      className={accent ? "button--accent" : ""}
+      style={disabledPointer ? { pointerEvents: "none" } : undefined}
       aria-label={ariaLabel}
       data-tooltip={tooltip}
       onClick={onClick}
-    >
-      {Icon ? (
-        <div className="button__icon">
-          <Icon size={iconSize} />
-        </div>
-      ) : label}
-    </button>
+      label={label}
+    />
   );
 }

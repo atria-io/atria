@@ -1,7 +1,7 @@
-import { setEditorContent, useEditorState } from "../../model/editor.state.js";
+import { setContent, useState } from "../../model/editor.state.js";
 
 export function EditorFormContent() {
-  const { content } = useEditorState();
+  const { content } = useState();
 
   return (
     <div className="pages-editor__field">
@@ -14,7 +14,7 @@ export function EditorFormContent() {
           name="content"
           rows={14}
           value={content}
-          onChange={(event) => setEditorContent(event.target.value)}
+          onChange={(event) => setContent(event.target.value)}
           className="textarea textarea--full textarea--interactive"
           placeholder="Page content"
         />

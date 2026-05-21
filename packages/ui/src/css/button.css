@@ -121,7 +121,9 @@
   --button-color-hover: var(--accent-text);
   --button-background: var(--accent);
   --button-background-hover: var(--accent-hover);
+}
 
+.button--accent.button--solid {
   border: 1px solid var(--accent);
 }
 

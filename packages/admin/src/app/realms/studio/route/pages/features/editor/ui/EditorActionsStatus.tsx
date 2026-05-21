@@ -1,8 +1,8 @@
-import { useEditorState } from "../model/editor.state.js";
+import { useState } from "../model/editor.state.js";
 import { parsePagesRoute } from "../../../routes/pages.routes.js";
 
 export function EditorActionsStatus() {
-  const { currentUuid, drafts } = useEditorState();
+  const { currentUuid, drafts } = useState();
   const route = parsePagesRoute(window.location.pathname);
 
   const currentDraft = currentUuid

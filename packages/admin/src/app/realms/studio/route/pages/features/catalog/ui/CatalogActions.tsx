@@ -1,6 +1,6 @@
 import * as Icon from "lucide-react";
 import { resolveCreatePath } from "../../../routes/pages.routes.js";
-import { startEditorCreateMode } from "../../editor/model/editor.state.js";
+import { startCreate } from "../../editor/model/editor.state.js";
 import { closeArchivedOnly, toggleArchivedOnly, useCatalogFilterState } from "../model/catalog.state.js";
 import { CatalogActionButton } from "./CatalogActionButton.js";
 
@@ -9,7 +9,7 @@ export function CatalogActions() {
 
   const onCreatePage = (): void => {
     closeArchivedOnly();
-    startEditorCreateMode();
+    startCreate();
     const nextPath = resolveCreatePath(window.location.pathname);
     window.history.pushState({}, "", nextPath);
     window.dispatchEvent(new PopStateEvent("popstate"));

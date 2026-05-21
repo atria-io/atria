@@ -1,7 +1,7 @@
-import { applyPendingEditorSlugFromTitle, setEditorTitle, useEditorState } from "../../model/editor.state.js";
+import { applySlugFromTitle, setTitle, useState } from "../../model/editor.state.js";
 
 export function EditorFormTitle() {
-  const { title } = useEditorState();
+  const { title } = useState();
 
   return (
     <div className="pages-editor__field">
@@ -14,8 +14,8 @@ export function EditorFormTitle() {
           name="title"
           type="text"
           value={title}
-          onChange={(event) => setEditorTitle(event.target.value)}
-          onBlur={applyPendingEditorSlugFromTitle}
+          onChange={(event) => setTitle(event.target.value)}
+          onBlur={applySlugFromTitle}
           className="input input--sm input--full input--interactive"
           placeholder="Page title"
         />

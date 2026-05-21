@@ -5,10 +5,14 @@ import { getEditorState, subscribeEditorState } from "./editor.store.js";
 
 export type { CatalogItem, EditorState } from "./editor.types.js";
 
-export const useEditorState = () =>
-  React.useSyncExternalStore(subscribeEditorState, getEditorState, getEditorState);
+export const useState = () =>
+  React.useSyncExternalStore(
+    subscribeEditorState,
+    getEditorState,
+    getEditorState
+  );
 
-export const useEditorStateSetup = (): void => {
+export const useSetup = (): void => {
   const sync = React.useCallback((): void => {
     model.syncEditorFromRoute();
   }, []);
@@ -20,42 +24,38 @@ export const useEditorStateSetup = (): void => {
   }, [sync]);
 };
 
-export const setEditorTitle = (title: string): void => {
+export const setTitle = (title: string): void => {
   model.setTitle(title);
 };
 
-export const setEditorSlug = (slug: string): void => {
+export const setSlug = (slug: string): void => {
   model.setSlug(slug);
 };
 
-export const setEditorContent = (content: string): void => {
+export const setContent = (content: string): void => {
   model.setContent(content);
 };
 
-export const applyPendingEditorSlugFromTitle = (): void => {
+export const applySlugFromTitle = (): void => {
   model.applyPendingSlugFromTitle();
 };
 
-export const touchEditorCreateInteraction = (): void => {
-  model.touchCreateInteraction();
-};
-
-export const startEditorCreateMode = (): void => {
+export const startCreate = (): void => {
   model.beginCreateMode();
 };
 
-export const publishEditorPage = (): void => {
+export const publish = (): void => {
   model.publishCurrentPage();
 };
 
-export const unpublishEditorPage = (): void => {
+export const unpublish = (): void => {
   model.unpublishCurrentPage();
 };
 
-export const archiveEditorPage = (): void => {
+export const archive = (): void => {
   model.archiveCurrentPage();
 };
 
-export const deleteEditorPageById = (uuid: string): Promise<boolean> => {
+export const deleteById = (uuid: string): Promise<boolean> => {
   return model.deletePageById(uuid);
 };

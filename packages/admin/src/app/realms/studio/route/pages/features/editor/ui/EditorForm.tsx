@@ -1,13 +1,13 @@
-import { touchEditorCreateInteraction, useEditorState } from "../model/editor.state.js";
+import { useState } from "../model/editor.state.js";
 import { EditorFormTitle } from "./forms/EditorFormTitle.js";
 import { EditorFormSlug } from "./forms/EditorFormSlug.js";
 import { EditorFormContent } from "./forms/EditorFormContent.js";
 import { EditorHeaderTitle } from "./EditorHeaderTitle.js";
 
 export function EditorForm() {
-  const { title } = useEditorState();
+  const { title } = useState();
   return (
-    <form className="pages-editor__create-form" onFocusCapture={touchEditorCreateInteraction}>
+    <form className="pages-editor__create-form">
       <EditorHeaderTitle title={title} />
       <EditorFormTitle />
       <EditorFormSlug />

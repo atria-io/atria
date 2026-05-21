@@ -1,10 +1,10 @@
-import { useEditorState } from "../../editor/model/editor.state.js";
+import { useState } from "../../editor/model/editor.state.js";
 import { parsePagesRoute, usePagesPathname } from "../../../routes/pages.routes.js";
 import { useCatalogFilterState } from "../model/catalog.state.js";
 import { CatalogItem } from "./CatalogItem.js";
 
 export function CatalogMain() {
-  const { drafts } = useEditorState();
+  const { drafts } = useState();
   const { archivedOnly } = useCatalogFilterState();
   const pathname = usePagesPathname();
   const route = parsePagesRoute(pathname);

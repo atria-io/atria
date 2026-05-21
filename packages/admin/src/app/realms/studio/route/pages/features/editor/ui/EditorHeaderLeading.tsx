@@ -1,9 +1,9 @@
-import { useEditorState } from "../model/editor.state.js";
+import { useState } from "../model/editor.state.js";
 import { EditorHeaderTitle } from "./EditorHeaderTitle.js";
 import { EditorHeaderTools } from "./EditorHeaderTools.js";
 
 export function EditorHeaderLeading() {
-  const { creating, title } = useEditorState();
+  const { creating, title } = useState();
 
   const onClose = (): void => {
     window.history.pushState({}, "", "/pages");

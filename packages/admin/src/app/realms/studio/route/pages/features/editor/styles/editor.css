@@ -64,6 +64,7 @@
 
 .pages-editor__title {
   font-size: var(--text-base);
+  margin-bottom: var(--space-block-md);
 }
 
 .pages-editor__slug-wrap {

@@ -1,4 +1,5 @@
 import * as Icon from "lucide-react";
+import { Button } from "@atria/ui";
 import { EditorActionButton } from "./EditorActionButton.js";
 
 interface EditorHeaderToolsProps {
@@ -9,11 +10,21 @@ export function EditorHeaderTools({ onClose }: EditorHeaderToolsProps) {
   return (
     <>
       <div className="pages-editor__header-close" aria-label="Close Page">
-        <EditorActionButton ariaLabel="Close" tooltip="Close" icon={Icon.X} onClick={onClose} />
+        <Button
+          type="button"
+          square
+          icon
+          variant="overlay"
+          aria-label="Close"
+          data-tooltip="Close"
+          onClick={onClose}
+        >
+          <Icon.X size={16} />
+        </Button>
       </div>
       <div className="pages-editor__header-tools" aria-label="Page tools">
-        <button className="button button--sm button--overlay button--center">Content</button>
-        <button className="button button--ghost button--sm button--overlay button--center">SEO</button>
+        <Button type="button" size="sm" align="center" variant="overlay" label="Content" />
+        <Button type="button" size="sm" align="center" variant={["ghost", "overlay"]} label="SEO" />
         {/*
         <EditorActionButton ariaLabel="History" tooltip="History" icon={Icon.UndoDot} />
         <EditorActionButton ariaLabel="JSON" tooltip="JSON" icon={Icon.Braces} />

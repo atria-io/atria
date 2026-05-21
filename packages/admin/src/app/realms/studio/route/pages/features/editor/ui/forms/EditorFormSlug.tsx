@@ -1,9 +1,9 @@
 import * as Icon from "lucide-react";
-import { setEditorSlug, useEditorState } from "../../model/editor.state.js";
+import { setSlug, useState } from "../../model/editor.state.js";
 import { getFrontendUrl } from "@/app/system/config/app.config.js";
 
 export function EditorFormSlug() {
-  const { slug, drafts, currentUuid } = useEditorState();
+  const { slug, drafts, currentUuid } = useState();
   const frontendUrl = getFrontendUrl().replace(/\/+$/, "");
   const hasDuplicateSlug =
     slug.trim() !== "" &&
@@ -29,7 +29,7 @@ export function EditorFormSlug() {
             name="slug"
             type="text"
             value={slug}
-            onChange={(event) => setEditorSlug(event.target.value)}
+            onChange={(event) => setSlug(event.target.value)}
             className={`input input--sm input--full input--interactive pages-editor__slug-input${hasDuplicateSlug ? ' input--danger' : ''}`}
             placeholder="slug"
           />

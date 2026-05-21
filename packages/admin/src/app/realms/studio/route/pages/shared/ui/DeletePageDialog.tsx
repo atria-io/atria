@@ -2,7 +2,7 @@ import * as React from "react";
 import * as Dialog from "@atria/ui";
 import { Button } from "@atria/ui";
 import { useDialog } from "@atria/ui";
-import { deleteEditorPageById } from "../../features/editor/model/editor.state.js";
+import { deleteById } from "../../features/editor/model/editor.state.js";
 
 interface DeleteRequest {
   id: string;
@@ -54,7 +54,7 @@ function DialogDeletePage() {
       return;
     }
     setLoading(true);
-    const deleted = await deleteEditorPageById(request.id);
+    const deleted = await deleteById(request.id);
     setLoading(false);
     if (deleted) {
       setRequest(null);
