@@ -1,23 +1,19 @@
 import * as React from "react";
-import { parsePagesRoute, resolveCreatePath, resolveDocumentPath } from "../model/pages.state.js";
+import { popstate } from "@/app/system/hooks/popstate.js";
+import * as state from "../model/pages.state.js";
 
-export { parsePagesRoute, resolveCreatePath, resolveDocumentPath };
+export const parsePagesRoute = state.parsePagesRoute;
+export const resolveCreatePath = state.resolveCreatePath;
+export const resolveDocumentPath = state.resolveDocumentPath;
 
 export const usePagesPathname = (): string => {
   const [pathname, setPathname] = React.useState(
     typeof window === "undefined" ? "/pages" : window.location.pathname
   );
 
-  React.useEffect(() => {
-    const onPopState = (): void => {
-      setPathname(window.location.pathname);
-    };
-
-    window.addEventListener("popstate", onPopState);
-    return () => {
-      window.removeEventListener("popstate", onPopState);
-    };
-  }, []);
+  popstate(() => {
+    setPathname(window.location.pathname);
+  });
 
   return pathname;
 };

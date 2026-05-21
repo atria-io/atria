@@ -1,12 +1,12 @@
 import * as React from "react";
-import { usePageShowEvent } from "@/app/system/hooks/use.page.show.event.js";
+import { pageshow } from "@/app/system/hooks/pageshow.js";
 import { startOAuthRedirect } from "../../api/auth.client.js";
 import type { Mode, Provider } from "../../model/auth.types.js";
 
 export function useProviderButtons(mode: Mode) {
   const [loadingProvider, setLoadingProvider] = React.useState<Provider | null>(null);
 
-  usePageShowEvent(() => {
+  pageshow(() => {
     setLoadingProvider(null);
   });
 

@@ -5,7 +5,7 @@ export interface RuntimeFatalDetail {
   message?: string;
 }
 
-const readRuntimeFatalStateKind = (
+const state = (
   event: Event
 ): State | null => {
   const detail = (event as CustomEvent<RuntimeFatalDetail | undefined>).detail;
@@ -24,8 +24,8 @@ const readRuntimeFatalStateKind = (
   return null;
 };
 
-export const getRuntimeFatalState = (
+export const fatal = (
   event: Event
 ): State => {
-  return readRuntimeFatalStateKind(event) ?? "critical";
+  return state(event) ?? "critical";
 };

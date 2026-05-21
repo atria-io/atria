@@ -1,5 +1,6 @@
 import * as React from "react";
-import * as editorStateModel from "./editor.model.js";
+import { popstate } from "@/app/system/hooks/popstate.js";
+import * as model from "./editor.model.js";
 import { getEditorState, subscribeEditorState } from "./editor.store.js";
 
 export type { CatalogItem, EditorState } from "./editor.types.js";
@@ -8,55 +9,53 @@ export const useEditorState = () =>
   React.useSyncExternalStore(subscribeEditorState, getEditorState, getEditorState);
 
 export const useEditorStateSetup = (): void => {
-  React.useEffect(() => {
-    const sync = (): void => {
-      editorStateModel.syncEditorFromRoute();
-    };
-
-    sync();
-    window.addEventListener("popstate", sync);
-    return () => {
-      window.removeEventListener("popstate", sync);
-    };
+  const sync = React.useCallback((): void => {
+    model.syncEditorFromRoute();
   }, []);
+
+  popstate(sync);
+
+  React.useEffect(() => {
+    sync();
+  }, [sync]);
 };
 
 export const setEditorTitle = (title: string): void => {
-  editorStateModel.setTitle(title);
+  model.setTitle(title);
 };
 
 export const setEditorSlug = (slug: string): void => {
-  editorStateModel.setSlug(slug);
+  model.setSlug(slug);
 };
 
 export const setEditorContent = (content: string): void => {
-  editorStateModel.setContent(content);
+  model.setContent(content);
 };
 
 export const applyPendingEditorSlugFromTitle = (): void => {
-  editorStateModel.applyPendingSlugFromTitle();
+  model.applyPendingSlugFromTitle();
 };
 
 export const touchEditorCreateInteraction = (): void => {
-  editorStateModel.touchCreateInteraction();
+  model.touchCreateInteraction();
 };
 
 export const startEditorCreateMode = (): void => {
-  editorStateModel.beginCreateMode();
+  model.beginCreateMode();
 };
 
 export const publishEditorPage = (): void => {
-  editorStateModel.publishCurrentPage();
+  model.publishCurrentPage();
 };
 
 export const unpublishEditorPage = (): void => {
-  editorStateModel.unpublishCurrentPage();
+  model.unpublishCurrentPage();
 };
 
 export const archiveEditorPage = (): void => {
-  editorStateModel.archiveCurrentPage();
+  model.archiveCurrentPage();
 };
 
 export const deleteEditorPageById = (uuid: string): Promise<boolean> => {
-  return editorStateModel.deletePageById(uuid);
+  return model.deletePageById(uuid);
 };

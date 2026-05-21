@@ -1,6 +1,6 @@
 import * as React from "react";
 
-function usePageShowEvent(onReset: () => void) {
+function pageshow(onReset: () => void) {
   const onResetRef = React.useRef(onReset);
   onResetRef.current = onReset;
 
@@ -16,4 +16,4 @@ function usePageShowEvent(onReset: () => void) {
   }, []);
 }
 
-export { usePageShowEvent };
+export { pageshow };

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { getAppState } from "./fetch.app.state.js";
-import { getRuntimeFatalState } from "../hooks/runtime.fatal.js";
+import { fatal } from "@/app/system/hooks/fatal.js";
+import { popstate } from "@/app/system/hooks/popstate.js";
 import type { State } from "../../realms/critical/model/critical.types.js";
 import type { AppState } from "../state/app.state.js";
 
@@ -27,6 +28,7 @@ export const useAppState = (
   basePath: string, initialAppState?: AppState
 ): AppState | null => {
   const [appState, setAppState] = React.useState<AppState | null>(initialAppState ?? null);
+  const syncAppStateRef = React.useRef<() => Promise<void>>(async () => undefined);
 
   React.useEffect(() => {
     let isActive = true;
@@ -46,6 +48,7 @@ export const useAppState = (
         setCritical("server-down");
       }
     };
+    syncAppStateRef.current = syncAppState;
 
     const setCritical = (screen: State): void => {
       if (isActive) {
@@ -54,15 +57,10 @@ export const useAppState = (
     };
 
     const handleRuntimeFatal = (event: Event): void => {
-      setCritical(getRuntimeFatalState(event));
-    };
-
-    const handlePopState = (): void => {
-      void syncAppState();
+      setCritical(fatal(event));
     };
 
     window.addEventListener("atria:runtime:fatal", handleRuntimeFatal);
-    window.addEventListener("popstate", handlePopState);
 
     if (initialAppState === undefined) {
       void syncAppState();
@@ -70,10 +68,13 @@ export const useAppState = (
 
     return () => {
       window.removeEventListener("atria:runtime:fatal", handleRuntimeFatal);
-      window.removeEventListener("popstate", handlePopState);
       isActive = false;
     };
   }, [basePath, initialAppState]);
+
+  popstate(() => {
+    void syncAppStateRef.current();
+  });
 
   return appState;
 };
