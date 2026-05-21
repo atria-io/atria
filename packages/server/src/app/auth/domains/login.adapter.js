@@ -2,7 +2,7 @@ import * as crypto from "node:crypto";
 import * as db from "@atria/db";
 import * as security from "../security.js";
 import { oauth } from "./broker.adapter.js";
-import { readBody } from "@atria/server/body.js";
+import { json } from "@atria/server/json.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_PASSWORD_LENGTH = 256;
@@ -68,7 +68,7 @@ export const routes = (app) => {
       return;
     }
 
-    const payload = await readBody(req);
+    const payload = await json(req);
     const email = parseEmail(payload?.email);
     const password = parsePassword(payload?.password);
     if (!email || !password) {

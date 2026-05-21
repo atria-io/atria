@@ -1,7 +1,7 @@
 import * as db from "@atria/db";
 import { create } from "./broker.adapter.js";
 import { sessionCookie, trusted } from "../security.js";
-import { readBody } from "@atria/server/body.js";
+import { json } from "@atria/server/json.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_PASSWORD_LENGTH = 256;
@@ -62,7 +62,7 @@ export const routes = (app) => {
       return;
     }
 
-    const payload = await readBody(req);
+    const payload = await json(req);
     const firstName = parseName(payload?.firstName);
     const lastName = parseName(payload?.lastName);
     const email = parseEmail(payload?.email);

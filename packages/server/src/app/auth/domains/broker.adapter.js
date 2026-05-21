@@ -1,6 +1,6 @@
 import * as db from "@atria/db";
 import * as security from "../security.js";
-import { readBody } from "@atria/server/body.js";
+import { json } from "@atria/server/json.js";
 
 const BROKER_ORIGIN = "https://api.atrialabs.pt";
 
@@ -178,7 +178,7 @@ const confirm = async (req, res) => {
     return;
   }
 
-  const payload = await readBody(req);
+  const payload = await json(req);
   const provider = s(payload?.provider).toLowerCase();
   const projectId = s(payload?.project_id);
   const brokerConsentToken = s(payload?.broker_consent_token);

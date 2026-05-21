@@ -1,4 +1,4 @@
-export const readBody = async (req) => {
+export const json = async (req) => {
   const chunks = [];
 
   for await (const chunk of req) {

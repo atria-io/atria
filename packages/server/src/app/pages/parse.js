@@ -1,4 +1,4 @@
-export const parseUuid = (value) => {
+export const uuid = (value) => {
   if (typeof value !== "string") {
     return null;
   }
@@ -9,7 +9,7 @@ export const parseUuid = (value) => {
   return normalized;
 };
 
-export const parseTitle = (value) => {
+export const title = (value) => {
   if (typeof value !== "string") {
     return null;
   }
@@ -20,7 +20,7 @@ export const parseTitle = (value) => {
   return normalized;
 };
 
-export const parseSlug = (value) => {
+export const slug = (value) => {
   if (typeof value !== "string") {
     return null;
   }
@@ -32,14 +32,14 @@ export const parseSlug = (value) => {
   return normalized;
 };
 
-export const parseContent = (value) => {
+export const content = (value) => {
   if (typeof value !== "string") {
     return null;
   }
   return value;
 };
 
-export const parseStatus = (value) => {
+export const status = (value) => {
   if (value === "draft" || value === "published" || value === "archived") {
     return value;
   }
