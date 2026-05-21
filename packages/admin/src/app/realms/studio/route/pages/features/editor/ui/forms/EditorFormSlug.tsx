@@ -31,7 +31,7 @@ export function EditorFormSlug() {
             value={slug}
             onChange={(event) => setEditorSlug(event.target.value)}
             className={`input input--sm input--full input--interactive pages-editor__slug-input${hasDuplicateSlug ? ' input--danger' : ''}`}
-            placeholder="page-slug"
+            placeholder="slug"
           />
           {hasDuplicateSlug ? (
             <div className="icon pages-editor__slug-error" data-tooltip="This slug already exists.">

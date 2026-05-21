@@ -9,7 +9,6 @@ export function EditorHeaderLeading() {
     window.history.pushState({}, "", "/pages");
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
-
   if (!creating) {
     return <div>No properties</div>;
   }

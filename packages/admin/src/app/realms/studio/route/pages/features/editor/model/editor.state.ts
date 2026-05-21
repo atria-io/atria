@@ -29,6 +29,10 @@ export const setEditorSlug = (slug: string): void => {
   editorStateModel.setSlug(slug);
 };
 
+export const applyPendingEditorSlugFromTitle = (): void => {
+  editorStateModel.applyPendingSlugFromTitle();
+};
+
 export const startEditorCreateMode = (): void => {
   editorStateModel.beginCreateMode();
 };

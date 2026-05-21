@@ -1,4 +1,4 @@
-import { setEditorTitle, useEditorState } from "../../model/editor.state.js";
+import { applyPendingEditorSlugFromTitle, setEditorTitle, useEditorState } from "../../model/editor.state.js";
 
 export function EditorFormTitle() {
   const { title } = useEditorState();
@@ -15,6 +15,7 @@ export function EditorFormTitle() {
           type="text"
           value={title}
           onChange={(event) => setEditorTitle(event.target.value)}
+          onBlur={applyPendingEditorSlugFromTitle}
           className="input input--sm input--full input--interactive"
           placeholder="Page title"
         />

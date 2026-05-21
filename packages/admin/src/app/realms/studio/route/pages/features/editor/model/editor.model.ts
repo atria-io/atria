@@ -5,6 +5,7 @@ import type { CatalogItem, PageApiPayload } from "./editor.types.js";
 
 let isBootstrapped = false;
 let createInFlight = false;
+let slugTouched = false;
 
 const createUuid = (): string => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -40,8 +41,8 @@ const normalizeManualSlug = (value: string): string =>
 const isValidPersistedSlug = (value: string): boolean =>
   /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 
-const resolvePersistedSlug = (value: string): string =>
-  value === "" ? "untitled-page" : value;
+const resolveSlugFromTitle = (value: string): string =>
+  normalizeManualSlug(value).replace(/^-+|-+$/g, "");
 
 const upsertDraftItem = (
   uuid: string,
@@ -146,10 +147,14 @@ export const setTitle = (title: string): void => {
   const state = getEditorState();
   const trimmed = title.trim();
   const nextSlug = state.slug;
-  const persistedSlug = resolvePersistedSlug(nextSlug);
+  const persistedSlug = nextSlug === "" ? resolveSlugFromTitle(trimmed) : nextSlug;
 
   if (state.creating && !state.currentUuid && trimmed !== "") {
     if (createInFlight) {
+      setEditorState({ title });
+      return;
+    }
+    if (!isValidPersistedSlug(persistedSlug)) {
       setEditorState({ title });
       return;
     }
@@ -185,6 +190,10 @@ export const setTitle = (title: string): void => {
     const currentStatus = currentItem?.status ?? "draft";
     upsertDraftItem(currentUuid, title, nextSlug, currentStatus);
 
+    if (!isValidPersistedSlug(persistedSlug)) {
+      return;
+    }
+
     void pagesApi.updatePage(
       currentUuid,
       trimmed === "" ? "Untitled" : trimmed,
@@ -203,9 +212,12 @@ export const setTitle = (title: string): void => {
   setEditorState({ title });
 };
 
-export const setSlug = (slug: string): void => {
+const setSlugInternal = (slug: string, manual: boolean): void => {
   const state = getEditorState();
   const normalized = normalizeManualSlug(slug);
+  if (manual) {
+    slugTouched = true;
+  }
   setEditorState({ slug: normalized });
 
   if (!state.currentUuid) {
@@ -234,6 +246,24 @@ export const setSlug = (slug: string): void => {
       slug: payload.slug,
     });
   });
+};
+
+export const setSlug = (slug: string): void => {
+  setSlugInternal(slug, true);
+};
+
+export const applyPendingSlugFromTitle = (): void => {
+  const state = getEditorState();
+  if (!state.creating || slugTouched) {
+    return;
+  }
+
+  const normalized = normalizeManualSlug(state.title).replace(/^-+|-+$/g, "");
+  if (!isValidPersistedSlug(normalized)) {
+    return;
+  }
+
+  setSlugInternal(normalized, false);
 };
 
 export const publishCurrentPage = (): void => {
@@ -328,6 +358,7 @@ export const deletePageById = async (uuid: string): Promise<boolean> => {
 };
 
 export const beginCreateMode = (): void => {
+  slugTouched = false;
   setEditorState({
     currentUuid: null,
     title: "",
