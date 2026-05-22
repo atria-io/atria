@@ -1,22 +1,24 @@
-import { EditorActions } from "./EditorActions.js";
-import { EditorHeaderLeading } from "./EditorHeaderLeading.js";
+import { Actions } from "./header/Actions.js";
+import { Leading } from "./header/Leading.js";
 import { useState } from "../model/editor.state.js";
+import type { EditorView } from "../index.js";
 
-export function EditorHeader() {
+interface EditorHeaderProps {
+  onViewChange: (view: EditorView) => void;
+  view: EditorView;
+}
+
+export function EditorHeader({ onViewChange, view }: EditorHeaderProps) {
   const { isResolving } = useState();
 
   return (
-    <div className="card-column__item card-column__item--intrinsic" data-type="properties">
-      <div className="card-screen">
-        <div className="pages-editor pages-editor--properties">
-          {isResolving ? null : (
-            <div className="pages-editor__header">
-              <EditorHeaderLeading />
-              <EditorActions />
-            </div>
-          )}
+    <div className="card-screen">
+      {isResolving ? null : (
+        <div className="pages-editor__header">
+          <Leading view={view} onViewChange={onViewChange} />
+          <Actions />
         </div>
-      </div>
+      )}
     </div>
   );
 }

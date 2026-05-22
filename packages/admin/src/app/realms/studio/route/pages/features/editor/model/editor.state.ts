@@ -1,6 +1,6 @@
 import * as React from "react";
-import { popstate } from "@/app/system/hooks/popstate.js";
 import * as model from "./editor.model.js";
+import { popstate } from "@/app/system/hooks/popstate.js";
 import { getEditorState, subscribeEditorState } from "./editor.store.js";
 
 export type { CatalogItem, EditorState } from "./editor.types.js";
@@ -8,7 +8,6 @@ export type { CatalogItem, EditorState } from "./editor.types.js";
 export const useState = () =>
   React.useSyncExternalStore(
     subscribeEditorState,
-    getEditorState,
     getEditorState
   );
 

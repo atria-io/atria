@@ -7,7 +7,7 @@ import {
   type CatalogItem as CatalogItemType
 } from "../../editor/model/editor.state.js";
 import { resolveDocumentPath } from "../../../routes/pages.routes.js";
-import { ActionsMore } from "../../../shared/ui/ActionsMore.js";
+import { ActionsMore } from "./ActionsMore.js";
 import { openDeletePage } from "../../../shared/ui/DeletePageDialog.js";
 
 interface CatalogItemProps {
@@ -70,7 +70,6 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
       <div className="pages-catalog__show-more">
         <ActionsMore
           panelId={`pages-catalog-more-panel-menu-${item.uuid}`}
-          variant="catalog"
           stopPropagation
           onOpenChange={setMoreOpen}
           items={[

@@ -11,14 +11,13 @@
   gap: var(--layout-inset);
 }
 
-.pages-editor__header-title,
-.pages-editor__header-action {
+.pages-editor__header-actions {
   display: flex;
   align-items: center;
   gap: calc(var(--layout-gap) * 1.3);
 }
 
-.pages-editor__header-tools {
+.pages-editor__header-tabs {
   display: flex;
   align-items: center;
   gap: calc(var(--layout-gap) / 2);

@@ -1,0 +1,14 @@
+.pages-editor__main {
+  margin: 0 auto;
+  max-width: var(--max-width-xs);
+  padding-inline: var(--space-x);
+}
+
+.pages-editor--edit{
+  padding-block: var(--space-block-md);
+}
+
+.pages-editor__title {
+  font-size: var(--text-base);
+  margin-bottom: var(--space-block-md);
+}
