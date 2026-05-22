@@ -70,6 +70,10 @@ function Actions() {
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
+  const onToggleArchived = (): void => {
+    deps.setArchived();
+  };
+
   const props: ActionConfig[] = [
     {
       key: "filter",
@@ -87,7 +91,7 @@ function Actions() {
       Icon: archivedOnly ? Icon.X : Icon.Archive,
       iconSize: archivedOnly ? 15 : 13,
       active: archivedOnly,
-      onClick: deps.setArchived,
+      onClick: onToggleArchived,
     },
     {
       key: "create",

@@ -1,5 +1,6 @@
 import path from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { minifyJs } from "../shared/minifyjs.mjs";
 
 const getPaths = (packageRoot) => {
 
@@ -55,7 +56,8 @@ export const runSchemeBundle = async (packageRoot) => {
   const darkTokens = extractTokens(extractSchemeBlock(source, "dark"), "dark");
   const lightTokens = extractTokens(extractSchemeBlock(source, "light"), "light");
   const runtimeSource = buildRuntimeSource({ light: lightTokens, dark: darkTokens });
+  const minifiedRuntimeSource = await minifyJs(runtimeSource);
 
   await mkdir(path.dirname(paths.outputFile), { recursive: true });
-  await writeFile(paths.outputFile, runtimeSource, "utf-8");
+  await writeFile(paths.outputFile, minifiedRuntimeSource, "utf-8");
 };

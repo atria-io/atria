@@ -15,7 +15,7 @@
 .dialog__backdrop {
   inset: 0;
   position: absolute;
-  background: color-mix(in srgb, var(--background) 65%, transparent);
+  background: color-mix(in srgb, var(--black) 65%, transparent);
 }
 
 .dialog__container {

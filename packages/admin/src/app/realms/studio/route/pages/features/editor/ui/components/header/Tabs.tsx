@@ -6,7 +6,7 @@ interface TabsProps {
   view: EditorView;
 }
 
-export function Tabs({ onViewChange, view }: TabsProps) {
+function Tabs({ onViewChange, view }: TabsProps) {
   return (
     <>
       <div className="pages-editor__header-tabs" aria-label="Tabs">
@@ -30,3 +30,5 @@ export function Tabs({ onViewChange, view }: TabsProps) {
     </>
   );
 }
+
+export { Tabs };

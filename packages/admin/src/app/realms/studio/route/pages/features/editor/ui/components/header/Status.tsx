@@ -1,7 +1,7 @@
 import { useState } from "../../deps.js";
 import { parse } from "../../deps.js";
 
-export function Status() {
+function Status() {
   const { currentUuid, drafts } = useState();
   const route = parse(window.location.pathname);
 
@@ -31,3 +31,5 @@ export function Status() {
     </div>
   );
 }
+
+export { Status };

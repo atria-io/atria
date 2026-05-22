@@ -152,7 +152,7 @@
 
 .button--danger-solid {
   --button-color: var(--error);
-  --button-color-hover: var(--text);
+  --button-color-hover: var(--white);
   --button-background-hover: var(--error);
 }
 

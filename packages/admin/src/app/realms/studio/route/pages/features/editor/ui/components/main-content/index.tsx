@@ -4,7 +4,7 @@ import { FieldSlug } from "./FieldSlug.js";
 import { FieldContent } from "./FieldContent.js";
 import { HeaderTitle } from "./HeaderTitle.js";
 
-export function EditorViewContent() {
+function Content() {
   const { title } = useState();
 
   return (
@@ -16,3 +16,5 @@ export function EditorViewContent() {
     </form>
   );
 }
+
+export { Content };

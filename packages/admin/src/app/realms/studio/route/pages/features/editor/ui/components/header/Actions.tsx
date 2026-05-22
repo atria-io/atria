@@ -3,7 +3,7 @@ import { ActionsMore } from "./ActionsMore.js";
 import { Publish } from "./Publish.js";
 import { Status } from "./Status.js";
 
-export function Actions() {
+function Actions() {
   const { creating } = useState();
 
   if (!creating) {
@@ -18,3 +18,5 @@ export function Actions() {
     </div>
   );
 }
+
+export { Actions };

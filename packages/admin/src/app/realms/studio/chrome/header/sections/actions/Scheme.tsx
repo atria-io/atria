@@ -40,7 +40,7 @@ function SchemeButton({ panelId, isOpen, onToggle, CurrentSchemeIcon }: SchemePr
       aria-expanded={isOpen}
       onClick={onToggle}
     >
-      <CurrentSchemeIcon size={16} className="studio-scheme__icon" />
+      <CurrentSchemeIcon size={16} />
     </Button>
   );
 }
@@ -119,7 +119,12 @@ const Scheme = () => {
   };
 
   return (
-    <div className="studio-scheme" data-tooltip="Scheme" ref={rootRef}>
+    <div
+      className="studio-scheme"
+      data-tooltip={isMounted ? undefined : "Scheme"}
+      data-tooltip-disabled={isMounted ? "true" : undefined}
+      ref={rootRef}
+    >
       <SchemeButton {...props} />
       <SchemePopover {...props}>
         <SchemeContent {...props} />

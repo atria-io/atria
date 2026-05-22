@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Icon from "lucide-react";
-import { Button, Popover, usePopover } from "@atria/ui";
 import * as deps from "../../deps.js";
+import { Button, Popover, usePopover } from "@atria/ui";
 
 interface ActionsMoreItem {
   key: string;
@@ -12,11 +12,102 @@ interface ActionsMoreItem {
   onClick?: () => void;
 }
 
+type ActionsMoreProps = {
+  panelId: string;
+  isOpen: boolean;
+  isClosing: boolean;
+  isMounted: boolean;
+  onToggle: () => void;
+  onPanelAnimationEnd: React.AnimationEventHandler<HTMLDivElement>;
+  onItemClick: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    onClick?: () => void,
+  ) => void;
+  items: ActionsMoreItem[];
+};
+
 const PANEL_ID = "pages-editor-more-panel-menu";
+
+function ActionsMoreButton({
+  panelId,
+  isOpen,
+  onToggle,
+}: ActionsMoreProps) {
+  return (
+    <Button
+      type="button"
+      variant="overlay"
+      square
+      icon
+      aria-label="More"
+      aria-haspopup="menu"
+      aria-controls={panelId}
+      aria-expanded={isOpen}
+      onClick={onToggle}
+    >
+      <Icon.Ellipsis size={16} />
+    </Button>
+  );
+}
+
+function ActionsMoreContent({ items, onItemClick }: ActionsMoreProps) {
+  return (
+    <>
+      {items.map((item) => {
+        if (item.hidden) {
+          return null;
+        }
+
+        return (
+          <Button
+            key={item.key}
+            type="button"
+            variant="overlay"
+            square
+            icon
+            align="start"
+            label={<span className="pages-actions-more__label">{item.label}</span>}
+            className={item.danger ? "button--danger" : ""}
+            role="menuitem"
+            onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
+              onItemClick(event, item.onClick)
+            }
+          >
+            <item.icon size={13} />
+          </Button>
+        );
+      })}
+    </>
+  );
+}
+
+function ActionsMorePopover({
+  panelId,
+  isOpen,
+  isClosing,
+  isMounted,
+  onPanelAnimationEnd,
+  children,
+}: ActionsMoreProps & { children: React.ReactNode }) {
+  return (
+    <Popover
+      id={panelId}
+      open={isOpen}
+      closing={isClosing}
+      mounted={isMounted}
+      onAnimationEnd={onPanelAnimationEnd}
+      className="pages-actions-more--editor"
+    >
+      {children}
+    </Popover>
+  );
+}
 
 function ActionsMore() {
   const { creating, currentUuid, drafts } = deps.useState();
-  const currentItem = currentUuid ? drafts.find((item) => item.uuid === currentUuid) : null;
+  const currentItem = currentUuid
+    ? drafts.find((item) => item.uuid === currentUuid)
+    : null;
   const isArchived = currentItem?.status === "archived";
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const { isOpen, isClosing, isMounted, toggle, onAnimationEnd } = usePopover(rootRef);
@@ -27,8 +118,18 @@ function ActionsMore() {
 
   const items: ActionsMoreItem[] = [
     isArchived
-      ? { key: "unarchive", label: "Unarchive", icon: Icon.Upload, onClick: deps.unpublish }
-      : { key: "archive", label: "Archive", icon: Icon.Archive, onClick: deps.archive },
+      ? {
+          key: "unarchive",
+          label: "Unarchive",
+          icon: Icon.Upload,
+          onClick: deps.unpublish,
+        }
+      : {
+          key: "archive",
+          label: "Archive",
+          icon: Icon.Archive,
+          onClick: deps.archive,
+        },
     {
       key: "unpublish",
       label: "Unpublish",
@@ -45,20 +146,17 @@ function ActionsMore() {
         if (!currentItem) {
           return;
         }
+
         deps.openDeletePage(currentItem.uuid, currentItem.title);
       },
     },
   ];
 
-  const onClickMore = (event: React.MouseEvent<HTMLButtonElement>): void => {
+  const onToggle = (): void => {
     toggle();
-    if (!isOpen) {
-      event.currentTarget.blur();
-      event.currentTarget.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
-    }
   };
 
-  const onClickItem = (
+  const onItemClick = (
     event: React.MouseEvent<HTMLButtonElement>,
     onClick?: () => void,
   ): void => {
@@ -66,61 +164,28 @@ function ActionsMore() {
     onClick?.();
   };
 
+  const props: ActionsMoreProps = {
+    panelId: PANEL_ID,
+    isOpen,
+    isClosing,
+    isMounted,
+    onToggle,
+    onPanelAnimationEnd: onAnimationEnd,
+    onItemClick,
+    items,
+  };
+
   return (
-    <div className="pages-actions-more pages-actions-more--editor" ref={rootRef}>
-      <Button
-        type="button"
-        variant="overlay"
-        square
-        icon
-        className={isMounted ? "pages-actions-more__trigger--open" : ""}
-        aria-label="More"
-        aria-haspopup="menu"
-        aria-controls={PANEL_ID}
-        aria-expanded={isOpen}
-        data-tooltip={isMounted ? undefined : "More"}
-        onClick={onClickMore}
-      >
-        <Icon.Ellipsis size={16} />
-      </Button>
-
-      <Popover
-        id={PANEL_ID}
-        open={isOpen}
-        closing={isClosing}
-        mounted={isMounted}
-        onAnimationEnd={onAnimationEnd}
-        className="pages-actions-more__panel pages-actions-more__panel--editor"
-      >
-        <div className="pages-actions-more__menu">
-          <div className="pages-actions-more__menu-content" aria-label="Page actions">
-            {items.map((item) => {
-              if (item.hidden) {
-                return null;
-              }
-
-              return (
-                <Button
-                  key={item.key}
-                  type="button"
-                  variant="overlay"
-                  square
-                  icon
-                  align="start"
-                  label={<span className="pages-actions-more__label">{item.label}</span>}
-                  className={item.danger ? "button--danger" : ""}
-                  role="menuitem"
-                  onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
-                    onClickItem(event, item.onClick)
-                  }
-                >
-                  <item.icon size={13} />
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-      </Popover>
+    <div
+      className="pages-actions-more"
+      data-tooltip={isMounted ? undefined : "More"}
+      data-tooltip-disabled={isMounted ? "true" : undefined}
+      ref={rootRef}
+    >
+      <ActionsMoreButton {...props} />
+      <ActionsMorePopover {...props}>
+        <ActionsMoreContent {...props} />
+      </ActionsMorePopover>
     </div>
   );
 }

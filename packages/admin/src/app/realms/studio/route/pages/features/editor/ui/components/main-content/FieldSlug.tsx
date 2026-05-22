@@ -25,6 +25,7 @@ function FieldSlug() {
               </span>
             </div>
           </div>
+
           <Input
             id="page-slug"
             type="text"
@@ -42,6 +43,7 @@ function FieldSlug() {
               <Icon.Info size={14} />
             </div>
           ) : null}
+
         </div>
       </div>
     </div>

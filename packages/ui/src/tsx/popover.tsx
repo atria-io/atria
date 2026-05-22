@@ -11,6 +11,7 @@ export type PopoverProps = React.HTMLAttributes<HTMLDivElement> & {
   closing?: boolean;
   mounted?: boolean;
   scope?: string;
+  closeOnClick?: boolean;
 };
 
 const sizeClasses: Record<PopoverSize, string> = {
@@ -62,9 +63,10 @@ function Popover({
   closing = false,
   mounted = true,
   scope = "",
+  closeOnClick = false,
   ...props
 }: PopoverProps) {
-  if (!mounted) {
+    if (!mounted) {
     return null;
   }
 
@@ -82,9 +84,12 @@ function Popover({
   const contentClass = ["popover__content", scope ? `${scope}-popover__content` : ""]
     .filter(Boolean)
     .join(" ");
-
   return (
-    <div className={popoverClass} {...props}>
+    <div
+      className={popoverClass}
+      data-close-on-click={closeOnClick ? "true" : undefined}
+      {...props}
+    >
       <div className={surfaceClass}>
         <div className={contentClass}>{children}</div>
       </div>

@@ -1,10 +1,12 @@
 import path from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
+import { minifyJs } from "../shared/minifyjs.mjs";
 
 const buildRuntimeSource = () =>
   `(() => {
   const ROOT_ID = "atria";
   const TOOLTIP_ATTR = "data-tooltip";
+  const TOOLTIP_DISABLED_ATTR = "data-tooltip-disabled";
   const PORTAL_ATTR = "data-portal";
   const OPEN_DELAY_MS = 300;
   const HIDE_GRACE_MS = 90;
@@ -213,19 +215,11 @@ const buildRuntimeSource = () =>
     return null;
   };
 
+  const isTooltipDisabled = (target) =>
+    target.closest("[" + TOOLTIP_DISABLED_ATTR + "=\\\"true\\\"]") !== null;
+
   const isHeaderTarget = (target) => target.closest("header") !== null;
   const isSidebarTarget = (target) => target.closest("aside.admin-main__sidebar") !== null;
-
-  const isHeaderPopupOpen = (target) =>
-    target.querySelector('[aria-haspopup="menu"][aria-expanded="true"]') !== null;
-
-  const shouldBlockTooltip = (target) => {
-    if (!isHeaderTarget(target)) {
-      return false;
-    }
-
-    return isHeaderPopupOpen(target);
-  };
 
   const getTooltipOffset = (target) =>
     isHeaderTarget(target) ? HEADER_OFFSET : HORIZONTAL_OFFSET;
@@ -271,7 +265,7 @@ const buildRuntimeSource = () =>
 
   const showTooltip = (target) => {
     const value = tooltipByElement.get(target);
-    if (!value || shouldBlockTooltip(target)) {
+    if (!value || isTooltipDisabled(target)) {
       return;
     }
 
@@ -322,7 +316,7 @@ const buildRuntimeSource = () =>
     }
 
     const value = tooltipByElement.get(target);
-    if (!value || shouldBlockTooltip(target)) {
+    if (!value || isTooltipDisabled(target)) {
       return false;
     }
 
@@ -395,7 +389,7 @@ const buildRuntimeSource = () =>
       return;
     }
 
-    if (!target || shouldBlockTooltip(target)) {
+    if (!target || isTooltipDisabled(target)) {
       queueHide();
       return;
     }
@@ -518,5 +512,8 @@ export const buildTooltipRuntime = async (packageRoot) => {
   const scriptFile = path.join(scriptDir, "tooltip.js");
 
   await mkdir(scriptDir, { recursive: true });
-  await writeFile(scriptFile, buildRuntimeSource(), "utf-8");
+  const runtimeSource = buildRuntimeSource();
+  const minifiedRuntimeSource = await minifyJs(runtimeSource);
+
+  await writeFile(scriptFile, minifiedRuntimeSource, "utf-8");
 };

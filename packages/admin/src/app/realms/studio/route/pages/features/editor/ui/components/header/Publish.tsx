@@ -2,7 +2,7 @@ import { Button } from "@atria/ui";
 import { publish, useState } from "../../deps.js";
 import { parse } from "../../deps.js";
 
-export function Publish() {
+function Publish() {
   const { hasEditorChanges } = useState();
   const isCreateRoute = parse(window.location.pathname).mode === "create";
   const publishLocked = isCreateRoute && !hasEditorChanges;
@@ -21,3 +21,5 @@ export function Publish() {
     />
   );
 }
+
+export { Publish };

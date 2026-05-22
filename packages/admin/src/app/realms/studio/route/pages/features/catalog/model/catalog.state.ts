@@ -2,10 +2,12 @@ import * as React from "react";
 
 interface FilterState {
   archivedOnly: boolean;
+  searchTerm: string;
 }
 
 let state: FilterState = {
   archivedOnly: false,
+  searchTerm: "",
 };
 
 const listeners = new Set<() => void>();
@@ -39,4 +41,12 @@ export const setArchived = (next?: boolean): void => {
   }
 
   setState({ archivedOnly });
+};
+
+export const setSearchTerm = (next: string): void => {
+  if (state.searchTerm === next) {
+    return;
+  }
+
+  setState({ searchTerm: next });
 };

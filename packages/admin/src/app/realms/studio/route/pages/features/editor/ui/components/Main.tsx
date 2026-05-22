@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as deps from "../deps.js";
-import { EditorViewContent } from "./main-content/index.js";
-import { EditorViewSEO } from "./main-seo/index.js";
+import { Content } from "./main-content/index.js";
+import { SEO } from "./main-seo/index.js";
 
 interface MainViewProps {
   children: React.ReactNode;
@@ -34,14 +34,14 @@ function Main({ view }: MainProps) {
   if (view === "seo") {
     return (
       <MainView view={view}>
-        <EditorViewSEO />
+        <SEO />
       </MainView>
     );
   }
 
   return (
     <MainView view={view}>
-      <EditorViewContent />
+      <Content />
     </MainView>
   );
 }
