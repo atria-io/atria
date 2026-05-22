@@ -2,7 +2,7 @@ import * as Icon from "lucide-react";
 import { setSlug, useState } from "../../model/editor.state.js";
 import { getFrontendUrl } from "@/app/system/config/app.config.js";
 
-export function EditorFormSlug() {
+export function EditorContentFormSlug() {
   const { slug, drafts, currentUuid } = useState();
   const frontendUrl = getFrontendUrl().replace(/\/+$/, "");
   const hasDuplicateSlug =

@@ -1,5 +1,4 @@
 import { useState } from "../model/editor.state.js";
-import { EditorHeaderTitle } from "./EditorHeaderTitle.js";
 import { EditorHeaderTools } from "./EditorHeaderTools.js";
 
 export function EditorHeaderLeading() {
@@ -16,7 +15,6 @@ export function EditorHeaderLeading() {
   return (
     <div className="pages-editor__header-leading">
       <EditorHeaderTools onClose={onClose} />
-      {/*<EditorHeaderTitle title={title} />*/}
     </div>
   );
 }
