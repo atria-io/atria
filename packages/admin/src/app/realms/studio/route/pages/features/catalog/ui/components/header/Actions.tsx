@@ -1,9 +1,7 @@
 import * as React from "react";
 import * as Icon from "lucide-react";
+import * as deps from "../../deps.js";
 import { Button } from "@atria/ui";
-import { resolveCreatePath } from "../../../../../routes/pages.routes.js";
-import { startCreate } from "../../../../editor/model/editor.state.js";
-import { closeArchivedOnly, toggleArchivedOnly, useCatalogFilterState } from "../../../model/catalog.state.js";
 
 interface ActionButtonProps {
   actionClassName: string;
@@ -62,12 +60,12 @@ function ActionButton({
 }
 
 function Actions() {
-  const { archivedOnly } = useCatalogFilterState();
+  const { archivedOnly } = deps.useFilter();
 
   const onCreatePage = (): void => {
-    closeArchivedOnly();
-    startCreate();
-    const nextPath = resolveCreatePath(window.location.pathname);
+    deps.setArchived(false);
+    deps.startCreate();
+    const nextPath = deps.createPath(window.location.pathname);
     window.history.pushState({}, "", nextPath);
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
@@ -89,7 +87,7 @@ function Actions() {
       Icon: archivedOnly ? Icon.X : Icon.Archive,
       iconSize: archivedOnly ? 15 : 13,
       active: archivedOnly,
-      onClick: toggleArchivedOnly,
+      onClick: deps.setArchived,
     },
     {
       key: "create",

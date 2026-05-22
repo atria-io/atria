@@ -1,15 +1,15 @@
-import { CatalogHeader } from "./ui/components/Header.js";
-import { CatalogSearch } from "./ui/components/Search.js";
-import { CatalogMain } from "./ui/components/Main.js";
+import { Header } from "./ui/components/Header.js";
+import { Search } from "./ui/components/Search.js";
+import { Main } from "./ui/components/Main.js";
 
 export function Catalog() {
   return (
     <div className="card-column__item" data-type="catalog">
       <div className="card-screen">
         <div className="pages-catalog">
-          <CatalogHeader />
-          <CatalogSearch />
-          <CatalogMain />
+          <Header />
+          <Search />
+          <Main />
         </div>
       </div>
     </div>

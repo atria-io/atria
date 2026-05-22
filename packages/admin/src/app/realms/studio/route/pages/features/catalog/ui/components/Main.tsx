@@ -1,13 +1,11 @@
-import { useState } from "../../../editor/model/editor.state.js";
-import { parsePagesRoute, usePagesPathname } from "../../../../routes/pages.routes.js";
-import { useCatalogFilterState } from "../../model/catalog.state.js";
-import { CatalogItem } from "./main/Item.js";
+import * as deps from "../deps.js";
+import { Item } from "./main/Item.js";
 
-export function CatalogMain() {
-  const { drafts } = useState();
-  const { archivedOnly } = useCatalogFilterState();
-  const pathname = usePagesPathname();
-  const route = parsePagesRoute(pathname);
+function Main() {
+  const { drafts } = deps.useState();
+  const { archivedOnly } = deps.useFilter();
+  const pathname = deps.usePathname();
+  const route = deps.parse(pathname);
   const items = drafts.filter((item) =>
     archivedOnly ? item.status === "archived" : item.status !== "archived"
   );
@@ -15,7 +13,7 @@ export function CatalogMain() {
   return (
     <div className="pages-catalog__main">
       {items.map((item) => (
-        <CatalogItem
+        <Item
           key={item.uuid}
           item={item}
           active={route.mode === "document" && route.uuid === item.uuid}
@@ -24,3 +22,5 @@ export function CatalogMain() {
     </div>
   );
 }
+
+export { Main };

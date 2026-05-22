@@ -1,8 +1,9 @@
 import * as Icon from "lucide-react";
-import { setSlug, useState } from "../../../model/editor.state.js";
+import { Input } from "@atria/ui";
+import { setSlug, useState } from "../../deps.js";
 import { getFrontendUrl } from "@/app/system/config/app.config.js";
 
-export function EditorContentFormSlug() {
+function FieldSlug() {
   const { slug, drafts, currentUuid } = useState();
   const frontendUrl = getFrontendUrl().replace(/\/+$/, "");
   const hasDuplicateSlug =
@@ -24,13 +25,16 @@ export function EditorContentFormSlug() {
               </span>
             </div>
           </div>
-          <input
+          <Input
             id="page-slug"
-            name="slug"
             type="text"
+            name="slug"
+            size="sm"
+            full
+            interactive
             value={slug}
             onChange={(event) => setSlug(event.target.value)}
-            className={`input input--sm input--full input--interactive pages-editor__slug-input${hasDuplicateSlug ? ' input--danger' : ''}`}
+            className={`pages-editor__slug-input${hasDuplicateSlug ? " input--danger" : ""}`}
             placeholder="slug"
           />
           {hasDuplicateSlug ? (
@@ -43,3 +47,5 @@ export function EditorContentFormSlug() {
     </div>
   );
 }
+
+export { FieldSlug };

@@ -1,9 +1,9 @@
-import { useState } from "../../../model/editor.state.js";
-import { parsePagesRoute } from "../../../../../routes/pages.routes.js";
+import { useState } from "../../deps.js";
+import { parse } from "../../deps.js";
 
 export function Status() {
   const { currentUuid, drafts } = useState();
-  const route = parsePagesRoute(window.location.pathname);
+  const route = parse(window.location.pathname);
 
   const currentDraft = currentUuid
     ? drafts.find((item) => item.uuid === currentUuid)

@@ -1,18 +1,18 @@
-import { useState } from "../../../model/editor.state.js";
-import { EditorContentFormTitle } from "./FieldTitle.js";
-import { EditorContentFormSlug } from "./FieldSlug.js";
-import { EditorContentFormContent } from "./FieldContent.js";
-import { EditorContentTitle } from "./HeaderTitle.js";
+import { useState } from "../../deps.js";
+import { FieldTitle } from "./FieldTitle.js";
+import { FieldSlug } from "./FieldSlug.js";
+import { FieldContent } from "./FieldContent.js";
+import { HeaderTitle } from "./HeaderTitle.js";
 
 export function EditorViewContent() {
   const { title } = useState();
 
   return (
     <form className="pages-editor__create-form">
-      <EditorContentTitle title={title} />
-      <EditorContentFormTitle />
-      <EditorContentFormSlug />
-      <EditorContentFormContent />
+      <HeaderTitle title={title} />
+      <FieldTitle />
+      <FieldSlug />
+      <FieldContent />
     </form>
   );
 }

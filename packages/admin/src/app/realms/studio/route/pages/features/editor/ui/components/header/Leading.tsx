@@ -1,15 +1,14 @@
-import { useState } from "../../../model/editor.state.js";
-import type { EditorView } from "../../../index.js";
+import * as deps from "../../deps.js";
 import { CloseEditor } from "./CloseEditor.js";
 import { Tabs } from "./Tabs.js";
 
 interface LeadingProps {
-  onViewChange: (view: EditorView) => void;
-  view: EditorView;
+  onViewChange: (view: deps.EditorView) => void;
+  view: deps.EditorView;
 }
 
-export function Leading({ onViewChange, view }: LeadingProps) {
-  const { creating } = useState();
+function Leading({ onViewChange, view }: LeadingProps) {
+  const { creating } = deps.useState();
 
   if (!creating) {
     return <div>No properties</div>;
@@ -22,3 +21,5 @@ export function Leading({ onViewChange, view }: LeadingProps) {
     </div>
   );
 }
+
+export { Leading };

@@ -1,12 +1,12 @@
 import type { EditorState } from "./editor.types.js";
-import { parsePagesRoute } from "./editor.routes.js";
+import { parse } from "./editor.routes.js";
 
 const resolveInitialCreating = (): boolean => {
   if (typeof window === "undefined") {
     return false;
   }
 
-  return parsePagesRoute(window.location.pathname).mode === "create";
+  return parse(window.location.pathname).mode === "create";
 };
 
 let editorState: EditorState = {

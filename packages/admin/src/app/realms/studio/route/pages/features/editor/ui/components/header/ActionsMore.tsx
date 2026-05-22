@@ -1,12 +1,7 @@
 import * as React from "react";
 import * as Icon from "lucide-react";
 import { Button, Popover, usePopover } from "@atria/ui";
-import {
-  archive,
-  unpublish,
-  useState,
-} from "../../../model/editor.state.js";
-import { openDeletePage } from "../../../../../shared/ui/DeletePageDialog.js";
+import * as deps from "../../deps.js";
 
 interface ActionsMoreItem {
   key: string;
@@ -19,8 +14,8 @@ interface ActionsMoreItem {
 
 const PANEL_ID = "pages-editor-more-panel-menu";
 
-export function ActionsMore() {
-  const { creating, currentUuid, drafts } = useState();
+function ActionsMore() {
+  const { creating, currentUuid, drafts } = deps.useState();
   const currentItem = currentUuid ? drafts.find((item) => item.uuid === currentUuid) : null;
   const isArchived = currentItem?.status === "archived";
   const rootRef = React.useRef<HTMLDivElement | null>(null);
@@ -32,13 +27,13 @@ export function ActionsMore() {
 
   const items: ActionsMoreItem[] = [
     isArchived
-      ? { key: "unarchive", label: "Unarchive", icon: Icon.Upload, onClick: unpublish }
-      : { key: "archive", label: "Archive", icon: Icon.Archive, onClick: archive },
+      ? { key: "unarchive", label: "Unarchive", icon: Icon.Upload, onClick: deps.unpublish }
+      : { key: "archive", label: "Archive", icon: Icon.Archive, onClick: deps.archive },
     {
       key: "unpublish",
       label: "Unpublish",
       icon: Icon.EyeOff,
-      onClick: unpublish,
+      onClick: deps.unpublish,
       hidden: isArchived || currentItem?.status !== "published",
     },
     {
@@ -50,7 +45,7 @@ export function ActionsMore() {
         if (!currentItem) {
           return;
         }
-        openDeletePage(currentItem.uuid, currentItem.title);
+        deps.openDeletePage(currentItem.uuid, currentItem.title);
       },
     },
   ];
@@ -129,3 +124,5 @@ export function ActionsMore() {
     </div>
   );
 }
+
+export { ActionsMore };

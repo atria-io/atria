@@ -1,14 +1,13 @@
 import * as React from "react";
 import * as Icon from "lucide-react";
-import { type CatalogItem as CatalogItemType } from "../../../../editor/model/editor.state.js";
-import { resolveDocumentPath } from "../../../../../routes/pages.routes.js";
+import * as deps from "../../deps.js";
 
 interface CatalogItemProps {
-  item: CatalogItemType;
+  item: deps.CatalogItem;
   active: boolean;
 }
 
-export function CatalogItem({ item, active }: CatalogItemProps) {
+function Item({ item, active }: CatalogItemProps) {
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const statusLabel = item.status === "published"
     ? "Online"
@@ -35,7 +34,7 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
 
   const onOpenItem = (event: React.MouseEvent<HTMLDivElement>): void => {
     event.stopPropagation();
-    window.history.pushState({}, "", resolveDocumentPath(item.uuid));
+    window.history.pushState({}, "", deps.docPath(item.uuid));
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
@@ -55,3 +54,5 @@ export function CatalogItem({ item, active }: CatalogItemProps) {
     </div>
   );
 }
+
+export { Item };

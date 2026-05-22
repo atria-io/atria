@@ -1,23 +1,30 @@
 import * as Icon from "lucide-react";
+import { Button, Input } from "@atria/ui";
 
-export function CatalogSearch() {
+function Search() {
   return (
     <div className="pages-catalog__search">
-      <button
+      <Button
         type="button"
-        className="button button--square button--icon pages-catalog__search-action"
+        square
+        icon
+        className="pages-catalog__search-action"
         aria-label="Search"
       >
-        <div className="button__icon">
-          <Icon.Search size={13} />
-        </div>
-      </button>
-      <input
+        <Icon.Search size={13} />
+      </Button>
+      <Input
+        id="page-search"
+        name="search"
         type="text"
-        className="input input--sm input--full input--subtle input--focus-line"
+        size="sm"
+        full
+        className="input--subtle input--focus-line"
         aria-label="Search pages"
         placeholder="Search pages..."
       />
     </div>
   );
 }
+
+export { Search };

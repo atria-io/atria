@@ -1,19 +1,18 @@
 import * as React from "react";
-import { useState } from "../../model/editor.state.js";
+import * as deps from "../deps.js";
 import { EditorViewContent } from "./main-content/index.js";
 import { EditorViewSEO } from "./main-seo/index.js";
-import type { EditorView } from "../../index.js";
 
-interface EditorMainViewProps {
+interface MainViewProps {
   children: React.ReactNode;
-  view: EditorView;
+  view: deps.EditorView;
 }
 
-interface EditorMainProps {
-  view: EditorView;
+interface MainProps {
+  view: deps.EditorView;
 }
 
-function EditorMainView({ children, view }: EditorMainViewProps) {
+function MainView({ children, view }: MainViewProps) {
   return (
     <div className="card-column pages-editor__view" data-view={view}>
       <div className="pages-editor pages-editor__main">
@@ -25,8 +24,8 @@ function EditorMainView({ children, view }: EditorMainViewProps) {
   );
 }
 
-function EditorMain({ view }: EditorMainProps) {
-  const { creating } = useState();
+function Main({ view }: MainProps) {
+  const { creating } = deps.useState();
 
   if (!creating) {
     return null;
@@ -34,17 +33,17 @@ function EditorMain({ view }: EditorMainProps) {
 
   if (view === "seo") {
     return (
-      <EditorMainView view={view}>
+      <MainView view={view}>
         <EditorViewSEO />
-      </EditorMainView>
+      </MainView>
     );
   }
 
   return (
-    <EditorMainView view={view}>
+    <MainView view={view}>
       <EditorViewContent />
-    </EditorMainView>
+    </MainView>
   );
 }
 
-export { EditorMain };
+export { Main };

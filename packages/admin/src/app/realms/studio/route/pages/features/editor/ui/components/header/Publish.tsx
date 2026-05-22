@@ -1,10 +1,10 @@
 import { Button } from "@atria/ui";
-import { publish, useState } from "../../../model/editor.state.js";
-import { parsePagesRoute } from "../../../../../routes/pages.routes.js";
+import { publish, useState } from "../../deps.js";
+import { parse } from "../../deps.js";
 
 export function Publish() {
   const { hasEditorChanges } = useState();
-  const isCreateRoute = parsePagesRoute(window.location.pathname).mode === "create";
+  const isCreateRoute = parse(window.location.pathname).mode === "create";
   const publishLocked = isCreateRoute && !hasEditorChanges;
 
   return (

@@ -1,4 +1,4 @@
 export {
-  parsePagesRoute,
-  resolveDocumentPath
+  parse,
+  docPath
 } from "../../../routes/pages.routes.js";

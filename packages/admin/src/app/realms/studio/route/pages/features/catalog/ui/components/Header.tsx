@@ -1,9 +1,11 @@
 import { Actions } from "./header/Actions.js";
 
-export function CatalogHeader() {
+function Header() {
   return (
     <div className="pages-catalog__header">
       <Actions />
     </div>
   );
 }
+
+export { Header };

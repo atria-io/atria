@@ -1,7 +1,7 @@
 import * as Icon from "lucide-react";
 import { Button } from "@atria/ui";
 
-export function CloseEditor() {
+function CloseEditor() {
   const onClose = (): void => {
     window.history.pushState({}, "", "/pages");
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -23,3 +23,5 @@ export function CloseEditor() {
     </div>
   );
 }
+
+export { CloseEditor };

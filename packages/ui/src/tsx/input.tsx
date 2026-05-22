@@ -34,7 +34,7 @@ const getInputClass = ({
   focusColor,
   className,
 }: {
-  variant: InputVariant;
+  variant?: InputVariant;
   size: InputSize;
   full: boolean;
   interactive: boolean;
@@ -45,7 +45,7 @@ const getInputClass = ({
 }): string =>
   [
     "input",
-    variantClasses[variant],
+    variant ? variantClasses[variant] : "",
     sizeClasses[size],
     full ? "input--full" : "",
     interactive ? "input--interactive" : "",
@@ -59,13 +59,16 @@ const getInputClass = ({
 
 function Input({
   className = "",
-  variant = "solid",
+  variant,
   size = "sm",
   full = false,
   interactive = false,
   subtle = false,
   focusLine = false,
   focusColor = false,
+  id,
+  type = "text",
+  name,
   ...props
 }: InputProps) {
   const inputClass = getInputClass({
@@ -80,7 +83,7 @@ function Input({
   });
 
   return (
-    <input className={inputClass} {...props} />
+    <input id={id} type={type} name={name} className={inputClass} {...props} />
   );
 }
 

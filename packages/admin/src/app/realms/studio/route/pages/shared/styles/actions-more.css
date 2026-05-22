@@ -20,11 +20,6 @@
   left: -50%;
 }
 
-.pages-actions-more__panel--catalog {
-  top: calc(100% + 8px);
-  right: 0;
-}
-
 .pages-actions-more__panel--open {
   animation: var(--card-pop);
 }

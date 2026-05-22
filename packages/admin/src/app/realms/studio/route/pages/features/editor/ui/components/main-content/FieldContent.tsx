@@ -1,6 +1,7 @@
-import { setContent, useState } from "../../../model/editor.state.js";
+import { Textarea } from "@atria/ui";
+import { setContent, useState } from "../../deps.js";
 
-export function EditorContentFormContent() {
+function FieldContent() {
   const { content } = useState();
 
   return (
@@ -9,16 +10,19 @@ export function EditorContentFormContent() {
         <label className="field__label field--label-sm" htmlFor="page-content">
           Content
         </label>
-        <textarea
+        <Textarea
           id="page-content"
           name="content"
           rows={14}
+          full
+          interactive
           value={content}
           onChange={(event) => setContent(event.target.value)}
-          className="textarea textarea--full textarea--interactive"
           placeholder="Page content"
         />
       </div>
     </div>
   );
 }
+
+export { FieldContent };

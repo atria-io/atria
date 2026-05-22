@@ -1,4 +1,4 @@
-import { useState } from "../../../model/editor.state.js";
+import { useState } from "../../deps.js";
 import { ActionsMore } from "./ActionsMore.js";
 import { Publish } from "./Publish.js";
 import { Status } from "./Status.js";

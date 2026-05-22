@@ -1,13 +1,13 @@
 import { Actions } from "./header/Actions.js";
 import { Leading } from "./header/Leading.js";
-import type { EditorView } from "../../index.js";
+import * as deps from "../deps.js";
 
-interface EditorHeaderProps {
-  onViewChange: (view: EditorView) => void;
-  view: EditorView;
+interface HeaderProps {
+  onViewChange: (view: deps.EditorView) => void;
+  view: deps.EditorView;
 }
 
-function EditorHeader({ onViewChange, view }: EditorHeaderProps) {
+function Header({ onViewChange, view }: HeaderProps) {
   return (
     <div className="card-screen">
       <div className="pages-editor__header">
@@ -18,4 +18,4 @@ function EditorHeader({ onViewChange, view }: EditorHeaderProps) {
   );
 }
 
-export { EditorHeader };
+export { Header };

@@ -1,10 +1,10 @@
 import * as React from "react";
 
-interface CatalogFilterState {
+interface FilterState {
   archivedOnly: boolean;
 }
 
-let state: CatalogFilterState = {
+let state: FilterState = {
   archivedOnly: false,
 };
 
@@ -21,24 +21,22 @@ const subscribe = (listener: () => void): (() => void) => {
   return () => listeners.delete(listener);
 };
 
-const getSnapshot = (): CatalogFilterState => state;
+const getSnapshot = (): FilterState => state;
 
-const setState = (next: Partial<CatalogFilterState>): void => {
+const setState = (next: Partial<FilterState>): void => {
   state = { ...state, ...next };
   emit();
 };
 
-export const useCatalogFilterState = (): CatalogFilterState =>
+export const useFilter = (): FilterState =>
   React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
-export const toggleArchivedOnly = (): void => {
-  setState({ archivedOnly: !state.archivedOnly });
-};
+export const setArchived = (next?: boolean): void => {
+  const archivedOnly = next ?? !state.archivedOnly;
 
-export const closeArchivedOnly = (): void => {
-  if (!state.archivedOnly) {
+  if (state.archivedOnly === archivedOnly) {
     return;
   }
 
-  setState({ archivedOnly: false });
+  setState({ archivedOnly });
 };

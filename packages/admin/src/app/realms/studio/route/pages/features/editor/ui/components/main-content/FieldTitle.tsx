@@ -1,6 +1,7 @@
-import { applySlugFromTitle, setTitle, useState } from "../../../model/editor.state.js";
+import { Input } from "@atria/ui";
+import { applySlugFromTitle, setTitle, useState } from "../../deps.js";
 
-export function EditorContentFormTitle() {
+function FieldTitle() {
   const { title } = useState();
 
   return (
@@ -9,17 +10,21 @@ export function EditorContentFormTitle() {
         <label className="field__label field--label-sm" htmlFor="page-title">
           Title
         </label>
-        <input
+        <Input
           id="page-title"
-          name="title"
           type="text"
+          name="title"
+          size="sm"
+          full
+          interactive
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           onBlur={applySlugFromTitle}
-          className="input input--sm input--full input--interactive"
           placeholder="Page title"
         />
       </div>
     </div>
   );
 }
+
+export { FieldTitle };
