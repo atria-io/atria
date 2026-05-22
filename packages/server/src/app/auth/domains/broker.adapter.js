@@ -1,4 +1,5 @@
 import * as db from "@atria/db";
+import * as crypto from "node:crypto";
 import * as security from "../security.js";
 import { json } from "@atria/server/json.js";
 
@@ -9,6 +10,7 @@ const isProvider = (value) => value === "google" || value === "github";
 
 const origin = () => process.env.ATRIA_BROKER_ORIGIN?.trim() || BROKER_ORIGIN;
 const projectEnv = () => process.env.ATRIA_PROJECT_ID?.trim();
+const stateSecret = () => process.env.ATRIA_AUTH_STATE_SECRET?.trim() || process.env.ATRIA_PROJECT_ID?.trim() || "atria-auth-state";
 
 const redirect = (res, location, cookie) => {
   res.statusCode = 302;
@@ -22,6 +24,68 @@ const redirect = (res, location, cookie) => {
 const next = (req) => {
   const value = s(req.query?.next);
   return value.startsWith("/") ? value : "/";
+};
+
+const hmac = (value) => crypto
+  .createHmac("sha256", stateSecret())
+  .update(value)
+  .digest("hex");
+
+const createState = (provider, mode, projectId) => {
+  const nonce = crypto.randomBytes(16).toString("hex");
+  const issuedAtSeconds = Math.floor(Date.now() / 1000).toString();
+  const payload = `${provider}:${mode}:${projectId}:${issuedAtSeconds}:${nonce}`;
+  return `${payload}:${hmac(payload)}`;
+};
+
+const verifyState = (state, provider, mode, projectId) => {
+  const parts = state.split(":");
+  if (parts.length !== 6) {
+    return false;
+  }
+
+  const [stateProvider, stateMode, stateProjectId, issuedAtRaw, nonce, signature] = parts;
+  if (!stateProvider || !stateMode || !stateProjectId || !issuedAtRaw || !nonce || !signature) {
+    return false;
+  }
+
+  if (stateProvider !== provider || stateMode !== mode || stateProjectId !== projectId) {
+    return false;
+  }
+
+  const issuedAtSeconds = Number.parseInt(issuedAtRaw, 10);
+  if (!Number.isFinite(issuedAtSeconds)) {
+    return false;
+  }
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (issuedAtSeconds > nowSeconds + 5) {
+    return false;
+  }
+  if ((nowSeconds - issuedAtSeconds) > 300) {
+    return false;
+  }
+
+  const payload = `${stateProvider}:${stateMode}:${stateProjectId}:${issuedAtRaw}:${nonce}`;
+  const expected = hmac(payload);
+  if (!/^[a-f0-9]+$/i.test(signature)) {
+    return false;
+  }
+  const signatureBuffer = Buffer.from(signature, "hex");
+  const expectedBuffer = Buffer.from(expected, "hex");
+  if (signatureBuffer.length !== expectedBuffer.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
+};
+
+const isLocalSignedState = (state) => {
+  const parts = state.split(":");
+  if (parts.length !== 6) {
+    return false;
+  }
+  const signature = parts[5] ?? "";
+  return /^[a-f0-9]+$/i.test(signature);
 };
 
 const authError = (res, statusCode) => {
@@ -84,8 +148,15 @@ const exchange = async (brokerCode, projectId) => {
     return null;
   }
 
-  const provider = s(payload?.provider).toLowerCase();
-  const providerUserId = s(payload?.user?.providerUserId ?? payload?.user?.provider_user_id);
+  const provider = s(payload?.provider ?? payload?.user?.provider).toLowerCase();
+  const providerUserId = s(
+    payload?.user?.providerUserId ??
+    payload?.user?.provider_user_id ??
+    payload?.provider_user_id ??
+    payload?.providerUserId ??
+    payload?.user?.id ??
+    payload?.id
+  );
   const payloadProjectId = s(payload?.project_id ?? payload?.projectId);
   if (!isProvider(provider) || !providerUserId) {
     return null;
@@ -167,6 +238,8 @@ const start = async (req, res, provider, mode) => {
   const target = new URL(`/v1/auth/login/${provider}`, origin());
   target.searchParams.set("origin", returnTo.toString());
   target.searchParams.set("projectId", projectId);
+  const state = createState(provider, mode, projectId);
+  target.searchParams.set("state", state);
 
   if (mode === "create" && s(req.query?.consent).toLowerCase() === "required") {
     target.searchParams.set("consent", "required");
@@ -222,6 +295,11 @@ const callback = async (req, res, provider) => {
   if ((mode !== "create" && mode !== "sign-in") || !projectId) {
     res.statusCode = 400;
     res.end();
+    return;
+  }
+  const state = s(req.query?.state);
+  if (state && isLocalSignedState(state) && !verifyState(state, provider, mode, projectId)) {
+    redirect(res, "/", security.transientCookie(req, "atria_signin_error", "oauth_failed", 30));
     return;
   }
 

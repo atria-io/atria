@@ -17,17 +17,14 @@ const readSession = (req) => {
   return null;
 };
 
-const isPublic = (pathname) => {
-  return pathname === "/api/state" ||
-    pathname.startsWith("/api/auth/") ||
-    pathname === "/api/pages" ||
-    pathname.startsWith("/api/pages/");
+const isPublic = (pathname, method) => {
+  return pathname === "/api/state" || pathname.startsWith("/api/auth/");
 };
 
 export const useSession = (app) => {
   app.use(async (req, res, next) => {
     const pathname = req.path;
-    if (!pathname.startsWith("/api/") || isPublic(pathname)) {
+    if (!pathname.startsWith("/api/") || isPublic(pathname, req.method)) {
       await next();
       return;
     }
