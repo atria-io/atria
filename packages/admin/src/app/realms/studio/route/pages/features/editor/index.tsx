@@ -1,11 +1,11 @@
-import { EditorHeader } from "./ui/EditorHeader.js";
-import { EditorMain } from "./ui/EditorMain.js";
+import { EditorHeader } from "./ui/components/Header.js";
+import { EditorMain } from "./ui/components/Main.js";
 import { useSetup } from "./model/editor.state.js";
 import * as React from "react";
 
 export type EditorView = "content" | "seo";
 
-export function Editor() {
+function Editor() {
   useSetup();
   const [view, setView] = React.useState<EditorView>("content");
 
@@ -20,3 +20,5 @@ export function Editor() {
     </>
   );
 }
+
+export { Editor };

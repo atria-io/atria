@@ -1,6 +1,6 @@
-import { CatalogHeader } from "./ui/CatalogHeader.js";
-import { CatalogSearch } from "./ui/CatalogSearch.js";
-import { CatalogMain } from "./ui/CatalogMain.js";
+import { CatalogHeader } from "./ui/components/Header.js";
+import { CatalogSearch } from "./ui/components/Search.js";
+import { CatalogMain } from "./ui/components/Main.js";
 
 export function Catalog() {
   return (

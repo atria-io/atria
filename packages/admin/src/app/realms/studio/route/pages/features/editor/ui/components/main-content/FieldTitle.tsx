@@ -1,4 +1,4 @@
-import { applySlugFromTitle, setTitle, useState } from "../../model/editor.state.js";
+import { applySlugFromTitle, setTitle, useState } from "../../../model/editor.state.js";
 
 export function EditorContentFormTitle() {
   const { title } = useState();

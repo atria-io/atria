@@ -1,5 +1,5 @@
-import { useState } from "../../model/editor.state.js";
-import type { EditorView } from "../../index.js";
+import { useState } from "../../../model/editor.state.js";
+import type { EditorView } from "../../../index.js";
 import { CloseEditor } from "./CloseEditor.js";
 import { Tabs } from "./Tabs.js";
 

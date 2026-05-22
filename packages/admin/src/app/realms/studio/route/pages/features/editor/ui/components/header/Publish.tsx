@@ -1,6 +1,6 @@
 import { Button } from "@atria/ui";
-import { publish, useState } from "../../model/editor.state.js";
-import { parsePagesRoute } from "../../../../routes/pages.routes.js";
+import { publish, useState } from "../../../model/editor.state.js";
+import { parsePagesRoute } from "../../../../../routes/pages.routes.js";
 
 export function Publish() {
   const { hasEditorChanges } = useState();

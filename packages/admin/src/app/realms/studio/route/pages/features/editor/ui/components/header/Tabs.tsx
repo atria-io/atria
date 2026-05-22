@@ -1,5 +1,5 @@
 import { Button } from "@atria/ui";
-import type { EditorView } from "../../index.js";
+import type { EditorView } from "../../../index.js";
 
 interface TabsProps {
   onViewChange: (view: EditorView) => void;

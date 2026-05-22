@@ -1,4 +1,4 @@
-import { setContent, useState } from "../../model/editor.state.js";
+import { setContent, useState } from "../../../model/editor.state.js";
 
 export function EditorContentFormContent() {
   const { content } = useState();

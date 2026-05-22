@@ -297,7 +297,6 @@ export const deletePageById = async (uuid: string): Promise<boolean> => {
 
   store.setEditorState({
     drafts: nextDrafts,
-    isResolving: false,
     currentUuid: wasCurrent ? null : state.currentUuid,
     hasEditorChanges: wasCurrent ? false : state.hasEditorChanges,
     title: wasCurrent ? "" : state.title,
@@ -315,7 +314,6 @@ export const deletePageById = async (uuid: string): Promise<boolean> => {
 export const beginCreateMode = (): void => {
   session.resetSlugTouched();
   store.setEditorState({
-    isResolving: false,
     hasEditorChanges: false,
     currentUuid: null,
   });

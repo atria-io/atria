@@ -1,18 +1,22 @@
 import * as Icon from "lucide-react";
-import { CatalogActionButton } from "../../catalog/ui/CatalogActionButton.js";
+import { Button } from "@atria/ui";
 
 export function FoldersActions() {
   return (
     <>
       <div>Folders</div>
       <div className="pages-folders__header-action">
-        <CatalogActionButton
-          actionClassName="pages-catalog__action--create"
-          ariaLabel="Add Folder"
-          tooltip="Add Folder"
-          Icon={Icon.Plus}
-          iconSize={16}
-        />
+        <Button
+          type="button"
+          variant="overlay"
+          square
+          icon
+          className="pages-catalog__action--create"
+          aria-label="Add Folder"
+          data-tooltip="Add Folder"
+        >
+          <Icon.Plus size={16} />
+        </Button>
       </div>
     </>
   );

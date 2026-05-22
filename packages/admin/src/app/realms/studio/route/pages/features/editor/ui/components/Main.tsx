@@ -1,11 +1,15 @@
 import * as React from "react";
-import { useState } from "../model/editor.state.js";
+import { useState } from "../../model/editor.state.js";
 import { EditorViewContent } from "./main-content/index.js";
 import { EditorViewSEO } from "./main-seo/index.js";
-import type { EditorView } from "../index.js";
+import type { EditorView } from "../../index.js";
 
 interface EditorMainViewProps {
   children: React.ReactNode;
+  view: EditorView;
+}
+
+interface EditorMainProps {
   view: EditorView;
 }
 
@@ -21,11 +25,7 @@ function EditorMainView({ children, view }: EditorMainViewProps) {
   );
 }
 
-interface EditorMainProps {
-  view: EditorView;
-}
-
-export function EditorMain({ view }: EditorMainProps) {
+function EditorMain({ view }: EditorMainProps) {
   const { creating } = useState();
 
   if (!creating) {
@@ -46,3 +46,5 @@ export function EditorMain({ view }: EditorMainProps) {
     </EditorMainView>
   );
 }
+
+export { EditorMain };

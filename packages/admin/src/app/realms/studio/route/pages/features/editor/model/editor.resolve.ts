@@ -15,11 +15,10 @@ export const syncEditorFromRoute = (): void => {
   const routeUuid = route.mode === "document" ? route.uuid : null;
   const routeDraft = routeUuid ? state.drafts.find((item) => item.uuid === routeUuid) : null;
 
-  store.setEditorState({ isResolving: true, creating: false });
+  store.setEditorState({ creating: false });
 
   if (route.mode === "create") {
     store.setEditorState({
-      isResolving: false,
       creating: true,
       hasEditorChanges: state.hasEditorChanges,
       currentUuid: state.currentUuid,
@@ -32,7 +31,6 @@ export const syncEditorFromRoute = (): void => {
 
   if (route.mode !== "document") {
     store.setEditorState({
-      isResolving: false,
       creating: false,
       hasEditorChanges: false,
       currentUuid: null,
@@ -45,7 +43,6 @@ export const syncEditorFromRoute = (): void => {
 
   if (routeDraft) {
     store.setEditorState({
-      isResolving: false,
       creating: true,
       hasEditorChanges: false,
       currentUuid: routeDraft.uuid,
@@ -58,7 +55,6 @@ export const syncEditorFromRoute = (): void => {
 
   if (!routeUuid) {
     store.setEditorState({
-      isResolving: false,
       creating: false,
       hasEditorChanges: false,
       currentUuid: null,
@@ -91,7 +87,6 @@ export const syncEditorFromRoute = (): void => {
 
     if (!found) {
       store.setEditorState({
-        isResolving: false,
         creating: false,
         hasEditorChanges: false,
         currentUuid: null,
@@ -104,12 +99,11 @@ export const syncEditorFromRoute = (): void => {
 
     const draft = latest.drafts.find((item) => item.uuid === documentUuid);
     if (!draft) {
-      store.setEditorState({ isResolving: false, creating: false });
+      store.setEditorState({ creating: false });
       return;
     }
 
     store.setEditorState({
-      isResolving: false,
       creating: true,
       hasEditorChanges: false,
       currentUuid: draft.uuid,

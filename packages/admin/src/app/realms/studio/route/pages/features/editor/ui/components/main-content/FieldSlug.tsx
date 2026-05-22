@@ -1,5 +1,5 @@
 import * as Icon from "lucide-react";
-import { setSlug, useState } from "../../model/editor.state.js";
+import { setSlug, useState } from "../../../model/editor.state.js";
 import { getFrontendUrl } from "@/app/system/config/app.config.js";
 
 export function EditorContentFormSlug() {

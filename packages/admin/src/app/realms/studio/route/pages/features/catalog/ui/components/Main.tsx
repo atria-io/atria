@@ -1,7 +1,7 @@
-import { useState } from "../../editor/model/editor.state.js";
-import { parsePagesRoute, usePagesPathname } from "../../../routes/pages.routes.js";
-import { useCatalogFilterState } from "../model/catalog.state.js";
-import { CatalogItem } from "./CatalogItem.js";
+import { useState } from "../../../editor/model/editor.state.js";
+import { parsePagesRoute, usePagesPathname } from "../../../../routes/pages.routes.js";
+import { useCatalogFilterState } from "../../model/catalog.state.js";
+import { CatalogItem } from "./main/Item.js";
 
 export function CatalogMain() {
   const { drafts } = useState();

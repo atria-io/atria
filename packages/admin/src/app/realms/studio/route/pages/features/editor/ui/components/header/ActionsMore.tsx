@@ -5,8 +5,8 @@ import {
   archive,
   unpublish,
   useState,
-} from "../../model/editor.state.js";
-import { openDeletePage } from "../../../../shared/ui/DeletePageDialog.js";
+} from "../../../model/editor.state.js";
+import { openDeletePage } from "../../../../../shared/ui/DeletePageDialog.js";
 
 interface ActionsMoreItem {
   key: string;

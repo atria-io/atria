@@ -1,5 +1,5 @@
-import { useState } from "../../model/editor.state.js";
-import { parsePagesRoute } from "../../../../routes/pages.routes.js";
+import { useState } from "../../../model/editor.state.js";
+import { parsePagesRoute } from "../../../../../routes/pages.routes.js";
 
 export function Status() {
   const { currentUuid, drafts } = useState();

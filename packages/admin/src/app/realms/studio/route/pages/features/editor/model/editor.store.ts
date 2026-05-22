@@ -10,7 +10,6 @@ const resolveInitialCreating = (): boolean => {
 };
 
 let editorState: EditorState = {
-  isResolving: true,
   creating: resolveInitialCreating(),
   hasEditorChanges: false,
   title: "",
