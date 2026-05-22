@@ -1,7 +1,7 @@
 /*!field-base */
 .field {
   --field-label-size: var(--text-sm);
-
+  user-select: none;
   display: grid;
 }
 
@@ -9,6 +9,7 @@
   color: var(--input-label);
   font-size: var(--field-label-size);
   pointer-events: none;
+  width: min-content;
   line-height: 1;
   margin: 0;
 }

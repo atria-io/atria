@@ -10,10 +10,10 @@ export interface ShellProps {
 
 function Main({ screen }: Pick<ShellProps, "screen">) {
   return (
-    <main className="admin-main studio-main">
+    <main className="admin-main">
       <div className="studio-main__body">
         <Sidebar state={screen} />
-        <div className="admin-main__screen" role="region">
+        <div className="studio-main__screen" role="region">
           <Route state={screen} />
         </div>
       </div>

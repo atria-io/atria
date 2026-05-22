@@ -62,12 +62,24 @@ function ActionButton({
 function Actions() {
   const { archivedOnly } = deps.useFilter();
 
+  const focusTitleField = React.useCallback((): void => {
+    window.requestAnimationFrame(() => {
+      const titleInput = document.getElementById("page-title");
+      if (!(titleInput instanceof HTMLInputElement)) {
+        return;
+      }
+
+      titleInput.focus();
+    });
+  }, []);
+
   const onCreatePage = (): void => {
     deps.setArchived(false);
     deps.startCreate();
     const nextPath = deps.createPath(window.location.pathname);
     window.history.pushState({}, "", nextPath);
     window.dispatchEvent(new PopStateEvent("popstate"));
+    focusTitleField();
   };
 
   const onToggleArchived = (): void => {

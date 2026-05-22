@@ -17,7 +17,7 @@ function Main() {
   );
 
   return (
-    <div className="pages-catalog__main">
+    <ol className="pages-catalog__main">
       {items.map((item) => (
         <Item
           key={item.uuid}
@@ -25,7 +25,7 @@ function Main() {
           active={route.mode === "document" && route.uuid === item.uuid}
         />
       ))}
-    </div>
+    </ol>
   );
 }
 

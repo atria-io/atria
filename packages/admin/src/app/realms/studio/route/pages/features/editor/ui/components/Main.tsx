@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as deps from "../deps.js";
 import { Content } from "./main-content/index.js";
+import { Settings } from "./main-settings/index.js";
 import { SEO } from "./main-seo/index.js";
 
 interface MainViewProps {
@@ -14,13 +15,24 @@ interface MainProps {
 
 function MainView({ children, view }: MainViewProps) {
   return (
-    <div className="card-column pages-editor__view" data-view={view}>
-      <div className="pages-editor pages-editor__main">
-        <div className="pages-editor pages-editor--edit">
-          <div>{children}</div>
+    <>
+      <div className="card-row">
+        <div className="card-row__item" data-view={view} data-type="edit">
+          <div className="pages-editor pages-editor__content">
+            <div className="pages-editor pages-editor--edit">
+              <div>{children}</div>
+            </div>
+          </div>
+        </div>
+        <div className="card-row__item" data-view="settings">
+          <div className="card-screen">
+            <div className="pages-editor pages-editor__settings">
+              <Settings />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -14,12 +14,12 @@ function Status() {
     : currentDraft?.status === "archived"
       ? "Archived"
       : currentDraft?.status === "published"
-        ? "Online"
+        ? "Live"
         : "Draft";
 
-  if (status === "Online") {
+  if (status === "Live") {
     return (
-      <div className="pages-editor__status pages-editor__status--online">
+      <div className="pages-editor__status pages-editor__status--live">
         {status}
       </div>
     );

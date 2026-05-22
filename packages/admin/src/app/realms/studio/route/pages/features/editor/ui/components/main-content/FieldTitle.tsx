@@ -1,8 +1,9 @@
 import { Input } from "@atria/ui";
-import { applySlugFromTitle, setTitle, useState } from "../../deps.js";
+import { applySlugFromTitle, parse, setTitle, useState } from "../../deps.js";
 
 function FieldTitle() {
   const { title } = useState();
+  const route = parse(window.location.pathname);
 
   return (
     <div className="pages-editor__field">
@@ -17,6 +18,7 @@ function FieldTitle() {
           size="sm"
           full
           interactive
+          autoFocus={route.mode === "create"}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           onBlur={applySlugFromTitle}

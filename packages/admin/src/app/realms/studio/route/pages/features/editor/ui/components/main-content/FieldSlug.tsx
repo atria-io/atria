@@ -20,8 +20,8 @@ function FieldSlug() {
         <div className={`pages-editor__slug-wrap ${hasDuplicateSlug ? "pages-editor__slug-wrap--error" : ""}`}>
           <div className="pages-editor__slug-prefix">
             <div className="pages-editor__slug-prefix-inner">
-              <span className="pages-editor__slug-prefix-text">
-                {`${frontendUrl}/`}
+              <span className="pages-editor__slug-prefix-text" data-tooltip={`${frontendUrl}/`}>
+                <span>{`${frontendUrl}/`}</span>
               </span>
             </div>
           </div>

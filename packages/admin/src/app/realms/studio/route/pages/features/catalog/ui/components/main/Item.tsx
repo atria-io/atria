@@ -8,7 +8,7 @@ interface CatalogItemProps {
 }
 
 function Item({ item, active }: CatalogItemProps) {
-  const rootRef = React.useRef<HTMLDivElement | null>(null);
+  const rootRef = React.useRef<HTMLLIElement | null>(null);
   const statusLabel = item.status === "published"
     ? "Online"
     : item.status === "archived"
@@ -32,16 +32,15 @@ function Item({ item, active }: CatalogItemProps) {
     root.removeAttribute("active");
   }, [active]);
 
-  const onOpenItem = (event: React.MouseEvent<HTMLDivElement>): void => {
+  const onOpenItem = (event: React.MouseEvent<HTMLLIElement>): void => {
     event.stopPropagation();
     window.history.pushState({}, "", deps.docPath(item.uuid));
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
   return (
-    <div
+    <li
       className="pages-catalog__item"
-      key={item.uuid}
       onClick={onOpenItem}
       ref={rootRef}
     >
@@ -51,7 +50,7 @@ function Item({ item, active }: CatalogItemProps) {
       <span className="pages-catalog__item-title">
         <span>{item.title.trim() || "Untitled"}</span>
       </span>
-    </div>
+    </li>
   );
 }
 

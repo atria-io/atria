@@ -14,7 +14,6 @@
   border-top-left-radius: var(--baseline);
   border-bottom-left-radius: var(--baseline);
   height: calc(var(--baseline) * 11);
-  pointer-events: none;
   border-right: none;
 }
 
@@ -27,9 +26,21 @@
 }
 
 .pages-editor__slug-prefix-text {
-  font-size: var(--text-sm);
+  direction: rtl;
+  unicode-bidi: isolate;
+  max-width: 161px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: left;
   padding-inline: calc(var(--spacing) * 2.5);
+  font-size: var(--text-sm);
   line-height: 1;
+}
+
+.pages-editor__slug-prefix-text span {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 .pages-editor__slug-input {

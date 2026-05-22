@@ -1,0 +1,19 @@
+[data-type=edit] {
+  max-width: 42rem;
+  flex-basis: auto !important;
+}
+
+.pages-editor__content {
+  margin: 0 auto;
+  max-width: calc(var(--max-width-xs) - 3.5rem);
+  padding-inline: var(--layout-inset);
+}
+
+.pages-editor--edit{
+  padding-block: var(--space-block-md);
+}
+
+.pages-editor__title {
+  font-size: var(--text-base);
+  margin-bottom: var(--space-block-md);
+}

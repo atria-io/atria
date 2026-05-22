@@ -51,6 +51,6 @@
   opacity: 0.5;
 }
 
-.pages-editor__status--online {
+.pages-editor__status--live {
   color: var(--valid);
 }

@@ -46,10 +46,13 @@
   position: absolute;
   border-radius: inherit;
   background: transparent;
-  transition: none !important;
   opacity: 0.25;
   z-index: -1;
   inset: 0;
+}
+
+.pages-catalog__item:hover::after {
+  transition: none !important;
 }
 
 .pages-catalog__item:hover::after,
