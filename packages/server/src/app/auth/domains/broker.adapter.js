@@ -87,7 +87,11 @@ const exchange = async (brokerCode, projectId) => {
   const provider = s(payload?.provider).toLowerCase();
   const providerUserId = s(payload?.user?.providerUserId ?? payload?.user?.provider_user_id);
   const payloadProjectId = s(payload?.project_id ?? payload?.projectId);
-  if (!isProvider(provider) || !providerUserId || payloadProjectId !== projectId) {
+  if (!isProvider(provider) || !providerUserId) {
+    return null;
+  }
+
+  if (payloadProjectId && payloadProjectId !== projectId) {
     return null;
   }
 
@@ -224,7 +228,7 @@ const callback = async (req, res, provider) => {
   const redirectNext = next(req);
   const code = mode === "create"
     ? s(req.query?.broker_code || req.query?.code)
-    : s(req.query?.code);
+    : s(req.query?.broker_code || req.query?.code);
 
   if (code) {
     const profile = await exchange(code, projectId);
