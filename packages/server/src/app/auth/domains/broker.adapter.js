@@ -84,8 +84,15 @@ const exchange = async (brokerCode, projectId) => {
     return null;
   }
 
-  const provider = s(payload?.provider).toLowerCase();
-  const providerUserId = s(payload?.user?.providerUserId ?? payload?.user?.provider_user_id);
+  const provider = s(payload?.provider ?? payload?.user?.provider).toLowerCase();
+  const providerUserId = s(
+    payload?.user?.providerUserId ??
+    payload?.user?.provider_user_id ??
+    payload?.providerUserId ??
+    payload?.provider_user_id ??
+    payload?.user?.id ??
+    payload?.id
+  );
   const payloadProjectId = s(payload?.project_id ?? payload?.projectId);
   if (!isProvider(provider) || !providerUserId) {
     return null;
@@ -99,40 +106,6 @@ const exchange = async (brokerCode, projectId) => {
     provider,
     providerUserId,
     projectId,
-    email: s(payload?.user?.email) || null,
-    name: s(payload?.user?.name) || null,
-    avatarUrl: s(payload?.user?.avatarUrl ?? payload?.user?.avatar_url) || null,
-  };
-};
-
-const exchangeSignIn = async (brokerCode, projectId) => {
-  const params = { code: brokerCode };
-  if (projectId) {
-    params.project_id = projectId;
-  }
-
-  const { ok, payload } = await fetchJson("/oauth/exchange", params);
-  if (!ok) {
-    return null;
-  }
-
-  const provider = s(payload?.provider ?? payload?.user?.provider).toLowerCase();
-  const providerUserId = s(
-    payload?.user?.providerUserId ??
-    payload?.user?.provider_user_id ??
-    payload?.provider_user_id ??
-    payload?.providerUserId ??
-    payload?.user?.id ??
-    payload?.id
-  );
-  if (!isProvider(provider) || !providerUserId) {
-    return null;
-  }
-
-  return {
-    provider,
-    providerUserId,
-    projectId: projectId || s(payload?.project_id ?? payload?.projectId) || null,
     email: s(payload?.user?.email) || null,
     name: s(payload?.user?.name) || null,
     avatarUrl: s(payload?.user?.avatarUrl ?? payload?.user?.avatar_url) || null,
@@ -193,16 +166,14 @@ const start = async (req, res, provider, mode) => {
   }
 
   const projectId = s(req.query?.project_id || req.query?.projectId) || projectEnv();
-  if (mode === "create" && !projectId) {
+  if (!projectId) {
     res.sendStatus(500);
     return;
   }
 
   const target = new URL(`/v1/auth/login/${provider}`, origin());
   target.searchParams.set("origin", returnTo.toString());
-  if (projectId) {
-    target.searchParams.set("projectId", projectId);
-  }
+  target.searchParams.set("projectId", projectId);
 
   if (mode === "create" && s(req.query?.consent).toLowerCase() === "required") {
     target.searchParams.set("consent", "required");
@@ -252,30 +223,39 @@ const confirm = async (req, res) => {
   res.end();
 };
 
+const resolveCallbackCode = async (mode, projectId, query) => {
+  const directCode = s(query?.broker_code || query?.code);
+  if (directCode) {
+    return directCode;
+  }
+
+  if (mode !== "sign-in" || !projectId) {
+    return "";
+  }
+
+  const consentToken = s(query?.broker_consent_token);
+  if (!consentToken) {
+    return "";
+  }
+
+  const confirm = await confirmCode(projectId, consentToken, "");
+  return confirm.status === "ok" ? confirm.code : "";
+};
+
 const callback = async (req, res, provider) => {
   const mode = s(req.query?.mode);
   const projectId = s(req.query?.project_id || req.query?.projectId) || projectEnv();
-  if (mode !== "create" && mode !== "sign-in") {
-    res.statusCode = 400;
-    res.end();
-    return;
-  }
-
-  if (mode === "create" && !projectId) {
+  if ((mode !== "create" && mode !== "sign-in") || !projectId) {
     res.statusCode = 400;
     res.end();
     return;
   }
 
   const redirectNext = next(req);
-  const code = mode === "create"
-    ? s(req.query?.broker_code || req.query?.code)
-    : s(req.query?.broker_code || req.query?.code);
-
+  const code = await resolveCallbackCode(mode, projectId, req.query);
+  const consentToken = s(req.query?.broker_consent_token);
   if (code) {
-    const profile = mode === "create"
-      ? await exchange(code, projectId)
-      : await exchangeSignIn(code, projectId);
+    const profile = await exchange(code, projectId);
     if (!profile) {
       redirect(res, "/", security.transientCookie(req, "atria_signin_error", "oauth_failed", 30));
       return;
@@ -291,7 +271,6 @@ const callback = async (req, res, provider) => {
     return;
   }
 
-  const consentToken = s(req.query?.broker_consent_token);
   if (mode === "create" && consentToken) {
     const params = new URLSearchParams({
       screen: "consent",
