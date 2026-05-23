@@ -1,5 +1,5 @@
 import * as Icon from "lucide-react";
-import { Input } from "@atria/ui";
+import { Button, Input } from "@atria/ui";
 import { setSlug, useState } from "../../deps.js";
 import { getFrontendUrl } from "@/app/system/config/app.config.js";
 
@@ -45,6 +45,13 @@ function FieldSlug() {
           ) : null}
 
         </div>
+        {/*<Button
+          type="button"
+          size="sm"
+          align="start"
+          variant={["ghost", "overlay"]}
+          label="Add parent"
+        />*/}
       </div>
     </div>
   );
