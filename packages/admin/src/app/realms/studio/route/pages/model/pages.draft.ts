@@ -69,11 +69,27 @@ const upsertDraft = (
 const getDraftStatus = (uuid: string): PageStatus =>
   store.getState().drafts.find((item) => item.uuid === uuid)?.status ?? "draft";
 
-const setChanged = (previousValue: string, nextValue: string): void => {
-  const previous = store.getState();
-  if (previous.creating && previousValue !== nextValue) {
-    store.setState({ hasEditorChanges: true });
+const computeHasEditorChanges = (): boolean => {
+  const state = store.getState();
+
+  if (!state.creating) {
+    return false;
   }
+
+  if (!state.currentUuid) {
+    return hasRealInput(state.title, state.slug, state.content);
+  }
+
+  const currentDraft = state.drafts.find((item) => item.uuid === state.currentUuid);
+  if (!currentDraft) {
+    return hasRealInput(state.title, state.slug, state.content);
+  }
+
+  return (
+    state.title !== currentDraft.title
+    || state.slug !== currentDraft.slug
+    || state.content !== currentDraft.content
+  );
 };
 
 const resetEditorFields = (): void => {
@@ -122,11 +138,9 @@ const hasRealInput = (title: string, slug: string, content: string): boolean =>
   title.trim() !== "" || slug.trim() !== "" || content.trim() !== "";
 
 const updateField = (field: EditorField, value: string): void => {
-  const previousValue = store.getState()[field];
   store.setState({ [field]: value });
-  setChanged(previousValue, value);
   ensureDraftFromInput();
-  persist();
+  store.setState({ hasEditorChanges: computeHasEditorChanges() });
 };
 
 const ensureDraftFromInput = (): void => {
@@ -224,6 +238,9 @@ export const persist = (status?: PageStatus): void => {
             updatedPayload.content,
             updatedPayload.status,
           );
+          if (store.getState().currentUuid === updatedPayload.id) {
+            store.setState({ hasEditorChanges: computeHasEditorChanges() });
+          }
         });
       })
       .finally(() => {
@@ -246,6 +263,9 @@ export const persist = (status?: PageStatus): void => {
       payload.content,
       payload.status,
     );
+    if (store.getState().currentUuid === payload.id) {
+      store.setState({ hasEditorChanges: computeHasEditorChanges() });
+    }
   });
 };
 

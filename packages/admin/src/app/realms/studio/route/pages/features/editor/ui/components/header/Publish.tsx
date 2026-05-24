@@ -1,7 +1,6 @@
 import { Button } from "@atria/ui";
 import { formatKeydownLabel, keydown } from "@/app/system/hooks/keydown.js";
 import { publish, useState } from "../../deps.js";
-import { parse } from "../../deps.js";
 
 const publishShortcut = {
   key: "s",
@@ -10,15 +9,18 @@ const publishShortcut = {
 } as const;
 
 function Publish() {
-  const { hasEditorChanges } = useState();
-  const isCreateRoute = parse(window.location.pathname).mode === "create";
-  const publishLocked = isCreateRoute && !hasEditorChanges;
+  const { currentUuid, drafts, hasEditorChanges } = useState();
+  const currentItem = currentUuid
+    ? drafts.find((item) => item.uuid === currentUuid)
+    : null;
+  const canPublishDraft = currentItem?.status === "draft";
+  const isDisabled = !hasEditorChanges && !canPublishDraft;
   const publishShortcutLabel = formatKeydownLabel(publishShortcut);
 
   keydown(
     {
       ...publishShortcut,
-      enabled: !publishLocked,
+      enabled: !isDisabled,
     },
     publish,
   );
@@ -28,13 +30,13 @@ function Publish() {
       type="button"
       size="sm"
       align="center"
-      variant={["fill", "overlay"]}
-      className={!publishLocked ? "button--accent" : ""}
-      style={publishLocked ? { pointerEvents: "none" } : undefined}
+      variant="fill"
+      disabled={isDisabled}
+      className={!isDisabled ? "button--accent" : ""}
       label="Publish"
       aria-label="Publish"
       data-keydown={publishShortcutLabel}
-      onClick={publishLocked ? undefined : publish}
+      onClick={isDisabled ? undefined : publish}
     />
   );
 }

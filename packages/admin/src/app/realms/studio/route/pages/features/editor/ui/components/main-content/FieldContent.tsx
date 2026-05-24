@@ -13,7 +13,7 @@ function FieldContent() {
         <Textarea
           id="page-content"
           name="content"
-          rows={14}
+          rows={12}
           full
           interactive
           value={content}

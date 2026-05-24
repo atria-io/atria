@@ -13,8 +13,12 @@ function Content() {
     setLocalTitle(title);
   }, [title]);
 
+  const onTitleChange = (value: string): void => {
+    setLocalTitle(value);
+    setTitle(value);
+  };
+
   const onTitleBlur = (): void => {
-    setTitle(localTitle);
     applySlugFromTitle();
   };
 
@@ -23,7 +27,7 @@ function Content() {
       <HeaderTitle title={localTitle} />
       <FieldTitle
         title={localTitle}
-        onTitleChange={setLocalTitle}
+        onTitleChange={onTitleChange}
         onTitleBlur={onTitleBlur}
       />
       <FieldSlug />
