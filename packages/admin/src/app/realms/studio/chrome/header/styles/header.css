@@ -24,10 +24,20 @@
 }
 
 .admin-header__path {
-  margin-left: var(--space-x);
+  display: flex;
+  padding-left: var(--space-x);
   line-height: var(--height);
-  display: inline;
-  float: left;
+  width: min-content;
+  min-width: 0;
+  gap: 0.33rem;
+}
+
+.admin-header__path span {
+  display: inline-block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 30ch;
 }
 
 .admin-header__actions {

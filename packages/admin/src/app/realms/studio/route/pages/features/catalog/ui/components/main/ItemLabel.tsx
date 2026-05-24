@@ -15,6 +15,9 @@ function ItemLabel({ item }: LabelProps) {
     ? "pages-catalog__item-status pages-catalog__item-status--live"
     : "pages-catalog__item-status pages-catalog__item-status--draft";
   const title = item.title.trim() || "Untitled";
+  const truncatedTitle = title.length > 25
+    ? `${title.slice(0, 25)}…`
+    : title;
 
   return (
     <>
@@ -22,7 +25,7 @@ function ItemLabel({ item }: LabelProps) {
         <Icon.Dot size={16} />
       </span>
       <span className="pages-catalog__item-title">
-        <span>{title}</span>
+        <span title={title}>{truncatedTitle}</span>
       </span>
     </>
   );

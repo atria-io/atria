@@ -54,6 +54,10 @@ function ArchiveDialog() {
 
   const title = (request?.title ?? "").trim() || "Untitled";
 
+  const truncatedTitle = title.length > 25
+    ? `${title.slice(0, 25)}…`
+    : title;
+
   const onArchive = React.useCallback(async (): Promise<void> => {
     if (!request) {
       return;
@@ -80,7 +84,7 @@ function ArchiveDialog() {
     >
       <Dialog.DialogHeader>Archive this page?</Dialog.DialogHeader>
       <Dialog.DialogBody>
-        <strong>{title}</strong> is currently <span style={{ color: "var(--valid)" }}>LIVE</span>. Archiving will unpublish this page.
+        <span className="dialog__inline-label" title={title}><strong>{truncatedTitle}</strong></span> is currently <span style={{ color: "var(--valid)" }}><strong>LIVE</strong></span>. Archiving will unpublish this page.
       </Dialog.DialogBody>
       <Dialog.DialogFooter>
         <Button

@@ -16,4 +16,8 @@
 .pages-editor__title {
   font-size: var(--text-base);
   margin-bottom: var(--space-block-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 48ch;
 }

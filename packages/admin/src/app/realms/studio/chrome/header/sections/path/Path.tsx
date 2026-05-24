@@ -23,6 +23,9 @@ function Path({ screen }: PathProps) {
       ? drafts.find((item) => item.uuid === route.uuid)?.title.trim() || "Untitled"
       : null;
 
+    const truncatedTitle =
+      title && title.length > 48 ? `${title.slice(0, 48)}…` : title;
+
     return (
       <>
         {/*<strong><a href="/">@</a></strong>*/}
@@ -31,7 +34,9 @@ function Path({ screen }: PathProps) {
         {title ? (
           <>
             <span> / </span>
-            <span>{title}</span>
+            <span title={title}>
+              {title.trim() ? `${truncatedTitle}` : "Untitled"}
+            </span>
           </>
         ) : null}
       </>

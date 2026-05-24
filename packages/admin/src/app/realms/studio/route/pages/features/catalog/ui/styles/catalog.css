@@ -36,9 +36,12 @@
 .pages-catalog__item {
   display: block;
   user-select: none;
-  cursor: pointer;
+  border-radius: var(--baseline);
   position: relative;
   isolation: isolate;
+  overflow: hidden;
+  cursor: pointer;
+  min-width: 0;
 }
 
 .pages-catalog__item::after {
@@ -74,6 +77,19 @@
 .pages-catalog__item-label {
   display: flex;
   gap: calc(var(--layout-gap) / 3);
+}
+
+.pages-catalog__item-title > span {
+  display: inline-block;
+  transition: max-width var(--transition-base);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 25ch;
+}
+
+.pages-catalog__item[open] .pages-catalog__item-title > span {
+  max-width: 17ch;
 }
 
 .pages-catalog__item-status {

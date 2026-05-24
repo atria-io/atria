@@ -49,16 +49,34 @@
 }
 
 .dialog__header-title {
-  margin: 0 0 calc(var(--spacing) * 2);
+  margin: 0 0 calc(var(--spacing) * 3);
   font-size: var(--text-lg);
 }
 
 .dialog__body-text {
-  margin: 0 0 calc(var(--spacing) * 3);
+  line-height: 1.4;
+  margin: 0 0 calc(var(--spacing) * 3.5);
   color: var(--text-ghost);
 }
 
 .dialog__footer-actions {
   display: grid;
   gap: var(--layout-gap);
+}
+
+.dialog__inline-label {
+  display: inline-flex;
+  max-width: 20ch;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
+.dialog__inline-label > strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

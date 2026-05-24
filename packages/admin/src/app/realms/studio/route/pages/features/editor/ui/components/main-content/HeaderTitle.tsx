@@ -3,9 +3,14 @@ interface EditorContentTitleProps {
 }
 
 function HeaderTitle({ title }: EditorContentTitleProps) {
+  const truncatedTitle = title.length > 48
+    ? `${title.slice(0, 48)}…`
+    : title;
   return (
     <div className="pages-editor__title">
-      <div>{title.trim() ? `${title}` : "Untitled"}</div>
+      <span title={title}>
+        {title.trim() ? `${truncatedTitle}` : "Untitled"}
+      </span>
     </div>
   );
 }

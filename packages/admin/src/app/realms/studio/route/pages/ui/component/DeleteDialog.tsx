@@ -49,6 +49,11 @@ function DeleteDialog() {
     onClose,
   });
   const title = (request?.title ?? "").trim() || "Untitled";
+
+  const truncatedTitle = title.length > 25
+    ? `${title.slice(0, 25)}…`
+    : title;
+
   const onDelete = React.useCallback(async (): Promise<void> => {
     if (!request) {
       return;
@@ -74,7 +79,7 @@ function DeleteDialog() {
         Delete this page?
       </Dialog.DialogHeader>
       <Dialog.DialogBody>
-        Are you sure you want to permanently delete <strong>{title}</strong>?
+        Are you sure you want to permanently delete <span className="dialog__inline-label" title={title}><strong>{truncatedTitle}</strong></span>?
       </Dialog.DialogBody>
       <Dialog.DialogFooter>
         <Button

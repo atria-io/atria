@@ -24,6 +24,11 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
   const isArchived = item.status === "archived";
   const isPublished = item.status === "published";
 
+  const closeMenu = React.useCallback((): void => {
+    setOpen(false);
+    setConfirmArchive(false);
+  }, []);
+
   const items: ActionsMoreItem[] = [
     isArchived
       ? {
@@ -75,13 +80,11 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
 
   const onToggle = (event: React.MouseEvent<HTMLButtonElement>): void => {
     event.stopPropagation();
-    setOpen((value) => {
-      const next = !value;
-      if (!next) {
-        setConfirmArchive(false);
-      }
-      return next;
-    });
+    if (open) {
+      closeMenu();
+      return;
+    }
+    setOpen(true);
   };
 
   const onRootClick = (event: React.MouseEvent<HTMLDivElement>): void => {
@@ -107,43 +110,36 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
         return;
       }
 
-      setOpen(false);
-      setConfirmArchive(false);
+      closeMenu();
     };
 
     document.addEventListener("mousedown", onDocumentMouseDown);
     return () => {
       document.removeEventListener("mousedown", onDocumentMouseDown);
     };
-  }, [open]);
+  }, [closeMenu, open]);
 
   const onActionClick = (
     event: React.MouseEvent<HTMLButtonElement>,
-    key: string,
     onClick?: () => void,
   ): void => {
     event.stopPropagation();
     onClick?.();
-    if (key === "archive") {
-      return;
-    }
-    setOpen(false);
   };
 
   const onConfirmArchive = (event: React.MouseEvent<HTMLButtonElement>): void => {
     event.stopPropagation();
+    closeMenu();
+
     if (isPublished) {
       deps.openArchivePage(item.uuid, item.title);
-      setConfirmArchive(false);
-      setOpen(false);
       return;
     }
+
     void deps.archiveById(item.uuid).then((updated) => {
       if (!updated) {
         return;
       }
-      setConfirmArchive(false);
-      setOpen(false);
     });
   };
 
@@ -186,7 +182,7 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
                 aria-label={entry.label}
                 data-tooltip={entry.label}
                 onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
-                  onActionClick(event, entry.key, entry.onClick)
+                  onActionClick(event, entry.onClick)
                 }
               >
                 <entry.icon size={13} />
