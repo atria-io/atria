@@ -6,6 +6,7 @@ const buildRuntimeSource = () =>
   `(() => {
   const ROOT_ID = "atria";
   const TOOLTIP_ATTR = "data-tooltip";
+  const KEYDOWN_ATTR = "data-keydown";
   const PORTAL_ATTR = "data-portal";
   const OPEN_DELAY_MS = 300;
   const HIDE_GRACE_MS = 90;
@@ -174,19 +175,18 @@ const buildRuntimeSource = () =>
     }
 
     const rawValue = element.getAttribute(TOOLTIP_ATTR);
-    if (rawValue === null) {
+    const value = (rawValue || "").trim();
+    const keydownValue = (element.getAttribute(KEYDOWN_ATTR) || "").trim();
+
+    if (value.length === 0 && keydownValue.length === 0) {
       tooltipByElement.delete(element);
       return;
     }
 
-    const value = rawValue.trim();
-
-    if (value.length === 0) {
-      tooltipByElement.delete(element);
-      return;
-    }
-
-    tooltipByElement.set(element, value);
+    tooltipByElement.set(element, {
+      text: value,
+      keydown: keydownValue,
+    });
   };
 
   const captureTree = (node) => {
@@ -196,7 +196,7 @@ const buildRuntimeSource = () =>
 
     captureTooltip(node);
 
-    for (const element of node.querySelectorAll("[" + TOOLTIP_ATTR + "]")) {
+    for (const element of node.querySelectorAll("[" + TOOLTIP_ATTR + "], [" + KEYDOWN_ATTR + "]")) {
       captureTooltip(element);
     }
   };
@@ -261,8 +261,8 @@ const buildRuntimeSource = () =>
   };
 
   const showTooltip = (target) => {
-    const value = tooltipByElement.get(target);
-    if (!value) {
+    const tooltipData = tooltipByElement.get(target);
+    if (!tooltipData) {
       return;
     }
 
@@ -279,11 +279,23 @@ const buildRuntimeSource = () =>
     const nextTooltipCard = document.createElement("div");
     const nextTooltipContent = document.createElement("div");
     const nextTooltipText = document.createElement("div");
+    const nextTooltipLabel = document.createElement("span");
 
     nextTooltipCard.id = "atria-tooltip";
     nextTooltipContent.className = "atria-tooltip__content atria-tooltip__content--open";
     nextTooltipText.className = "atria-tooltip__text";
-    nextTooltipText.textContent = value;
+    if (tooltipData.text) {
+      nextTooltipLabel.className = "atria-tooltip__label";
+      nextTooltipLabel.textContent = tooltipData.text;
+      nextTooltipText.appendChild(nextTooltipLabel);
+    }
+
+    if (tooltipData.keydown) {
+      const nextTooltipKeydown = document.createElement("span");
+      nextTooltipKeydown.className = "atria-tooltip__keydown";
+      nextTooltipKeydown.textContent = tooltipData.keydown;
+      nextTooltipText.appendChild(nextTooltipKeydown);
+    }
 
     if (skipOpenAnimation || Date.now() - lastTooltipDeactivateAt <= SWITCH_GRACE_MS) {
       disableTooltipAnimationOverride(nextTooltipCard);
@@ -312,8 +324,8 @@ const buildRuntimeSource = () =>
       return false;
     }
 
-    const value = tooltipByElement.get(target);
-    if (!value) {
+    const tooltipData = tooltipByElement.get(target);
+    if (!tooltipData) {
       return false;
     }
 
@@ -323,7 +335,22 @@ const buildRuntimeSource = () =>
     }
 
     disableTooltipAnimationOverride(tooltipNode);
-    tooltipText.textContent = value;
+    tooltipText.textContent = "";
+
+    if (tooltipData.text) {
+      const tooltipLabel = document.createElement("span");
+      tooltipLabel.className = "atria-tooltip__label";
+      tooltipLabel.textContent = tooltipData.text;
+      tooltipText.appendChild(tooltipLabel);
+    }
+
+    if (tooltipData.keydown) {
+      const tooltipKeydown = document.createElement("span");
+      tooltipKeydown.className = "atria-tooltip__keydown";
+      tooltipKeydown.textContent = tooltipData.keydown;
+      tooltipText.appendChild(tooltipKeydown);
+    }
+
     positionTooltip(target);
 
     return true;
@@ -465,7 +492,7 @@ const buildRuntimeSource = () =>
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: [TOOLTIP_ATTR],
+      attributeFilter: [TOOLTIP_ATTR, KEYDOWN_ATTR],
     });
 
     root.addEventListener("pointerover", onPointer, true);
