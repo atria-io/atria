@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Header } from "./ui/components/Header.js";
 import { Main } from "./ui/components/Main.js";
-import { useSetup } from "./model/editor.state.js";
+import { useSetup } from "../../model/pages.state.js";
 
 export type EditorView = "content" | "seo";
 

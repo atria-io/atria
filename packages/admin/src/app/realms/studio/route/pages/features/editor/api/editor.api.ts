@@ -1,8 +1,4 @@
-import type { PageApiPayload } from "../model/editor.types.js";
-
-const JSON_HEADERS = {
-  "Content-Type": "application/json",
-};
+import type { PageApiPayload } from "../../../model/pages.types.js";
 
 export const listPages = async (): Promise<Array<PageApiPayload>> => {
   const response = await fetch("/api/pages", { method: "GET" });
@@ -31,7 +27,7 @@ export const createPage = async (
 ): Promise<PageApiPayload | null> => {
   const response = await fetch("/api/pages", {
     method: "POST",
-    headers: JSON_HEADERS,
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ id, title, slug, content }),
   });
 
@@ -51,7 +47,7 @@ export const updatePage = async (
 ): Promise<PageApiPayload | null> => {
   const response = await fetch(`/api/pages/${id}`, {
     method: "PATCH",
-    headers: JSON_HEADERS,
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ title, slug, content, status }),
   });
 

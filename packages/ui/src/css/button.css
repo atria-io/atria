@@ -146,14 +146,32 @@
 }
 
 .button--danger {
-  --button-color: var(--text);
+  --button-color: var(--error);
   --button-color-hover: var(--error);
 }
 
-.button--danger-solid {
+.button--danger-hover {
+  --button-color-hover: var(--error);
+}
+
+.button--destructive {
   --button-color: var(--error);
   --button-color-hover: var(--white);
   --button-background-hover: var(--error);
+}
+
+.button--destructive.button--solid:hover {
+  border-color: var(--error);
+}
+
+.button--success {
+  --button-color: var(--valid);
+  --button-color-hover: var(--valid);
+}
+
+.button--warning {
+  --button-color: var(--warning);
+  --button-color-hover: var(--warning);
 }
 
 /*!button-sizes*/
@@ -175,6 +193,23 @@
 .button--lg {
   height: calc(var(--baseline) * 14);
   padding-inline: calc(var(--spacing) * 5);
+}
+
+/*!button-font-sizes*/
+.button--text-xs {
+  font-size: var(--text-xs);
+}
+
+.button--text-sm {
+  font-size: var(--text-sm);
+}
+
+.button--text-md {
+  font-size: var(--text-md);
+}
+
+button--text-lg {
+  font-size: var(--text-lg);
 }
 
 /*!button-layout*/
@@ -221,7 +256,6 @@
 
 .button__label {
   min-width: 0;
-  margin-top: 1px;
   pointer-events: none;
 }
 

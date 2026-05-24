@@ -1,42 +1,77 @@
-import type { PagesRouteState } from "./pages.types.js";
+import * as React from "react";
+import * as model from "./pages.model.js";
+import { popstate } from "@/app/system/hooks/popstate.js";
+import { getState, subscribe } from "./pages.store.js";
+export {
+  parsePagesRoute,
+  resolveCreatePath,
+  resolveDocumentPath,
+} from "../routes/pages.routes.js";
 
-const toNonEmpty = (value: string): string | null => {
-  const trimmed = value.trim();
-  return trimmed === "" ? null : trimmed;
+export type { CatalogItem, EditorState } from "./pages.types.js";
+
+export const useState = () =>
+  React.useSyncExternalStore(
+    subscribe,
+    getState
+  );
+
+export const useSetup = (): void => {
+  const sync = React.useCallback((): void => {
+    model.sync();
+  }, []);
+
+  popstate(sync);
+
+  React.useEffect(() => {
+    sync();
+  }, [sync]);
 };
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-export const parsePagesRoute = (pathname: string): PagesRouteState => {
-  if (!pathname.startsWith("/pages")) {
-    return { mode: "browse", uuid: null };
-  }
-
-  const matrix = pathname.slice("/pages".length);
-  if (matrix === ":create") {
-    return { mode: "create", uuid: null };
-  }
-
-  if (matrix.startsWith(":")) {
-    const candidate = toNonEmpty(matrix.slice(1));
-    if (!candidate || !UUID_PATTERN.test(candidate)) {
-      return { mode: "browse", uuid: null };
-    }
-
-    return { mode: "document", uuid: candidate };
-  }
-
-  return { mode: "browse", uuid: null };
+export const setTitle = (title: string): void => {
+  model.setTitle(title);
 };
 
-export const resolveCreatePath = (pathname: string): string => {
-  const route = parsePagesRoute(pathname);
-  if (route.mode === "create") {
-    return pathname;
-  }
-
-  return "/pages:create";
+export const setSlug = (slug: string): void => {
+  model.setSlug(slug);
 };
 
-export const resolveDocumentPath = (uuid: string): string => `/pages:${uuid}`;
+export const setContent = (content: string): void => {
+  model.setContent(content);
+};
+
+export const applySlugFromTitle = (): void => {
+  model.applySlugFromTitle();
+};
+
+export const startCreate = (): void => {
+  model.startCreate();
+};
+
+export const publish = (): void => {
+  model.publish();
+};
+
+export const unpublish = (): void => {
+  model.unpublish();
+};
+
+export const archive = (): void => {
+  model.archive();
+};
+
+export const archiveById = async (uuid: string): Promise<boolean> => {
+  return model.archiveById(uuid);
+};
+
+export const publishById = async (uuid: string): Promise<boolean> => {
+  return model.publishById(uuid);
+};
+
+export const unpublishById = async (uuid: string): Promise<boolean> => {
+  return model.unpublishById(uuid);
+};
+
+export const deleteById = (uuid: string): Promise<boolean> => {
+  return model.deleteById(uuid);
+};

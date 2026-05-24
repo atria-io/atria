@@ -62,12 +62,11 @@ function ActionsMoreContent({ items, onItemClick }: ActionsMoreProps) {
           <Button
             key={item.key}
             type="button"
-            variant="overlay"
+            variant={item.danger ? ["overlay", "danger"] : "overlay"}
             square
             icon
             align="start"
             label={<span className="pages-actions-more__label">{item.label}</span>}
-            className={item.danger ? "button--danger" : ""}
             role="menuitem"
             onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
               onItemClick(event, item.onClick)
@@ -109,6 +108,7 @@ function ActionsMore() {
     ? drafts.find((item) => item.uuid === currentUuid)
     : null;
   const isArchived = currentItem?.status === "archived";
+  const isPublished = currentItem?.status === "published";
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const { isOpen, isClosing, isMounted, toggle, onAnimationEnd } = usePopover(rootRef);
 
@@ -128,7 +128,16 @@ function ActionsMore() {
           key: "archive",
           label: "Archive",
           icon: Icon.Archive,
-          onClick: deps.archive,
+          onClick: () => {
+            if (!currentItem) {
+              return;
+            }
+            if (isPublished) {
+              deps.openArchivePage(currentItem.uuid, currentItem.title);
+              return;
+            }
+            deps.archive();
+          },
         },
     {
       key: "unpublish",

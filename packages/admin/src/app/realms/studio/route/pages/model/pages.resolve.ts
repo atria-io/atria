@@ -1,24 +1,24 @@
-import { parseCurrentPagesRoute } from "./editor.routing.js";
-import * as store from "./editor.store.js";
-import * as draft from "./editor.draft.js";
+import { parseRoute } from "./pages.routing.js";
+import * as store from "./pages.store.js";
+import * as draft from "./pages.draft.js";
 
 let isBootstrapped = false;
 
-export const syncEditorFromRoute = (): void => {
+export const sync = (): void => {
   if (!isBootstrapped) {
     isBootstrapped = true;
-    void draft.loadDrafts();
+    void draft.load();
   }
 
-  const state = store.getEditorState();
-  const route = parseCurrentPagesRoute();
+  const state = store.getState();
+  const route = parseRoute();
   const routeUuid = route.mode === "document" ? route.uuid : null;
   const routeDraft = routeUuid ? state.drafts.find((item) => item.uuid === routeUuid) : null;
 
-  store.setEditorState({ creating: false });
+  store.setState({ creating: false });
 
   if (route.mode === "create") {
-    store.setEditorState({
+    store.setState({
       creating: true,
       hasEditorChanges: state.hasEditorChanges,
       currentUuid: state.currentUuid,
@@ -30,7 +30,7 @@ export const syncEditorFromRoute = (): void => {
   }
 
   if (route.mode !== "document") {
-    store.setEditorState({
+    store.setState({
       creating: false,
       hasEditorChanges: false,
       currentUuid: null,
@@ -42,7 +42,7 @@ export const syncEditorFromRoute = (): void => {
   }
 
   if (routeDraft) {
-    store.setEditorState({
+    store.setState({
       creating: true,
       hasEditorChanges: false,
       currentUuid: routeDraft.uuid,
@@ -54,7 +54,7 @@ export const syncEditorFromRoute = (): void => {
   }
 
   if (!routeUuid) {
-    store.setEditorState({
+    store.setState({
       creating: false,
       hasEditorChanges: false,
       currentUuid: null,
@@ -67,7 +67,7 @@ export const syncEditorFromRoute = (): void => {
 
   const documentUuid = routeUuid;
 
-  store.setEditorState({
+  store.setState({
     currentUuid: documentUuid,
     hasEditorChanges: false,
     title: "",
@@ -75,18 +75,18 @@ export const syncEditorFromRoute = (): void => {
     content: "",
   });
 
-  void draft.loadDraftById(documentUuid).then((found) => {
-    if (parseCurrentPagesRoute().mode !== "document") {
+  void draft.loadById(documentUuid).then((found) => {
+    if (parseRoute().mode !== "document") {
       return;
     }
 
-    const latest = store.getEditorState();
+    const latest = store.getState();
     if (latest.currentUuid !== documentUuid) {
       return;
     }
 
     if (!found) {
-      store.setEditorState({
+      store.setState({
         creating: false,
         hasEditorChanges: false,
         currentUuid: null,
@@ -99,11 +99,11 @@ export const syncEditorFromRoute = (): void => {
 
     const draft = latest.drafts.find((item) => item.uuid === documentUuid);
     if (!draft) {
-      store.setEditorState({ creating: false });
+      store.setState({ creating: false });
       return;
     }
 
-    store.setEditorState({
+    store.setState({
       creating: true,
       hasEditorChanges: false,
       currentUuid: draft.uuid,

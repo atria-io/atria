@@ -29,7 +29,7 @@
   --focus: #005fcc;
   --error: #eb5757;
   --valid: #34d399;
-  --draft: #c2873b;
+  --warning: #c2873b;
 
   --white: #ffffff;
   --black: #000000;
@@ -72,7 +72,7 @@
   --focus: #005fcc;
   --error: #f44545;
   --valid: #34b273;
-  --draft: #c2873b;
+  --warning: #c2873b;
 
   --white: #ffffff;
   --black: #000000;

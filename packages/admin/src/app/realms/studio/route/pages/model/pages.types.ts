@@ -1,6 +1,25 @@
-export type PagesRouteMode = "browse" | "create" | "document";
+export interface CatalogItem {
+  uuid: string;
+  title: string;
+  slug: string;
+  content: string;
+  status: "draft" | "published" | "archived";
+}
 
-export interface PagesRouteState {
-  mode: PagesRouteMode;
-  uuid: string | null;
+export interface EditorState {
+  creating: boolean;
+  hasEditorChanges: boolean;
+  title: string;
+  slug: string;
+  content: string;
+  currentUuid: string | null;
+  drafts: CatalogItem[];
+}
+
+export interface PageApiPayload {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  status: "draft" | "published" | "archived";
 }

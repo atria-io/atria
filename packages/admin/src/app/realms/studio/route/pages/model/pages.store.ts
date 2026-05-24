@@ -1,7 +1,7 @@
-import type { EditorState } from "./editor.types.js";
-import { parse } from "./editor.routes.js";
+import type { EditorState } from "./pages.types.js";
+import { parse } from "./pages.routes.js";
 
-const resolveInitialCreating = (): boolean => {
+const isCreatingOnLoad = (): boolean => {
   if (typeof window === "undefined") {
     return false;
   }
@@ -10,7 +10,7 @@ const resolveInitialCreating = (): boolean => {
 };
 
 let editorState: EditorState = {
-  creating: resolveInitialCreating(),
+  creating: isCreatingOnLoad(),
   hasEditorChanges: false,
   title: "",
   slug: "",
@@ -21,16 +21,16 @@ let editorState: EditorState = {
 
 const listeners = new Set<() => void>();
 
-export const getEditorState = (): EditorState => editorState;
+export const getState = (): EditorState => editorState;
 
-export const setEditorState = (next: Partial<EditorState>): void => {
+export const setState = (next: Partial<EditorState>): void => {
   editorState = { ...editorState, ...next };
   for (const listener of listeners) {
     listener();
   }
 };
 
-export const subscribeEditorState = (listener: () => void): (() => void) => {
+export const subscribe = (listener: () => void): (() => void) => {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);

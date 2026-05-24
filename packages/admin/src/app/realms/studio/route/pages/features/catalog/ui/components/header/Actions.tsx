@@ -60,7 +60,7 @@ function ActionButton({
 }
 
 function Actions() {
-  const { archivedOnly } = deps.useFilter();
+  const { archivedOnly } = deps.use();
 
   const focusTitleField = React.useCallback((): void => {
     window.requestAnimationFrame(() => {
@@ -74,7 +74,7 @@ function Actions() {
   }, []);
 
   const onCreatePage = (): void => {
-    deps.setArchived(false);
+    deps.setArchive(false);
     deps.startCreate();
     const nextPath = deps.createPath(window.location.pathname);
     window.history.pushState({}, "", nextPath);
@@ -83,7 +83,7 @@ function Actions() {
   };
 
   const onToggleArchived = (): void => {
-    deps.setArchived();
+    deps.setArchive();
   };
 
   const props: ActionConfig[] = [

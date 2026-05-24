@@ -1,6 +1,6 @@
 import type { State } from "@/app/realms/studio/model/studio.types.js";
 import { parsePagesRoute } from "@/app/realms/studio/route/pages/model/pages.state.js";
-import { useState } from "@/app/realms/studio/route/pages/features/editor/model/editor.state.js";
+import { useState } from "@/app/realms/studio/route/pages/model/pages.state.js";
 
 export interface PathProps {
   screen: State;

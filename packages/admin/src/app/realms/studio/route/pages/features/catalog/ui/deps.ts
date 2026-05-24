@@ -5,12 +5,17 @@ export {
   usePathname,
 } from "../../../routes/pages.routes.js";
 export {
+  archiveById,
+  publishById,
   startCreate,
+  unpublishById,
   useState,
-} from "../../editor/model/editor.state.js";
-export type { CatalogItem } from "../../editor/model/editor.state.js";
+} from "../../../model/pages.state.js";
+export { openArchivePage } from "../../../ui/component/ArchiveDialog.js";
+export { openDeletePage } from "../../../ui/component/DeleteDialog.js";
+export type { CatalogItem } from "../../../model/pages.types.js";
 export {
-  setArchived,
-  setSearchTerm,
-  useFilter,
-} from "../model/catalog.state.js";
+  setArchive,
+  setSearch,
+  use,
+} from "../../../model/pages.archive.js";

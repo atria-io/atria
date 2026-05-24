@@ -2,7 +2,7 @@ import * as React from "react";
 import * as Dialog from "@atria/ui";
 import { Button } from "@atria/ui";
 import { useDialog } from "@atria/ui";
-import { deleteById } from "../../features/editor/model/editor.state.js";
+import { deleteById } from "../../model/pages.state.js";
 
 interface DeleteRequest {
   id: string;
@@ -22,7 +22,7 @@ function openDeletePage(id: string, title: string): void {
   );
 }
 
-function DialogDeletePage() {
+function DeleteDialog() {
   const [request, setRequest] = React.useState<DeleteRequest | null>(null);
   const [loading, setLoading] = React.useState(false);
   const onClose = React.useCallback((): void => {
@@ -77,11 +77,25 @@ function DialogDeletePage() {
         Are you sure you want to permanently delete <strong>{title}</strong>?
       </Dialog.DialogBody>
       <Dialog.DialogFooter>
-        <Button type="button" variant={["solid", "danger", "danger_solid"]} size="sm" onClick={() => void onDelete()} disabled={loading} label="Delete"/>
-        <Button type="button" variant="solid" size="sm" onClick={onClose} disabled={loading} label="Cancel" />
+        <Button
+          type="button"
+          variant={["solid", "destructive"]}
+          size="sm"
+          onClick={() => void onDelete()}
+          disabled={loading}
+          label="Delete"
+        />
+        <Button
+          type="button"
+          variant="solid"
+          size="sm"
+          onClick={onClose}
+          disabled={loading}
+          label="Cancel"
+        />
       </Dialog.DialogFooter>
     </Dialog.Dialog>
   );
 }
 
-export { DialogDeletePage, openDeletePage };
+export { DeleteDialog, openDeletePage };

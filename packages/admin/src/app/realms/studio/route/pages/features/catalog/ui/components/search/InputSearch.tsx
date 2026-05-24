@@ -4,10 +4,10 @@ import * as deps from "../../deps.js";
 import { Button, Input } from "@atria/ui";
 
 function InputSearch() {
-  const { searchTerm } = deps.useFilter();
+  const { searchTerm } = deps.use();
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    deps.setSearchTerm(event.target.value);
+    deps.setSearch(event.target.value);
   };
 
   return (

@@ -84,3 +84,15 @@
     transform: rotate(360deg);
   }
 }
+
+@keyframes delay {
+  from {
+    opacity: 0;
+    transform: translateX(1px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

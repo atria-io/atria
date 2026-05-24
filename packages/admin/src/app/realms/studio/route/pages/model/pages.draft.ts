@@ -1,7 +1,7 @@
-import * as store from "./editor.store.js";
-import * as routing from "./editor.routing.js";
-import * as session from "./editor.session.js";
-import * as repository from "./editor.repository.js";
+import * as store from "./pages.store.js";
+import * as routing from "./pages.routing.js";
+import * as session from "./pages.session.js";
+import * as repository from "./pages.repository.js";
 
 type PageStatus = "draft" | "published" | "archived";
 type EditorField = "title" | "slug" | "content";
@@ -32,11 +32,11 @@ const upsertDraft = (
   content: string,
   status: PageStatus,
 ): void => {
-  const state = store.getEditorState();
+  const state = store.getState();
   const existing = state.drafts.find((item) => item.uuid === uuid);
 
   if (existing) {
-    store.setEditorState({
+    store.setState({
       drafts: state.drafts.map((item) =>
         item.uuid === uuid
           ? {
@@ -52,7 +52,7 @@ const upsertDraft = (
     return;
   }
 
-  store.setEditorState({
+  store.setState({
     drafts: [
       {
         uuid,
@@ -67,43 +67,43 @@ const upsertDraft = (
 };
 
 const getDraftStatus = (uuid: string): PageStatus =>
-  store.getEditorState().drafts.find((item) => item.uuid === uuid)?.status ?? "draft";
+  store.getState().drafts.find((item) => item.uuid === uuid)?.status ?? "draft";
 
 const setChanged = (previousValue: string, nextValue: string): void => {
-  const previous = store.getEditorState();
+  const previous = store.getState();
   if (previous.creating && previousValue !== nextValue) {
-    store.setEditorState({ hasEditorChanges: true });
+    store.setState({ hasEditorChanges: true });
   }
 };
 
 const resetEditorFields = (): void => {
-  store.setEditorState({ title: "", slug: "", content: "" });
+  store.setState({ title: "", slug: "", content: "" });
 };
 
-export const loadDrafts = async (): Promise<void> => {
-  const items = await repository.fetchPages();
-  items.forEach((item) => session.addPersistedId(item.uuid));
-  store.setEditorState({ drafts: items });
+export const load = async (): Promise<void> => {
+  const items = await repository.list();
+  items.forEach((item) => session.addId(item.uuid));
+  store.setState({ drafts: items });
 };
 
-export const loadDraftById = async (uuid: string): Promise<boolean> => {
-  const state = store.getEditorState();
+export const loadById = async (uuid: string): Promise<boolean> => {
+  const state = store.getState();
   const existing = state.drafts.find((item) => item.uuid === uuid);
 
   if (existing) {
     if (state.currentUuid === uuid) {
-      store.setEditorState({ title: existing.title, slug: existing.slug, content: existing.content });
+      store.setState({ title: existing.title, slug: existing.slug, content: existing.content });
     }
 
     return true;
   }
 
-  const payload = await repository.fetchPage(uuid);
+  const payload = await repository.get(uuid);
   if (!payload) {
     return false;
   }
 
-  session.addPersistedId(payload.id);
+  session.addId(payload.id);
   upsertDraft(
     payload.id,
     payload.title,
@@ -111,8 +111,8 @@ export const loadDraftById = async (uuid: string): Promise<boolean> => {
     payload.content,
     payload.status,
   );
-  if (store.getEditorState().currentUuid === payload.id) {
-    store.setEditorState({ title: payload.title, slug: payload.slug, content: payload.content });
+  if (store.getState().currentUuid === payload.id) {
+    store.setState({ title: payload.title, slug: payload.slug, content: payload.content });
   }
 
   return true;
@@ -122,15 +122,15 @@ const hasRealInput = (title: string, slug: string, content: string): boolean =>
   title.trim() !== "" || slug.trim() !== "" || content.trim() !== "";
 
 const updateField = (field: EditorField, value: string): void => {
-  const previousValue = store.getEditorState()[field];
-  store.setEditorState({ [field]: value });
+  const previousValue = store.getState()[field];
+  store.setState({ [field]: value });
   setChanged(previousValue, value);
   ensureDraftFromInput();
-  persistDraft();
+  persist();
 };
 
 const ensureDraftFromInput = (): void => {
-  const state = store.getEditorState();
+  const state = store.getState();
   if (!state.creating || state.currentUuid) {
     return;
   }
@@ -140,8 +140,8 @@ const ensureDraftFromInput = (): void => {
   }
 
   const uuid = newId();
-  session.resetSlugTouched();
-  store.setEditorState({ currentUuid: uuid });
+  session.resetSlug();
+  store.setState({ currentUuid: uuid });
   upsertDraft(
     uuid,
     state.title,
@@ -150,13 +150,13 @@ const ensureDraftFromInput = (): void => {
     "draft",
   );
 
-  if (routing.parseCurrentPagesRoute().mode === "create") {
-    routing.openDraftRoute(uuid);
+  if (routing.parseRoute().mode === "create") {
+    routing.openDraft(uuid);
   }
 };
 
-export const persistDraft = (status?: PageStatus): void => {
-  const state = store.getEditorState();
+export const persist = (status?: PageStatus): void => {
+  const state = store.getState();
   if (!state.currentUuid) {
     return;
   }
@@ -179,19 +179,19 @@ export const persistDraft = (status?: PageStatus): void => {
     nextStatus,
   );
 
-  if (!session.hasPersistedId(uuid)) {
-    if (session.isCreateInFlight()) {
+  if (!session.hasId(uuid)) {
+    if (session.isCreating()) {
       return;
     }
 
-    session.startCreateInFlight();
-    void repository.createPage(uuid, title, slug, content)
+    session.startCreating();
+    void repository.create(uuid, title, slug, content)
       .then((payload) => {
         if (!payload) {
           return;
         }
 
-        session.addPersistedId(payload.id);
+        session.addId(payload.id);
         upsertDraft(
           payload.id,
           payload.title,
@@ -199,14 +199,14 @@ export const persistDraft = (status?: PageStatus): void => {
           payload.content,
           payload.status,
         );
-        store.setEditorState({ currentUuid: payload.id });
+        store.setState({ currentUuid: payload.id });
 
-        const latest = store.getEditorState();
+        const latest = store.getState();
         if (latest.currentUuid !== payload.id) {
           return;
         }
 
-        void repository.updatePage(
+        void repository.update(
           payload.id,
           latest.title.trim(),
           latest.slug.trim(),
@@ -227,18 +227,18 @@ export const persistDraft = (status?: PageStatus): void => {
         });
       })
       .finally(() => {
-        session.finishCreateInFlight();
+        session.finishCreating();
       });
 
     return;
   }
 
-  void repository.updatePage(uuid, title, slug, content, nextStatus).then((payload) => {
+  void repository.update(uuid, title, slug, content, nextStatus).then((payload) => {
     if (!payload) {
       return;
     }
 
-    session.addPersistedId(payload.id);
+    session.addId(payload.id);
     upsertDraft(
       payload.id,
       payload.title,
@@ -256,7 +256,7 @@ export const setTitle = (title: string): void => {
 const setSlugInternal = (slug: string, manual: boolean): void => {
   const normalized = normSlug(slug);
   if (manual) {
-    session.markSlugTouched();
+    session.touchSlug();
   }
   updateField("slug", normalized);
 };
@@ -269,9 +269,9 @@ export const setContent = (content: string): void => {
   updateField("content", content);
 };
 
-export const applyPendingSlugFromTitle = (): void => {
-  const state = store.getEditorState();
-  if (!state.creating || session.getSlugTouched()) {
+export const applySlugFromTitle = (): void => {
+  const state = store.getState();
+  if (!state.creating || session.isSlugTouched()) {
     return;
   }
 
@@ -283,19 +283,19 @@ export const applyPendingSlugFromTitle = (): void => {
   setSlugInternal(normalized, false);
 };
 
-export const deletePageById = async (uuid: string): Promise<boolean> => {
-  const deleted = await repository.removePage(uuid);
+export const deleteById = async (uuid: string): Promise<boolean> => {
+  const deleted = await repository.remove(uuid);
   if (!deleted) {
     return false;
   }
 
-  const state = store.getEditorState();
+  const state = store.getState();
   const wasCurrent = state.currentUuid === uuid;
   const nextDrafts = state.drafts.filter((item) => item.uuid !== uuid);
 
-  session.removePersistedId(uuid);
+  session.removeId(uuid);
 
-  store.setEditorState({
+  store.setState({
     drafts: nextDrafts,
     currentUuid: wasCurrent ? null : state.currentUuid,
     hasEditorChanges: wasCurrent ? false : state.hasEditorChanges,
@@ -305,17 +305,48 @@ export const deletePageById = async (uuid: string): Promise<boolean> => {
   });
 
   if (wasCurrent) {
-    routing.openPagesRootRoute();
+    routing.openRoot();
   }
 
   return true;
 };
 
-export const beginCreateMode = (): void => {
-  session.resetSlugTouched();
-  store.setEditorState({
+export const startCreate = (): void => {
+  session.resetSlug();
+  store.setState({
     hasEditorChanges: false,
     currentUuid: null,
   });
   resetEditorFields();
+};
+
+export const setStatusById = async (
+  uuid: string,
+  status: PageStatus,
+): Promise<boolean> => {
+  const current = store.getState().drafts.find((item) => item.uuid === uuid);
+  if (!current) {
+    return false;
+  }
+
+  const payload = await repository.update(
+    uuid,
+    current.title.trim(),
+    current.slug.trim(),
+    current.content,
+    status,
+  );
+  if (!payload) {
+    return false;
+  }
+
+  session.addId(payload.id);
+  upsertDraft(
+    payload.id,
+    payload.title,
+    payload.slug,
+    payload.content,
+    payload.status,
+  );
+  return true;
 };

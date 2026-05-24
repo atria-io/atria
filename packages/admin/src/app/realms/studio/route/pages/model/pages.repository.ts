@@ -1,5 +1,5 @@
-import * as pagesApi from "../api/editor.api.js";
-import type { CatalogItem, PageApiPayload } from "./editor.types.js";
+import * as pagesApi from "../features/editor/api/editor.api.js";
+import type { CatalogItem, PageApiPayload } from "./pages.types.js";
 
 const toCatalogItem = (payload: PageApiPayload): CatalogItem => ({
   uuid: payload.id,
@@ -9,16 +9,16 @@ const toCatalogItem = (payload: PageApiPayload): CatalogItem => ({
   status: payload.status,
 });
 
-export const fetchPages = async (): Promise<Array<CatalogItem>> => {
+export const list = async (): Promise<Array<CatalogItem>> => {
   const items = await pagesApi.listPages();
   return items.map(toCatalogItem);
 };
 
-export const fetchPage = async (id: string): Promise<PageApiPayload | null> => {
+export const get = async (id: string): Promise<PageApiPayload | null> => {
   return pagesApi.getPage(id);
 };
 
-export const createPage = async (
+export const create = async (
   id: string,
   title: string,
   slug: string,
@@ -27,7 +27,7 @@ export const createPage = async (
   return pagesApi.createPage(id, title, slug, content);
 };
 
-export const updatePage = async (
+export const update = async (
   id: string,
   title: string,
   slug: string,
@@ -37,6 +37,6 @@ export const updatePage = async (
   return pagesApi.updatePage(id, title, slug, content, status);
 };
 
-export const removePage = async (id: string): Promise<boolean> => {
+export const remove = async (id: string): Promise<boolean> => {
   return pagesApi.deletePage(id);
 };

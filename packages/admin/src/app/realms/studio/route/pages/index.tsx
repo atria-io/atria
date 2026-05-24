@@ -2,7 +2,8 @@ import { Catalog } from "./features/catalog/index.js";
 import { Editor } from "./features/editor/index.js";
 import { Folders } from "./features/folders/index.js";
 import { Routes } from "./features/routes/index.js";
-import { DialogDeletePage } from "./shared/ui/DeletePageDialog.js";
+import { ArchiveDialog } from "./ui/component/ArchiveDialog.js";
+import { DeleteDialog } from "./ui/component/DeleteDialog.js";
 
 export const Pages = () => {
   return (
@@ -23,7 +24,8 @@ export const Pages = () => {
           </div>
         </div>
       </div>
-      <DialogDeletePage />
+      <DeleteDialog />
+      <ArchiveDialog />
     </div>
   );
 };

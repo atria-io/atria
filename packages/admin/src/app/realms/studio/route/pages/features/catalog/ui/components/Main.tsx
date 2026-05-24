@@ -1,9 +1,9 @@
 import * as deps from "../deps.js";
-import { Item } from "./main/Item.js";
+import { Item } from "./main/ItemList.js";
 
 function Main() {
   const { drafts } = deps.useState();
-  const { archivedOnly, searchTerm } = deps.useFilter();
+  const { archivedOnly, searchTerm } = deps.use();
   const pathname = deps.usePathname();
   const route = deps.parse(pathname);
   const normalizedQuery = searchTerm.trim().toLowerCase();

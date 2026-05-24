@@ -1,11 +1,11 @@
 import * as React from "react";
 
-interface FilterState {
+interface State {
   archivedOnly: boolean;
   searchTerm: string;
 }
 
-let state: FilterState = {
+let state: State = {
   archivedOnly: false,
   searchTerm: "",
 };
@@ -23,17 +23,17 @@ const subscribe = (listener: () => void): (() => void) => {
   return () => listeners.delete(listener);
 };
 
-const getSnapshot = (): FilterState => state;
+const getSnapshot = (): State => state;
 
-const setState = (next: Partial<FilterState>): void => {
+const setState = (next: Partial<State>): void => {
   state = { ...state, ...next };
   emit();
 };
 
-export const useFilter = (): FilterState =>
+export const use = (): State =>
   React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
-export const setArchived = (next?: boolean): void => {
+export const setArchive = (next?: boolean): void => {
   const archivedOnly = next ?? !state.archivedOnly;
 
   if (state.archivedOnly === archivedOnly) {
@@ -50,3 +50,5 @@ export const setSearchTerm = (next: string): void => {
 
   setState({ searchTerm: next });
 };
+
+export const setSearch = setSearchTerm;
