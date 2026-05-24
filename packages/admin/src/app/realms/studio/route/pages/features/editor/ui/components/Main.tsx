@@ -40,7 +40,14 @@ function Main({ view }: MainProps) {
   const { creating } = deps.useState();
 
   if (!creating) {
-    return null;
+    return (
+      <>
+        <div className="card-row">
+          <div className="card-row__item" data-type="edit"></div>
+          <div className="card-row__item"></div>
+        </div>
+      </>
+    )
   }
 
   if (view === "seo") {

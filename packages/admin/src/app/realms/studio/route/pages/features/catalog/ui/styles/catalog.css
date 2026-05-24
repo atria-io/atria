@@ -105,6 +105,15 @@
   right: 0;
   position: absolute;
   transform: translateY(-50%);
+  visibility: hidden;
+  opacity: 0;
+}
+
+.pages-catalog__item:hover .pages-catalog__item-actions,
+.pages-catalog__item[active] .pages-catalog__item-actions,
+.pages-catalog__item[open] .pages-catalog__item-actions {
+  visibility: visible;
+  opacity: 1;
 }
 
 .pages-catalog__item-more-actions {

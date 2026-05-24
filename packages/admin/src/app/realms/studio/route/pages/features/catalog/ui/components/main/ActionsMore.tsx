@@ -5,6 +5,7 @@ import { Button } from "@atria/ui";
 
 interface ActionsMoreProps {
   item: deps.CatalogItem;
+  onOpenChange?: (open: boolean) => void;
 }
 
 interface ActionsMoreItem {
@@ -16,7 +17,7 @@ interface ActionsMoreItem {
   onClick?: () => void;
 }
 
-function ActionsMore({ item }: ActionsMoreProps) {
+function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
   const [open, setOpen] = React.useState(false);
   const [confirmArchive, setConfirmArchive] = React.useState(false);
   const rootRef = React.useRef<HTMLDivElement | null>(null);
@@ -86,6 +87,10 @@ function ActionsMore({ item }: ActionsMoreProps) {
   const onRootClick = (event: React.MouseEvent<HTMLDivElement>): void => {
     event.stopPropagation();
   };
+
+  React.useEffect(() => {
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
 
   React.useEffect(() => {
     if (!open) {
@@ -162,7 +167,7 @@ function ActionsMore({ item }: ActionsMoreProps) {
           {confirmArchive ? (
             <Button
               type="button"
-              variant={["overlay", "danger"]}
+              variant="danger"
               size="xs"
               font="xs"
               className="pages-catalog__item-more-confirm"

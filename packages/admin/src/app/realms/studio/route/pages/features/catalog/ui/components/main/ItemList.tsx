@@ -12,10 +12,11 @@ interface ItemRootProps {
   className: string;
   item: deps.CatalogItem;
   active: boolean;
+  open: boolean;
   children: React.ReactNode;
 }
 
-function ItemRoot({ className, item, active, children }: ItemRootProps) {
+function ItemRoot({ className, item, active, open, children }: ItemRootProps) {
   const rootRef = React.useRef<HTMLLIElement | null>(null);
 
   React.useEffect(() => {
@@ -31,6 +32,20 @@ function ItemRoot({ className, item, active, children }: ItemRootProps) {
 
     root.removeAttribute("active");
   }, [active]);
+
+  React.useEffect(() => {
+    const root = rootRef.current;
+    if (!root) {
+      return;
+    }
+
+    if (open) {
+      root.setAttribute("open", "");
+      return;
+    }
+
+    root.removeAttribute("open");
+  }, [open]);
 
   const onOpenItem = (event: React.MouseEvent<HTMLLIElement>): void => {
     event.stopPropagation();
@@ -48,13 +63,15 @@ function ItemRoot({ className, item, active, children }: ItemRootProps) {
 }
 
 function Item({ item, active }: CatalogItemProps) {
+  const [open, setOpen] = React.useState(false);
+
   return (
-    <ItemRoot className="pages-catalog__item" item={item} active={active}>
+    <ItemRoot className="pages-catalog__item" item={item} active={active} open={open}>
       <div className="pages-catalog__item-label">
         <ItemLabel item={item} />
       </div>
       <div className="pages-catalog__item-actions">
-        <ActionsMore item={item} />
+        <ActionsMore item={item} onOpenChange={setOpen} />
       </div>
     </ItemRoot>
   );
