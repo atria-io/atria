@@ -142,7 +142,6 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
       if (!updated) {
         return;
       }
-      deps.setArchive(true);
       setConfirmArchive(false);
       setOpen(false);
     });

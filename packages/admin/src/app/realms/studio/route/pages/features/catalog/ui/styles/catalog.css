@@ -9,6 +9,10 @@
   position: relative;
 }
 
+.pages-catalog__header-subtitle {
+  color: var(--text-ghost);
+}
+
 .pages-catalog > div:not(:last-child) {
   margin-bottom: 0.5rem;
 }

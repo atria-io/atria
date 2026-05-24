@@ -122,7 +122,6 @@ const Scheme = () => {
     <div
       className="studio-scheme"
       data-tooltip={isMounted ? undefined : "Scheme"}
-      data-tooltip-disabled={isMounted ? "true" : undefined}
       ref={rootRef}
     >
       <SchemeButton {...props} />

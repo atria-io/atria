@@ -348,5 +348,18 @@ export const setStatusById = async (
     payload.content,
     payload.status,
   );
+
+  if (status === "archived" && store.getState().currentUuid === uuid) {
+    store.setState({
+      creating: false,
+      hasEditorChanges: false,
+      currentUuid: null,
+      title: "",
+      slug: "",
+      content: "",
+    });
+    routing.openRoot();
+  }
+
   return true;
 };

@@ -148,7 +148,11 @@ const Account = ({ ...input }: AccountProps) => {
   const props = useAccountProps(input, rootRef);
 
   return (
-    <div className="studio-account" data-tooltip={props.user.name} ref={rootRef}>
+    <div
+      className="studio-account"
+      data-tooltip={props.isMounted ? undefined : props.user.name}
+      ref={rootRef}
+    >
       <AccountTrigger {...props} />
       <AccountPopover {...props}>
         <AccountPopoverContent {...props} />

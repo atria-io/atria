@@ -188,7 +188,6 @@ function ActionsMore() {
     <div
       className="pages-actions-more"
       data-tooltip={isMounted ? undefined : "More"}
-      data-tooltip-disabled={isMounted ? "true" : undefined}
       ref={rootRef}
     >
       <ActionsMoreButton {...props} />

@@ -6,7 +6,6 @@ const buildRuntimeSource = () =>
   `(() => {
   const ROOT_ID = "atria";
   const TOOLTIP_ATTR = "data-tooltip";
-  const TOOLTIP_DISABLED_ATTR = "data-tooltip-disabled";
   const PORTAL_ATTR = "data-portal";
   const OPEN_DELAY_MS = 300;
   const HIDE_GRACE_MS = 90;
@@ -176,13 +175,14 @@ const buildRuntimeSource = () =>
 
     const rawValue = element.getAttribute(TOOLTIP_ATTR);
     if (rawValue === null) {
+      tooltipByElement.delete(element);
       return;
     }
 
     const value = rawValue.trim();
-    element.removeAttribute(TOOLTIP_ATTR);
 
     if (value.length === 0) {
+      tooltipByElement.delete(element);
       return;
     }
 
@@ -214,9 +214,6 @@ const buildRuntimeSource = () =>
 
     return null;
   };
-
-  const isTooltipDisabled = (target) =>
-    target.closest("[" + TOOLTIP_DISABLED_ATTR + "=\\\"true\\\"]") !== null;
 
   const isHeaderTarget = (target) => target.closest("header") !== null;
   const isSidebarTarget = (target) => target.closest("aside.admin-main__sidebar") !== null;
@@ -265,7 +262,7 @@ const buildRuntimeSource = () =>
 
   const showTooltip = (target) => {
     const value = tooltipByElement.get(target);
-    if (!value || isTooltipDisabled(target)) {
+    if (!value) {
       return;
     }
 
@@ -316,7 +313,7 @@ const buildRuntimeSource = () =>
     }
 
     const value = tooltipByElement.get(target);
-    if (!value || isTooltipDisabled(target)) {
+    if (!value) {
       return false;
     }
 
@@ -389,7 +386,7 @@ const buildRuntimeSource = () =>
       return;
     }
 
-    if (!target || isTooltipDisabled(target)) {
+    if (!target) {
       queueHide();
       return;
     }
@@ -446,6 +443,12 @@ const buildRuntimeSource = () =>
       activeTarget = null;
       clearOpenTimer();
       clearHideTimer();
+      hideTooltipImmediate();
+      return;
+    }
+
+    if (activeTarget && !tooltipByElement.has(activeTarget)) {
+      hideTooltipImmediate();
     }
   };
 

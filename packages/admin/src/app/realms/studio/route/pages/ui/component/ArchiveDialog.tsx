@@ -2,7 +2,6 @@ import * as React from "react";
 import * as Dialog from "@atria/ui";
 import { Button, useDialog } from "@atria/ui";
 import { archiveById } from "../../model/pages.state.js";
-import { setArchive } from "../../model/pages.archive.js";
 
 interface ArchiveRequest {
   id: string;
@@ -68,7 +67,6 @@ function ArchiveDialog() {
       return;
     }
 
-    setArchive(true);
     setRequest(null);
   }, [request]);
 

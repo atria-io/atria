@@ -118,7 +118,17 @@ function Actions() {
 
   return (
     <>
-      <div>Catalog</div>
+      <div>
+        <span>Catalog</span>
+        {archivedOnly ? (
+          <>
+            <span className="pages-catalog__header-subtitle">
+              <span aria-hidden="true"> • </span>
+              <span>Archived</span>
+            </span>
+          </>
+        ) : null}
+      </div>
       <div className="pages-catalog__header-action">
         {props.map(({ key, ...props }) => (
           <ActionButton key={key} {...props} />
