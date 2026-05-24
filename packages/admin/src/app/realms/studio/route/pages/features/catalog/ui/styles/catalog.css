@@ -80,7 +80,7 @@
 }
 
 .pages-catalog__item-title > span {
-  display: inline-block;
+  display: flex;
   transition: max-width var(--transition-base);
   text-overflow: ellipsis;
   white-space: nowrap;

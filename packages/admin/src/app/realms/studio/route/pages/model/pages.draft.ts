@@ -271,7 +271,7 @@ export const setContent = (content: string): void => {
 
 export const applySlugFromTitle = (): void => {
   const state = store.getState();
-  if (!state.creating || session.isSlugTouched()) {
+  if (!state.creating || session.isSlugTouched() || state.slug.trim() !== "") {
     return;
   }
 

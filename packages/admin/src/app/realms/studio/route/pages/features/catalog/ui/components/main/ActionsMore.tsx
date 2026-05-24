@@ -174,7 +174,7 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
               <Button
                 key={entry.key}
                 type="button"
-                variant={entry.danger ? "danger" : "overlay"}
+                variant={entry.danger ? ["overlay", "danger"] : "overlay"}
                 square
                 icon
                 style={{ "--delay": `${visibleIndex * 15}ms` } as React.CSSProperties}

@@ -1,8 +1,13 @@
 import { Input } from "@atria/ui";
-import { applySlugFromTitle, parse, setTitle, useState } from "../../deps.js";
+import { parse } from "../../deps.js";
 
-function FieldTitle() {
-  const { title } = useState();
+interface FieldTitleProps {
+  title: string;
+  onTitleChange: (value: string) => void;
+  onTitleBlur: () => void;
+}
+
+function FieldTitle({ title, onTitleChange, onTitleBlur }: FieldTitleProps) {
   const route = parse(window.location.pathname);
 
   return (
@@ -20,8 +25,8 @@ function FieldTitle() {
           interactive
           autoFocus={route.mode === "create"}
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          onBlur={applySlugFromTitle}
+          onChange={(event) => onTitleChange(event.target.value)}
+          onBlur={onTitleBlur}
           placeholder="Page title"
         />
       </div>
