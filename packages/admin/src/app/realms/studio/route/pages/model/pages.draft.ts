@@ -333,16 +333,17 @@ const persistWorkingVersion = (): void => {
   const latestDraftVersion = currentVersions.find((version) =>
     version.versionId !== "pending" && !version.live
   );
-  const currentWasPublished = Boolean(
-    currentVersion?.live
-    || currentVersion?.actions.some((action) => action.type === "document:published"),
+  const hasPublishedHistory = Boolean(
+    currentVersion?.actions.some((action) => action.type === "document:published"),
   );
-  const isEditingPublishedSnapshot =
-    state.canonicalStatus === "published"
-    && currentWasPublished;
-  const targetVersionId = isEditingPublishedSnapshot
-    ? latestDraftVersion?.versionId ?? null
-    : state.versionId;
+  const isEditingHistoricalVersion = Boolean(currentVersion && !currentVersion.live);
+  const isEditingLiveVersion = Boolean(currentVersion?.live);
+  const isPublishedDocument = state.canonicalStatus === "published";
+  const targetVersionId = isPublishedDocument && isEditingHistoricalVersion && hasPublishedHistory
+    ? null
+    : isPublishedDocument && isEditingLiveVersion
+      ? latestDraftVersion?.versionId ?? null
+      : state.versionId;
 
   const hasUrlAction = typeof window !== "undefined"
     && window.location.pathname.startsWith(`/pages:${uuid}:`)

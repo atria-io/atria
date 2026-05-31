@@ -237,23 +237,9 @@ export const useActionsBodyModel = (): {
       return;
     }
 
-    const currentVersion = historyVersions.find((item) => item.versionId === versionId);
-    if (!currentVersion || currentVersion.actions.length === 0) {
-      return;
+    if (actionId !== urlActionId) {
+      setActionId(urlActionId);
     }
-
-    const hasCurrentAction = actionId !== null
-      && currentVersion.actions.some((action) => action.id === actionId);
-    if (hasCurrentAction) {
-      return;
-    }
-
-    const latestPersisted = currentVersion.actions.find((action) => !action.optimistic);
-    if (!latestPersisted) {
-      return;
-    }
-
-    setActionId(latestPersisted.id);
   }, [currentUuid, versionId, historyVersions, actionId, urlActionId]);
 
   const fallbackState: "LIVE" | "DRAFT" =
