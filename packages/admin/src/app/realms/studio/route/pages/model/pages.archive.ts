@@ -5,10 +5,13 @@ interface State {
   searchTerm: string;
 }
 
+const STORAGE_KEY = "atria:archived";
+
 let state: State = {
   archivedOnly: false,
   searchTerm: "",
 };
+let hydrated = false;
 
 const listeners = new Set<() => void>();
 
@@ -30,10 +33,31 @@ const setState = (next: Partial<State>): void => {
   emit();
 };
 
+const readArchive = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  return window.localStorage.getItem(STORAGE_KEY) === "true";
+};
+
+const writeArchive = (value: boolean): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.setItem(STORAGE_KEY, value ? "true" : "false");
+};
+
+const clearArchive = (): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.localStorage.removeItem(STORAGE_KEY);
+};
+
 export const use = (): State =>
   React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
-export const setArchive = (next?: boolean): void => {
+export const setArchived = (next?: boolean): void => {
   const archivedOnly = next ?? !state.archivedOnly;
 
   if (state.archivedOnly === archivedOnly) {
@@ -41,9 +65,10 @@ export const setArchive = (next?: boolean): void => {
   }
 
   setState({ archivedOnly });
+  writeArchive(archivedOnly);
 };
 
-export const setSearchTerm = (next: string): void => {
+export const setSearch = (next: string): void => {
   if (state.searchTerm === next) {
     return;
   }
@@ -51,4 +76,27 @@ export const setSearchTerm = (next: string): void => {
   setState({ searchTerm: next });
 };
 
-export const setSearch = setSearchTerm;
+export const syncScope = (pathname: string): void => {
+  const inPages = pathname.startsWith("/pages");
+  if (!inPages) {
+    hydrated = false;
+    clearArchive();
+    if (state.archivedOnly) {
+      setState({ archivedOnly: false });
+    }
+    return;
+  }
+
+  if (hydrated) {
+    return;
+  }
+  hydrated = true;
+  const archivedOnly = readArchive();
+  if (state.archivedOnly !== archivedOnly) {
+    setState({ archivedOnly });
+  }
+};
+
+export const setArchive = setArchived;
+export const setSearchTerm = setSearch;
+export const syncArchiveScope = syncScope;

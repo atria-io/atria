@@ -1,0 +1,134 @@
+import * as React from "react";
+import * as Icon from "lucide-react";
+import { Popover } from "@atria/ui";
+import { Button } from "@atria/ui";
+import { usePopover } from "@atria/ui";
+import * as deps from "../../deps.js";
+
+const PANEL_ID = "studio-scheme-panel-menu";
+const schemeIcons: Record<deps.SchemeMode, Icon.LucideIcon> = {
+  system: Icon.Monitor,
+  dark: Icon.Moon,
+  light: Icon.Sun,
+};
+
+type SchemeProps = {
+  panelId: string;
+  isOpen: boolean;
+  isClosing: boolean;
+  isMounted: boolean;
+  onToggle: () => void;
+  onPanelAnimationEnd: React.AnimationEventHandler<HTMLDivElement>;
+  modes: readonly deps.SchemeMode[];
+  mode: deps.SchemeMode;
+  setMode: (mode: deps.SchemeMode) => void;
+  CurrentSchemeIcon: Icon.LucideIcon;
+  schemeIcons: Record<deps.SchemeMode, Icon.LucideIcon>;
+};
+
+function SchemeButton({ panelId, isOpen, onToggle, CurrentSchemeIcon }: SchemeProps) {
+  return (
+    <Button
+      type="button"
+      variant="overlay"
+      square
+      icon
+      aria-label="Scheme actions"
+      aria-haspopup="menu"
+      aria-controls={panelId}
+      aria-expanded={isOpen}
+      onClick={onToggle}
+    >
+      <CurrentSchemeIcon size={16} />
+    </Button>
+  );
+}
+
+function SchemeModeButton({ schemeMode, mode, setMode, schemeIcons }: {
+  schemeMode: deps.SchemeMode;
+  mode: deps.SchemeMode;
+  setMode: (mode: deps.SchemeMode) => void;
+  schemeIcons: Record<deps.SchemeMode, Icon.LucideIcon>;
+}) {
+  const SchemeIcon = schemeIcons[schemeMode];
+
+  return (
+    <Button
+      variant="overlay"
+      align="start"
+      label={schemeMode[0].toUpperCase() + schemeMode.slice(1)}
+      type="button"
+      data-active={mode === schemeMode}
+      onClick={() => setMode(schemeMode)}
+      square
+      icon
+    >
+      <SchemeIcon size={16} />
+    </Button>
+  );
+}
+
+function SchemeContent({ modes, mode, setMode, schemeIcons }: SchemeProps) {
+  return (
+    <>
+      {modes.map((schemeMode) => (
+        <SchemeModeButton
+          key={schemeMode}
+          schemeMode={schemeMode}
+          mode={mode}
+          setMode={setMode}
+          schemeIcons={schemeIcons}
+        />
+      ))}
+    </>
+  );
+}
+
+function SchemePopover({ panelId, isOpen, isClosing, isMounted, onPanelAnimationEnd, children }: SchemeProps & { children: React.ReactNode }) {
+  return (
+    <Popover
+      id={panelId}
+      open={isOpen}
+      closing={isClosing}
+      mounted={isMounted}
+      onAnimationEnd={onPanelAnimationEnd}
+    >
+      {children}
+    </Popover>
+  );
+}
+
+const Scheme = () => {
+  const { mode, modes, setMode } = deps.useScheme();
+  const rootRef = React.useRef<HTMLDivElement | null>(null);
+  const { isOpen, isClosing, isMounted, toggle, onAnimationEnd } = usePopover(rootRef);
+  const CurrentSchemeIcon = schemeIcons[mode];
+  const props: SchemeProps = {
+    panelId: PANEL_ID,
+    isOpen,
+    isClosing,
+    isMounted,
+    onToggle: toggle,
+    onPanelAnimationEnd: onAnimationEnd,
+    modes,
+    mode,
+    setMode,
+    CurrentSchemeIcon,
+    schemeIcons,
+  };
+
+  return (
+    <div
+      className="studio-scheme"
+      data-tooltip={isMounted ? undefined : "Scheme"}
+      ref={rootRef}
+    >
+      <SchemeButton {...props} />
+      <SchemePopover {...props}>
+        <SchemeContent {...props} />
+      </SchemePopover>
+    </div>
+  );
+};
+
+export { Scheme };

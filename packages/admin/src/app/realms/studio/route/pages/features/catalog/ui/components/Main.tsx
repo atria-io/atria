@@ -1,3 +1,4 @@
+import * as React from "react";
 import * as deps from "../deps.js";
 import { Item } from "./main/ItemList.js";
 
@@ -5,15 +6,17 @@ function Main() {
   const { drafts } = deps.useState();
   const { archivedOnly, searchTerm } = deps.use();
   const pathname = deps.usePathname();
+  React.useEffect(() => {
+    deps.syncScope(pathname);
+  }, [pathname]);
   const route = deps.parse(pathname);
-  const normalizedQuery = searchTerm.trim().toLowerCase();
-  const shouldSearch = normalizedQuery.length >= 1;
+  const query = searchTerm.trim().toLowerCase();
 
   const items = drafts.filter((item) =>
     (archivedOnly ? item.status === "archived" : item.status !== "archived") &&
-    (!shouldSearch ||
-      item.title.toLowerCase().includes(normalizedQuery) ||
-      item.slug.toLowerCase().includes(normalizedQuery))
+    (!query ||
+      item.title.toLowerCase().includes(query) ||
+      item.slug.toLowerCase().includes(query))
   );
 
   return (

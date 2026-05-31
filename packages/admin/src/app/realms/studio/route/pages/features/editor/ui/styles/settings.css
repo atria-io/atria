@@ -1,0 +1,133 @@
+.pages-actions__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pages-actions__version {
+  color: var(--text-ghost);
+  font-size: var(--text-xs);
+}
+
+.pages-actions__body {
+  font-size: var(--text-sm);
+  margin-top: calc(var(--spacing) * 2);
+  margin-block-end: var(--space-block-xs);
+  opacity: 0.8;
+}
+
+.pages-actions__version-block {
+  --branch-line--top: 10px;
+  --branch-line--left: 7px;
+  --branch-circle--top: 3px;
+  --branch-circle--left: 3.5px;
+  position: relative;
+}
+
+.pages-actions__version-block svg {
+  color: var(--branch);
+}
+
+.pages-actions__connector {
+  position: absolute;
+  top: var(--branch-line--top);
+  left: var(--branch-line--left);
+  z-index: 1;
+}
+
+.pages-actions__version-block:not(.pages-actions__version-block--active)::after {
+  content: '';
+  width: 1px;
+  height: calc(100% - 16px);
+  top: var(--branch-line--top);
+  left: var(--branch-line--left);
+  background: var(--text-ghost);
+  position: absolute;
+  z-index: 1;
+}
+
+.pages-actions__version-block + .pages-actions__version-block {
+  margin-top: 1rem;
+}
+
+.pages-actions__branch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--layout-gap);
+  padding-left: 1.25rem;
+  line-height: 1;
+  width: 100%;
+}
+
+.pages-actions__branch::before {
+  content: '';
+  top: var(--branch-circle--top);
+  left: var(--branch-circle--left);
+  width: 8px;
+  height: 8px;
+  position: absolute;
+  background: var(--background);
+  border: 1.5px solid var(--text-ghost);
+  border-radius: 999px;
+  z-index: 2;
+}
+
+.pages-actions__version-block--active .pages-actions__branch::before {
+  border-color: var(--branch);
+  background: var(--branch);
+}
+
+.pages-actions__branch-version {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.25);
+}
+
+.pages-actions__branch-state {
+  color: var(--text-ghost);
+}
+
+.pages-actions__action-row {
+  position: relative;
+}
+
+.pages-actions__action-row--active .pages-actions__action-label {
+  color: var(--text-hover);
+}
+
+.pages-actions__active {
+  top: -8px;
+  left: -20px;
+  width: 16px;
+  height: 16px;
+  position: absolute;
+}
+
+.pages-actions__action-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  width: 100%;
+}
+
+.pages-actions__action-time {
+  margin-left: 0.5rem;
+  color: var(--text-ghost);
+  font-size: var(--text-xs);
+  opacity: 0.8;
+}
+
+.pages-actions__actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-direction: column;
+  padding-left: 1.7rem;
+  list-style: none;
+  margin: 0;
+}
+
+.pages-actions__branch-state--active {
+  color: var(--valid);
+}

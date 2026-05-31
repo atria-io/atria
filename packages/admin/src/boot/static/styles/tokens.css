@@ -2,7 +2,9 @@
   --font-family: system-ui, sans-serif;
 
   --radius: 0.25rem;
+  --radius-card: 0.25rem;
 
+  --soft: 0.22rem;
   --baseline: 0.1875rem;
 
   --spacing: 0.25rem;
@@ -27,11 +29,11 @@
   --header: 2.75rem;
   --sidebar: 2.75rem;
 
-  --text-xs: 0.8333rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8333rem;
+  --text-base: 0.875rem;
+  --text-lg: 1rem;
+  --text-xl: 1.125rem;
 
   --border-solid: 1px solid var(--border);
   --border-solid-hover: 1px solid var(--border-hover);

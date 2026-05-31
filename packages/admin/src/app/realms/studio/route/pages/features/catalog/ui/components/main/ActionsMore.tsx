@@ -18,16 +18,18 @@ interface ActionsMoreItem {
 }
 
 function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
-  const [open, setOpen] = React.useState(false);
-  const [confirmArchive, setConfirmArchive] = React.useState(false);
-  const rootRef = React.useRef<HTMLDivElement | null>(null);
-  const isArchived = item.status === "archived";
-  const isPublished = item.status === "published";
-
-  const closeMenu = React.useCallback((): void => {
-    setOpen(false);
-    setConfirmArchive(false);
-  }, []);
+  const {
+    actionClick,
+    confirm,
+    confirmArchive,
+    isArchived,
+    isPublished,
+    open,
+    requestArchive,
+    rootClick,
+    rootRef,
+    toggle,
+  } = deps.useCatalogActionsMoreModel(item, onOpenChange);
 
   const items: ActionsMoreItem[] = [
     isArchived
@@ -37,10 +39,9 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
           icon: Icon.Upload,
           onClick: () => {
             void deps.unpublishById(item.uuid).then((updated) => {
-              if (!updated) {
-                return;
+              if (updated) {
+                deps.setArchived(false);
               }
-              deps.setArchive(false);
             });
           },
         }
@@ -48,7 +49,7 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
           key: "archive",
           label: "Archive",
           icon: Icon.Archive,
-          onClick: () => setConfirmArchive(true),
+          onClick: requestArchive,
         },
     {
       key: "publish",
@@ -78,73 +79,8 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
   ];
   const visibleItems = items.filter((entry) => !entry.hidden);
 
-  const onToggle = (event: React.MouseEvent<HTMLButtonElement>): void => {
-    event.stopPropagation();
-    if (open) {
-      closeMenu();
-      return;
-    }
-    setOpen(true);
-  };
-
-  const onRootClick = (event: React.MouseEvent<HTMLDivElement>): void => {
-    event.stopPropagation();
-  };
-
-  React.useEffect(() => {
-    onOpenChange?.(open);
-  }, [open, onOpenChange]);
-
-  React.useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const onDocumentMouseDown = (event: MouseEvent): void => {
-      const root = rootRef.current;
-      if (!root) {
-        return;
-      }
-
-      if (root.contains(event.target as Node)) {
-        return;
-      }
-
-      closeMenu();
-    };
-
-    document.addEventListener("mousedown", onDocumentMouseDown);
-    return () => {
-      document.removeEventListener("mousedown", onDocumentMouseDown);
-    };
-  }, [closeMenu, open]);
-
-  const onActionClick = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    onClick?: () => void,
-  ): void => {
-    event.stopPropagation();
-    onClick?.();
-  };
-
-  const onConfirmArchive = (event: React.MouseEvent<HTMLButtonElement>): void => {
-    event.stopPropagation();
-    closeMenu();
-
-    if (isPublished) {
-      deps.openArchivePage(item.uuid, item.title);
-      return;
-    }
-
-    void deps.archiveById(item.uuid).then((updated) => {
-      if (!updated) {
-        return;
-      }
-    });
-  };
-
   return (
-    <div className="pages-catalog__item-more" onClick={onRootClick} ref={rootRef}>
+    <div className="pages-catalog__item-more" onClick={rootClick} ref={rootRef}>
       <Button
         type="button"
         variant="overlay"
@@ -153,7 +89,7 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
         className="pages-catalog__item-more-toggle"
         aria-label="More"
         aria-expanded={open}
-        onClick={onToggle}
+        onClick={toggle}
       >
         {open ? <Icon.X size={15} /> : <Icon.Ellipsis size={13} />}
       </Button>
@@ -166,29 +102,26 @@ function ActionsMore({ item, onOpenChange }: ActionsMoreProps) {
               size="xs"
               font="xs"
               className="pages-catalog__item-more-confirm"
-              onClick={onConfirmArchive}
+              onClick={confirm}
               label="Confirm"
             />
-          ) : visibleItems.map((entry, visibleIndex) => {
-            return (
-              <Button
-                key={entry.key}
-                type="button"
-                variant={entry.danger ? ["overlay", "danger"] : "overlay"}
-                square
-                icon
-                style={{ "--delay": `${visibleIndex * 15}ms` } as React.CSSProperties}
-                role="menuitem"
-                aria-label={entry.label}
-                data-tooltip={entry.label}
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
-                  onActionClick(event, entry.onClick)
-                }
-              >
-                <entry.icon size={13} />
-              </Button>
-            );
-          })}
+          ) : visibleItems.map((entry, visibleIndex) => (
+            <Button
+              key={entry.key}
+              type="button"
+              variant={entry.danger ? ["overlay", "danger"] : "overlay"}
+              square
+              icon
+              style={{ "--delay": `${visibleIndex * 15}ms` } as React.CSSProperties}
+              role="menuitem"
+              aria-label={entry.label}
+              data-tooltip={entry.label}
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
+                actionClick(event, entry.onClick)}
+            >
+              <entry.icon size={13} />
+            </Button>
+          ))}
         </div>
       ) : null}
     </div>

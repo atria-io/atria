@@ -40,7 +40,7 @@
   width: 100%;
   position: relative;
   border: var(--border-solid);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   box-shadow: var(--box-shadow);
   background: var(--background);
   padding: var(--layout-inset);

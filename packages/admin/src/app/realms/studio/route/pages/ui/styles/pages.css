@@ -4,11 +4,6 @@
   width: 100%;
 }
 
-.pages-layout {
-  display: flex;
-  flex: 1;
-}
-
 [data-zone=pages\:a] {
   max-width: 18.75rem;
 }

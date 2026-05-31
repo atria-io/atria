@@ -1,11 +1,20 @@
-import { FoldersHeader } from "./ui/FoldersHeader.js";
+import * as deps from "./ui/deps.js";
+import { Header } from "./ui/header/components/Header.js";
 
-export function Folders() {
+function Folders() {
+  const { panelRef } = deps.useCardCollapse({
+    fixedCollapsed: true,
+    initialCollapsed: false,
+    storageKey: "pages:folders:collapse",
+  });
+
   return (
-    <div className="card-column__item" data-type="folders">
-      <div className="card-screen">
-        <FoldersHeader />
+    <div ref={panelRef} className="card-panel" data-type="folders">
+      <div className="card-strip card-strip--resize">
+        <Header />
       </div>
     </div>
   );
 }
+
+export { Folders };

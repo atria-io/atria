@@ -45,3 +45,25 @@ export const status = (value) => {
   }
   return null;
 };
+
+export const version = (value) => {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (!/^[a-z0-9]{7}$/.test(normalized)) {
+    return null;
+  }
+  return normalized;
+};
+
+export const action = (value) => {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const normalized = value.trim();
+  if (!/^[a-z0-9]+$/i.test(normalized)) {
+    return null;
+  }
+  return normalized;
+};

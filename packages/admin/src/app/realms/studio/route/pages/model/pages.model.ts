@@ -2,6 +2,10 @@ import { setStatusById } from "./pages.draft.js";
 
 export { sync } from "./pages.resolve.js";
 export {
+  load,
+  commitTitleBlurOnCreate,
+  commitEditorChanges,
+  loadById,
   setTitle,
   setSlug,
   setContent,

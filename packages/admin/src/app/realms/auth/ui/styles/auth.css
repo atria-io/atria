@@ -19,7 +19,7 @@
 .auth-card__content {
   margin-bottom: 7vh;
   border: var(--border-solid);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   padding: calc(var(--layout-inset) * 1.25);
 }
 

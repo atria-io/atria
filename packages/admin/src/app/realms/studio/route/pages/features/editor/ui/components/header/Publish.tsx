@@ -1,43 +1,51 @@
 import { Button } from "@atria/ui";
-import { formatKeydownLabel, keydown } from "@/app/system/hooks/keydown.js";
-import { publish, useState } from "../../deps.js";
-
-const publishShortcut = {
-  key: "s",
-  metaOrCtrl: true,
-  preventDefault: true,
-} as const;
+import * as deps from "../../deps.js";
 
 function Publish() {
-  const { currentUuid, drafts, hasEditorChanges } = useState();
-  const currentItem = currentUuid
-    ? drafts.find((item) => item.uuid === currentUuid)
-    : null;
-  const canPublishDraft = currentItem?.status === "draft";
-  const isDisabled = !hasEditorChanges && !canPublishDraft;
-  const publishShortcutLabel = formatKeydownLabel(publishShortcut);
+  const { canonicalStatus, editorMode, hasEditorChanges } = deps.useState();
+  const isArchived = canonicalStatus === "archived";
+  const shortcut = {
+    key: isArchived ? "u" : "s",
+    metaOrCtrl: true,
+    preventDefault: true,
+  } as const;
+  const route = deps.parse(window.location.pathname);
+  const canPublishCurrent =
+    isArchived
+    || canonicalStatus === "draft"
+    || hasEditorChanges
+    || editorMode;
+  const isDisabledByMode = route.mode === "create"
+    ? !hasEditorChanges
+    : !canPublishCurrent;
+  const isDisabled = isDisabledByMode;
+  const onClick = isArchived ? deps.unpublish : deps.publish;
+  const label = isArchived ? "Unarchive" : "Publish";
+  const publishShortcutLabel = deps.formatKeydownLabel(shortcut);
 
-  keydown(
+  deps.keydown(
     {
-      ...publishShortcut,
+      ...shortcut,
       enabled: !isDisabled,
     },
-    publish,
+    onClick,
   );
 
   return (
-    <Button
-      type="button"
-      size="sm"
-      align="center"
-      variant="fill"
-      disabled={isDisabled}
-      className={!isDisabled ? "button--accent" : ""}
-      label="Publish"
-      aria-label="Publish"
-      data-keydown={publishShortcutLabel}
-      onClick={isDisabled ? undefined : publish}
-    />
+    <div className="pages-editor__publish">
+      <Button
+        type="button"
+        size="sm"
+        align="center"
+        variant="fill"
+        disabled={isDisabled}
+        className={!isDisabled && !isArchived ? "button--accent" : ""}
+        label={label}
+        aria-label={label}
+        data-keydown={publishShortcutLabel}
+        onClick={isDisabled ? undefined : onClick}
+      />
+    </div>
   );
 }
 

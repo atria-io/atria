@@ -23,7 +23,7 @@
 .admin-main__sidebar-button {
   --button-size: var(--sidebar);
   --button-overlay-inset: calc(var(--spacing) * 1);
-  --button-overlay-radius: calc(var(--radius) / 2);
+  --button-overlay-radius: var(--soft);
   width: calc(var(--button-size) - 1px);
   height: var(--button-size);
 }

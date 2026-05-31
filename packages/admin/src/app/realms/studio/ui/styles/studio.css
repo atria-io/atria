@@ -1,0 +1,86 @@
+.studio-shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.studio-main__body {
+  display: flex;
+}
+
+.studio-main__screen {
+  flex-basis: 100%;
+  min-height: 24rem;
+}
+
+.card-layout {
+  display: flex;
+  flex: 1;
+}
+
+.card-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.card-row {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+}
+
+.card-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+}
+
+.card-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.card-column + .card-column {
+  border-left: var(--border-solid);
+}
+
+.card-panel + .card-panel {
+  border-top: var(--border-solid);
+}
+
+.card-strip {
+  display: flex;
+  height: auto;
+  min-height: 3rem;
+  padding: var(--layout-inset);
+  align-items: center;
+  position: relative;
+}
+
+.card-strip--resize::after {
+  content: '';
+  top: -3px;
+  left: 0;
+  position: absolute;
+  cursor: ns-resize;
+  height: 5px;
+  width: 100%;
+}
+
+.card-stage {
+  width: auto;
+  height: auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  flex: 1 1 0;
+}
+
+.card-stage {
+  padding-inline: var(--layout-inset);
+}

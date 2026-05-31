@@ -3,14 +3,14 @@ import * as store from "./pages.store.js";
 import { persist } from "./pages.draft.js";
 
 export const publish = (): void => {
-  const state = store.getState();
-  const creating = routing.isCreateRoute();
-  if (creating && !state.hasEditorChanges) {
+  const s = store.getState();
+  const isCreate = routing.isCreateRoute();
+  if (isCreate && !s.hasEditorChanges) {
     return;
   }
 
   persist("published");
-  if (creating) {
+  if (isCreate) {
     store.setState({ hasEditorChanges: false });
   }
 };

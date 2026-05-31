@@ -1,5 +1,5 @@
 [data-scheme="dark"] {
-  --text: #d4d4d4;
+  --text: #cccccc;
   --text-hover: #ffffff;
   --text-ghost: #a6a6a6;
 
@@ -37,6 +37,8 @@
   --boot-track: #24252f;
   --boot-spinner: #8a8a8a;
 
+  --branch: #d0d0d0;
+
   --shadow: #00000033;
   --box-shadow: 0 .25rem .75rem var(--shadow);
 }
@@ -51,7 +53,7 @@
 
   --surface: #ffffff;
   --surface-raised: #f8f8f8;
-  --surface-hover: #eeeef2;
+  --surface-hover: #eeeeee;
 
   --border: #eeeeee;
   --border-hover: #d9d9d9;
@@ -79,6 +81,8 @@
 
   --boot-track: #d7dde8;
   --boot-spinner: #1f2937;
+
+  --branch: #6a6a6a;
 
   --shadow: #0000000d;
   --box-shadow: 0 .15rem .5rem var(--shadow);

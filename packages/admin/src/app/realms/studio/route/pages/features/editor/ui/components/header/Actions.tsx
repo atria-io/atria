@@ -1,20 +1,24 @@
-import { useState } from "../../deps.js";
+import * as deps from "../../deps.js";
 import { ActionsMore } from "./ActionsMore.js";
 import { Publish } from "./Publish.js";
 import { Status } from "./Status.js";
+import { Versions } from "./Versions.js";
 
 function Actions() {
-  const { creating } = useState();
+  const { creating } = deps.useState();
 
   if (!creating) {
     return null;
   }
 
   return (
-    <div className="pages-editor__header-actions">
+    <div>
+      <Versions />
+      <div className="pages-editor__state">
+        <Status />
+        <Publish />
+      </div>
       <ActionsMore />
-      <Status />
-      <Publish />
     </div>
   );
 }

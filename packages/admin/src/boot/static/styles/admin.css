@@ -11,9 +11,9 @@
   background: var(--background);
   box-shadow: var(--box-shadow);
   padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   border: var(--border-solid);
-  font-size: calc(var(--text-xs) - 0.0625rem * 2);
+  font-size: var(--text-xs);
 }
 
 .atria-tooltip__content--open {
@@ -33,7 +33,7 @@
 }
 
 .atria-tooltip__keydown {
-  font-size: calc(var(--text-xs) - 0.0625rem * 3);
+  font-size: var(--text-xs);
   line-height: 1;
   opacity: 0.72;
   padding: calc(var(--spacing) * 0.5) calc(var(--spacing) * 1);

@@ -1,11 +1,11 @@
-import { parse, docPath } from "./pages.routes.js";
+import { parse, docPath } from "../routes/pages.routes.js";
 
 export const parseRoute = () => parse(window.location.pathname);
 
 export const isCreateRoute = (): boolean => parseRoute().mode === "create";
 
-export const openDraft = (uuid: string): void => {
-  window.history.pushState({}, "", docPath(uuid));
+export const openDraft = (id: string): void => {
+  window.history.pushState({}, "", docPath(id));
   window.dispatchEvent(new PopStateEvent("popstate"));
 };
 

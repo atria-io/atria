@@ -44,7 +44,7 @@
 .popover__surface {
   border: var(--border-solid);
   background: var(--background);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   box-shadow: var(--box-shadow);
 }
 

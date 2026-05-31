@@ -1,38 +1,23 @@
-import * as React from "react";
 import * as deps from "../deps.js";
-import { Content } from "./main-content/index.js";
-import { Settings } from "./main-settings/index.js";
-import { SEO } from "./main-seo/index.js";
-
-interface MainViewProps {
-  children: React.ReactNode;
-  view: deps.EditorView;
-}
+import { SEO } from "./main/SEO.js";
+import { Content } from "./main/Content.js";
+import { Status } from "./main/Status.js";
+import { Settings } from "./Settings.js";
 
 interface MainProps {
   view: deps.EditorView;
 }
 
-function MainView({ children, view }: MainViewProps) {
+function Editor({ view }: { view: deps.EditorView }) {
+  return view === "seo" ? <SEO /> : <Content />;
+}
+
+function Body({ view }: { view: deps.EditorView }) {
   return (
-    <>
-      <div className="card-row">
-        <div className="card-row__item" data-view={view} data-type="edit">
-          <div className="pages-editor pages-editor__content">
-            <div className="pages-editor pages-editor--edit">
-              <div>{children}</div>
-            </div>
-          </div>
-        </div>
-        <div className="card-row__item" data-view="settings">
-          <div className="card-screen">
-            <div className="pages-editor pages-editor__settings">
-              <Settings />
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+    <div className="card-stage" data-tab={view}>
+      <Status />
+      <Editor view={view} />
+    </div>
   );
 }
 
@@ -43,25 +28,24 @@ function Main({ view }: MainProps) {
     return (
       <>
         <div className="card-row">
-          <div className="card-row__item" data-type="edit"></div>
-          <div className="card-row__item"></div>
+          <div className="card-column" data-view="editing"></div>
+          <div className="card-column"></div>
         </div>
       </>
-    )
-  }
-
-  if (view === "seo") {
-    return (
-      <MainView view={view}>
-        <SEO />
-      </MainView>
     );
   }
 
   return (
-    <MainView view={view}>
-      <Content />
-    </MainView>
+    <>
+      <div className="card-row">
+        <div className="card-column" data-view="editing">
+          <Body view={view} />
+        </div>
+        <div className="card-column" data-view="metadata">
+          <Settings />
+        </div>
+      </div>
+    </>
   );
 }
 

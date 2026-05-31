@@ -1,6 +1,6 @@
 /*!field-base */
 .field {
-  --field-label-size: var(--text-sm);
+  --field-label-size: var(--text-base);
   user-select: none;
   display: grid;
 }

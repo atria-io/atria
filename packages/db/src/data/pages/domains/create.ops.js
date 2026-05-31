@@ -19,7 +19,7 @@ export const createPage = async (input) => {
         now
       );
 
-    return {
+    const page = {
       id: input.id,
       type: "page",
       status: "draft",
@@ -32,5 +32,7 @@ export const createPage = async (input) => {
         updatedAt: now,
       },
     };
+
+    return page;
   });
 };

@@ -2,24 +2,52 @@ import { parseRoute } from "./pages.routing.js";
 import * as store from "./pages.store.js";
 import * as draft from "./pages.draft.js";
 
-let isBootstrapped = false;
+let bootstrapped = false;
 
 export const sync = (): void => {
-  if (!isBootstrapped) {
-    isBootstrapped = true;
+  if (!bootstrapped) {
+    bootstrapped = true;
     void draft.load();
   }
 
   const state = store.getState();
   const route = parseRoute();
-  const routeUuid = route.mode === "document" ? route.uuid : null;
-  const routeDraft = routeUuid ? state.drafts.find((item) => item.uuid === routeUuid) : null;
+  const docId = route.mode === "document" ? route.uuid : null;
+  const changedDocument = Boolean(
+    state.currentUuid
+    && route.mode === "document"
+    && state.currentUuid !== docId,
+  );
 
-  store.setState({ creating: false });
+  if (changedDocument) {
+    void draft.load();
+  }
+
+  if (
+    state.currentUuid
+    && state.canonicalStatus
+    && (
+      route.mode !== "document"
+      || state.currentUuid !== docId
+    )
+  ) {
+    const previousStatus = state.canonicalStatus;
+    store.setState({
+      drafts: state.drafts.map((item) =>
+        item.uuid === state.currentUuid
+          ? { ...item, status: previousStatus }
+          : item
+      ),
+    });
+  }
 
   if (route.mode === "create") {
     store.setState({
       creating: true,
+      switching: false,
+      editorMode: false,
+      versionId: null,
+      canonicalStatus: null,
       hasEditorChanges: state.hasEditorChanges,
       currentUuid: state.currentUuid,
       title: state.title,
@@ -30,8 +58,13 @@ export const sync = (): void => {
   }
 
   if (route.mode !== "document") {
+    void draft.load();
     store.setState({
       creating: false,
+      switching: false,
+      editorMode: false,
+      versionId: null,
+      canonicalStatus: null,
       hasEditorChanges: false,
       currentUuid: null,
       title: "",
@@ -41,21 +74,13 @@ export const sync = (): void => {
     return;
   }
 
-  if (routeDraft) {
-    store.setState({
-      creating: true,
-      hasEditorChanges: false,
-      currentUuid: routeDraft.uuid,
-      title: routeDraft.title,
-      slug: routeDraft.slug,
-      content: routeDraft.content,
-    });
-    return;
-  }
-
-  if (!routeUuid) {
+  if (!docId) {
     store.setState({
       creating: false,
+      switching: false,
+      editorMode: false,
+      versionId: null,
+      canonicalStatus: null,
       hasEditorChanges: false,
       currentUuid: null,
       title: "",
@@ -65,15 +90,15 @@ export const sync = (): void => {
     return;
   }
 
-  const documentUuid = routeUuid;
+  const documentUuid = docId;
 
-  store.setState({
-    currentUuid: documentUuid,
-    hasEditorChanges: false,
-    title: "",
-    slug: "",
-    content: "",
-  });
+  if (state.currentUuid !== documentUuid) {
+    store.setState({
+      currentUuid: documentUuid,
+      switching: true,
+      hasEditorChanges: false,
+    });
+  }
 
   void draft.loadById(documentUuid).then((found) => {
     if (parseRoute().mode !== "document") {
@@ -88,6 +113,10 @@ export const sync = (): void => {
     if (!found) {
       store.setState({
         creating: false,
+        switching: false,
+        editorMode: false,
+        versionId: null,
+        canonicalStatus: null,
         hasEditorChanges: false,
         currentUuid: null,
         title: "",
@@ -97,19 +126,23 @@ export const sync = (): void => {
       return;
     }
 
-    const draft = latest.drafts.find((item) => item.uuid === documentUuid);
-    if (!draft) {
-      store.setState({ creating: false });
+    const doc = latest.drafts.find((item) => item.uuid === documentUuid);
+    if (!doc) {
+      store.setState({ creating: false, switching: false });
       return;
     }
 
     store.setState({
       creating: true,
+      switching: false,
+      editorMode: latest.editorMode,
+      versionId: latest.versionId,
+      canonicalStatus: latest.canonicalStatus,
       hasEditorChanges: false,
-      currentUuid: draft.uuid,
-      title: draft.title,
-      slug: draft.slug,
-      content: draft.content,
+      currentUuid: doc.uuid,
+      title: doc.title,
+      slug: doc.slug,
+      content: doc.content,
     });
   });
 };

@@ -21,7 +21,8 @@ export const parsePagesRoute = (pathname: string): PagesRouteState => {
   }
 
   if (matrix.startsWith(":")) {
-    const candidate = toNonEmpty(matrix.slice(1));
+    const rawCandidate = toNonEmpty(matrix.slice(1));
+    const candidate = rawCandidate ? rawCandidate.split(":")[0] : null;
     if (!candidate || !UUID_PATTERN.test(candidate)) {
       return { mode: "browse", uuid: null };
     }

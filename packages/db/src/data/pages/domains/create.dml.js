@@ -6,4 +6,11 @@ export const createQueries = {
     ].join(" "),
     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
   ].join(" "),
+  insertPageAction: [
+    [
+      "INSERT INTO document_actions",
+      "(id, document_type, document_id, version_id, type, payload, created_at)",
+    ].join(" "),
+    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+  ].join(" "),
 };

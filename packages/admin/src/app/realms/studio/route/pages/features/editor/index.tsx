@@ -11,10 +11,8 @@ function Editor() {
 
   return (
     <>
-      <div className="card-column__item card-column__item--shrink">
+      <div className="card-panel" data-type="editor">
         <Header view={view} onViewChange={setView} />
-      </div>
-      <div className="card-column__item">
         <Main view={view} />
       </div>
     </>

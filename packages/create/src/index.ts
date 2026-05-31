@@ -54,10 +54,10 @@ const createEnvExampleFile = (): string =>
     "# DATABASE_URL=",
     "",
     "# Studio URL",
-    "ATRIA_STUDIO_URL=http://localhost:3333",
+    "ATRIA_STUDIO_URL=http://localhost:4444",
     "",
     "# Frontend URL",
-    "ATRIA_FRONTEND_URL=http://localhost:4444",
+    "ATRIA_FRONTEND_URL=http://localhost:3333",
     ""
   ].join("\n");
 

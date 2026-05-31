@@ -18,7 +18,7 @@ const BROWSER_RELOAD_MODE = (() => {
 const BROWSER_RELOAD_DELAY_MS = 700;
 const RESTART_DEBOUNCE_MS = 350;
 const WATCH_DEBOUNCE_MS = 200;
-const ADMIN_PORT = 3333;
+const ADMIN_PORT = 4444;
 const INTERNAL_API_PORT = 3334;
 const ADMIN_WATCH_IGNORED_PREFIXES = ["dist", "node_modules"];
 const WORKSPACE_IGNORED_PREFIXES = [
@@ -663,6 +663,7 @@ const watchBuildOnlySources = () => {
   addRecursiveWatcher(path.join(packagesDir, "shared", "src", "runtime"), queueSharedBuild);
   addRecursiveWatcher(path.join(packagesDir, "shared", "build"), queueSharedBuild);
   addRecursiveWatcher(path.join(packagesDir, "db", "src"), queueDbBuild);
+  addRecursiveWatcher(path.join(packagesDir, "ui", "src"), queueAdminBuild);
 };
 
 const watchWorkspaceSources = () => {

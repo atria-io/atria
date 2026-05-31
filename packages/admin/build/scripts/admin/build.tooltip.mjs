@@ -17,6 +17,7 @@ const buildRuntimeSource = () =>
   const HEADER_OFFSET = 6;
 
   const tooltipByElement = new WeakMap();
+  const pendingEmptyMutationCountByElement = new WeakMap();
 
   let activeTarget = null;
   let openTimer = 0;
@@ -179,6 +180,17 @@ const buildRuntimeSource = () =>
     const keydownValue = (element.getAttribute(KEYDOWN_ATTR) || "").trim();
 
     if (value.length === 0 && keydownValue.length === 0) {
+      const pendingEmptyMutations = pendingEmptyMutationCountByElement.get(element) || 0;
+      if (pendingEmptyMutations > 0) {
+        if (pendingEmptyMutations === 1) {
+          pendingEmptyMutationCountByElement.delete(element);
+        } else {
+          pendingEmptyMutationCountByElement.set(element, pendingEmptyMutations - 1);
+        }
+
+        return;
+      }
+
       tooltipByElement.delete(element);
       return;
     }
@@ -187,6 +199,23 @@ const buildRuntimeSource = () =>
       text: value,
       keydown: keydownValue,
     });
+
+    let removedCount = 0;
+
+    if (element.hasAttribute(TOOLTIP_ATTR)) {
+      element.removeAttribute(TOOLTIP_ATTR);
+      removedCount += 1;
+    }
+
+    if (element.hasAttribute(KEYDOWN_ATTR)) {
+      element.removeAttribute(KEYDOWN_ATTR);
+      removedCount += 1;
+    }
+
+    if (removedCount > 0) {
+      const pendingEmptyMutations = pendingEmptyMutationCountByElement.get(element) || 0;
+      pendingEmptyMutationCountByElement.set(element, pendingEmptyMutations + removedCount);
+    }
   };
 
   const captureTree = (node) => {
@@ -213,6 +242,15 @@ const buildRuntimeSource = () =>
     }
 
     return null;
+  };
+
+  const isTooltipSuppressed = (target) => {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+
+    return target.matches('[aria-expanded="true"]') ||
+      target.querySelector('[aria-expanded="true"]') !== null;
   };
 
   const isHeaderTarget = (target) => target.closest("header") !== null;
@@ -414,6 +452,11 @@ const buildRuntimeSource = () =>
     }
 
     if (!target) {
+      queueHide();
+      return;
+    }
+
+    if (isTooltipSuppressed(target)) {
       queueHide();
       return;
     }

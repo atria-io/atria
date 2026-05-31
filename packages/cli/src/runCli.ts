@@ -10,7 +10,7 @@ const printHelp = (): void => {
   console.log("atria CLI");
   console.log("");
   console.log("Commands:");
-  console.log("  atria dev [project-directory] [--admin-port 3333] [--public-port 4444]");
+  console.log("  atria dev [project-directory] [--admin-port 4444] [--public-port 3333]");
   console.log(
     "  atria setup [project-directory] [--database sqlite|postgres] [--database-url <postgres-url>] [--database-only] [--force]"
   );

@@ -9,12 +9,12 @@ interface HeaderProps {
 
 function Header({ onViewChange, view }: HeaderProps) {
   return (
-    <div className="card-screen">
-      <div className="pages-editor__header">
+    <>
+      <div className="card-strip">
         <Leading view={view} onViewChange={onViewChange} />
         <Actions />
       </div>
-    </div>
+    </>
   );
 }
 

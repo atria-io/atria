@@ -9,13 +9,17 @@ interface LeadingProps {
 
 function Leading({ onViewChange, view }: LeadingProps) {
   const { creating } = deps.useState();
+  const route = deps.parse(window.location.pathname);
 
   if (!creating) {
+    if (route.mode === "create" || route.mode === "document") {
+      return null;
+    }
     return <div>No properties</div>;
   }
 
   return (
-    <div className="pages-editor__header-leading">
+    <div>
       <CloseEditor />
       <Tabs view={view} onViewChange={onViewChange} />
     </div>

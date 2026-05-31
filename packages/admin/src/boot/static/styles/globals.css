@@ -13,7 +13,7 @@ body {
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   font-family: var(--font-family);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
 }
 
 body > div {
@@ -56,7 +56,7 @@ h1 {
 }
 
 button {
-  border-radius: var(--baseline);
+  border-radius: var(--soft);
 }
 
 button,
@@ -121,7 +121,7 @@ button:disabled,
 
 :focus-visible {
   outline: 1px solid var(--accent);
-  border-radius: var(--baseline);
+  border-radius: var(--soft);
 }
 
 :after,

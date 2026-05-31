@@ -13,11 +13,11 @@ import { terminal } from "@atria/shared";
 import { startServer } from "@atria/server";
 import { parseArgs } from "../../parseArgs.js";
 
-const DEFAULT_ADMIN_PORT = 3333;
-const DEFAULT_PUBLIC_PORT = 4444;
+const DEFAULT_ADMIN_PORT = 4444;
+const DEFAULT_PUBLIC_PORT = 3333;
 
 const printDevHelp = (): void => {
-  console.log("Usage: atria dev [project-directory] [--admin-port 3333] [--public-port 4444]");
+  console.log("Usage: atria dev [project-directory] [--admin-port 4444] [--public-port 3333]");
 };
 
 const parsePort = (

@@ -9,13 +9,13 @@
 
   width: auto;
   border: 1px solid var(--input-border);
-  border-radius: var(--baseline);
+  border-radius: var(--soft);
 
   color: var(--text);
   background: var(--input-background);
 
   font: inherit;
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   line-height: 1;
 
   outline: none;

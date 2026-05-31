@@ -1,18 +1,20 @@
 import * as Icon from "lucide-react";
-import type { CatalogItem } from "../../deps.js";
+import * as deps from "../../deps.js";
 
 interface LabelProps {
-  item: CatalogItem;
+  item: deps.CatalogItem;
+  status?: "draft" | "published" | "archived";
 }
 
-function ItemLabel({ item }: LabelProps) {
-  const statusLabel = item.status === "published"
-    ? "Live"
-    : item.status === "archived"
-      ? "Archived"
-      : "Draft";
-  const statusClassName = item.status === "published"
+function ItemLabel({ item, status }: LabelProps) {
+  const effectiveStatus = status ?? item.status;
+  const isPublished = effectiveStatus === "published";
+  const isArchived = effectiveStatus === "archived";
+  const statusLabel = isPublished ? "Live" : isArchived ? "Archived" : "Draft";
+  const statusClassName = isPublished
     ? "pages-catalog__item-status pages-catalog__item-status--live"
+    : isArchived
+      ? "pages-catalog__item-status pages-catalog__item-status--archived"
     : "pages-catalog__item-status pages-catalog__item-status--draft";
   const title = item.title.trim() || "Untitled";
   const truncatedTitle = title.length > 25

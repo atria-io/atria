@@ -13,13 +13,13 @@ function InputSearch() {
   return (
     <>
       <Button
-          type="button"
-          square
-          icon
-          aria-label="Search"
-        >
-          <Icon.Search size={13} />
-        </Button>
+        type="button"
+        square
+        icon
+        aria-label="Search"
+      >
+        <Icon.Search size={13} />
+      </Button>
       <Input
         id="page-search"
         name="search"

@@ -5,8 +5,8 @@
 }
 
 .pages-folders__header-action {
-  right: 0;
   display: flex;
+  right: var(--layout-inset);
   gap: calc(var(--layout-gap) / 2);
   position: absolute;
 }

@@ -69,10 +69,10 @@ function usePopover(
       }
     };
 
-    window.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("mousedown", handlePointerDown, true);
 
     return () => {
-      window.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("mousedown", handlePointerDown, true);
     };
   }, [closeOnClick, isMounted, rootRef]);
 

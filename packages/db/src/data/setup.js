@@ -1,6 +1,7 @@
 import { withDB } from "../system/with.js";
 import { AUTH_DDL } from "./auth/ddl.api.js";
 import { PAGES_DDL } from "./pages/ddl.api.js";
+import { applyPagesMigrations } from "./pages/migrations.js";
 
 const SCHEMA_DDL = [
   ...AUTH_DDL,
@@ -16,6 +17,7 @@ const applyDDL = (database) => {
 export const ensureComponentsDDL = async () => {
   return withDB((database) => {
     applyDDL(database);
+    applyPagesMigrations(database);
     return true;
   });
 };

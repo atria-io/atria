@@ -1,4 +1,4 @@
-import * as pagesApi from "../features/editor/api/editor.api.js";
+import * as api from "../features/editor/api/editor.fetch.js";
 import type { CatalogItem, PageApiPayload } from "./pages.types.js";
 
 const toCatalogItem = (payload: PageApiPayload): CatalogItem => ({
@@ -10,12 +10,17 @@ const toCatalogItem = (payload: PageApiPayload): CatalogItem => ({
 });
 
 export const list = async (): Promise<Array<CatalogItem>> => {
-  const items = await pagesApi.listPages();
+  const items = await api.listPages();
   return items.map(toCatalogItem);
 };
 
-export const get = async (id: string): Promise<PageApiPayload | null> => {
-  return pagesApi.getPage(id);
+export const get = async (
+  id: string,
+  versionId?: string,
+  actionId?: string,
+  mode?: "editor",
+): Promise<PageApiPayload | null> => {
+  return api.getPage(id, versionId, actionId, mode);
 };
 
 export const create = async (
@@ -24,7 +29,7 @@ export const create = async (
   slug: string,
   content: string,
 ): Promise<PageApiPayload | null> => {
-  return pagesApi.createPage(id, title, slug, content);
+  return api.createPage(id, title, slug, content);
 };
 
 export const update = async (
@@ -33,10 +38,22 @@ export const update = async (
   slug: string,
   content: string,
   status: "draft" | "published" | "archived",
+  versionId?: string | null,
 ): Promise<PageApiPayload | null> => {
-  return pagesApi.updatePage(id, title, slug, content, status);
+  return api.updatePage(id, title, slug, content, status, versionId);
+};
+
+export const saveVersion = async (
+  id: string,
+  title: string,
+  slug: string,
+  content: string,
+  status: "draft" | "published" | "archived",
+  versionId?: string | null,
+): Promise<PageApiPayload | null> => {
+  return api.savePageVersion(id, title, slug, content, status, versionId);
 };
 
 export const remove = async (id: string): Promise<boolean> => {
-  return pagesApi.deletePage(id);
+  return api.deletePage(id);
 };
