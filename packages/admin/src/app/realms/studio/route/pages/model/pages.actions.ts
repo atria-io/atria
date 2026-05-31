@@ -3,6 +3,7 @@ import * as draft from "./pages.draft.js";
 import * as history from "./pages.history.js";
 import * as session from "./pages.session.js";
 import * as state from "./pages.state.js";
+import * as store from "./pages.store.js";
 import type { ActionsBodyVersion, PageHistoryAction, PageHistoryPayload } from "./pages.types.js";
 
 export const readUrlActionId = (): string | null => {
@@ -61,12 +62,19 @@ export const pickAction = (uuid: string, versionId: string, actionId: string): v
 };
 
 export const loadHistory = async (uuid: string): Promise<void> => {
+  const requestSeq = history.nextHistoryRequestSeq(uuid);
   const response = await fetch(`/api/pages:${uuid}:history`, { method: "GET" });
+  if (!history.isLatestHistoryRequestSeq(uuid, requestSeq)) {
+    return;
+  }
   if (!response.ok) {
     return;
   }
 
   const payload = (await response.json()) as PageHistoryPayload;
+  if (!history.isLatestHistoryRequestSeq(uuid, requestSeq)) {
+    return;
+  }
   history.setHistory(uuid, Array.isArray(payload?.versions) ? payload.versions : []);
 };
 
@@ -158,12 +166,15 @@ export const useActionsBodyModel = (): {
   } = state.useState();
   const historyVersions = currentUuid ? (historyByPage[currentUuid]?.versions ?? []) : [];
   const hasHistoryLoaded = currentUuid ? historyByPage[currentUuid] !== undefined : false;
+  const urlActionId = readUrlActionId();
   const [actionId, setActionId] = React.useState<string | null>(readUrlActionId());
-  const shouldFollowLatestRef = React.useRef(false);
+  const manualSelectRef = React.useRef(false);
+  const resolvingClickRef = React.useRef(false);
 
   React.useLayoutEffect(() => {
-    setActionId(readUrlActionId());
-  }, [currentUuid, versionId]);
+    setActionId(urlActionId);
+    manualSelectRef.current = urlActionId !== null;
+  }, [currentUuid, versionId, urlActionId]);
 
   React.useEffect(() => {
     if (!currentUuid) {
@@ -177,7 +188,19 @@ export const useActionsBodyModel = (): {
   }, [currentUuid, versionId, editorMode, canonicalStatus, hasEditorChanges]);
 
   React.useEffect(() => {
+    if (!hasEditorChanges) {
+      return;
+    }
+
+    manualSelectRef.current = false;
+  }, [hasEditorChanges]);
+
+  React.useEffect(() => {
     if (!currentUuid || !versionId) {
+      return;
+    }
+
+    if (manualSelectRef.current) {
       return;
     }
 
@@ -187,43 +210,30 @@ export const useActionsBodyModel = (): {
     }
 
     const currentVersion = historyVersions.find((item) => item.versionId === versionId);
-    const hasNewOptimisticHead = Boolean(
-      currentVersion
-      && currentVersion.actions[0]?.optimistic === true
-      && currentVersion.actions[0]?.id !== currentActionId,
-    );
+    if (!currentVersion || currentVersion.actions.length === 0) {
+      return;
+    }
 
-    if (!hasEditorChanges && !hasNewOptimisticHead && !currentActionId.startsWith("optimistic")) {
+    const currentActionIndex = currentVersion.actions.findIndex((action) => action.id === currentActionId);
+    const isLatestSelected = currentActionIndex === 0;
+    const shouldFollowLatest = hasEditorChanges && isLatestSelected;
+    if (!shouldFollowLatest) {
       return;
     }
 
     writeUrlVersionId(currentUuid, versionId);
     setActionId(null);
-    shouldFollowLatestRef.current = true;
   }, [currentUuid, versionId, hasEditorChanges, historyVersions]);
 
   React.useEffect(() => {
-    if (!currentUuid || !versionId || !shouldFollowLatestRef.current) {
-      return;
-    }
-
-    const currentVersion = historyVersions.find((item) => item.versionId === versionId);
-    if (!currentVersion) {
-      return;
-    }
-
-    const latestPersisted = currentVersion.actions.find((action) => !action.optimistic);
-    if (!latestPersisted) {
-      return;
-    }
-
-    writeUrlActionId(currentUuid, versionId, latestPersisted.id);
-    setActionId(latestPersisted.id);
-    shouldFollowLatestRef.current = false;
-  }, [currentUuid, versionId, historyVersions]);
-
-  React.useEffect(() => {
     if (!currentUuid || !versionId) {
+      return;
+    }
+
+    if (urlActionId === null) {
+      if (actionId !== null) {
+        setActionId(null);
+      }
       return;
     }
 
@@ -244,7 +254,7 @@ export const useActionsBodyModel = (): {
     }
 
     setActionId(latestPersisted.id);
-  }, [currentUuid, versionId, historyVersions, actionId]);
+  }, [currentUuid, versionId, historyVersions, actionId, urlActionId]);
 
   const fallbackState: "LIVE" | "DRAFT" =
     editorMode || canonicalStatus !== "published" ? "DRAFT" : "LIVE";
@@ -270,8 +280,10 @@ export const useActionsBodyModel = (): {
   const currentHasActions = Boolean(currentVersion && currentVersion.actions.length > 0);
   const currentActionResolved = Boolean(
     currentVersion
-    && actionId !== null
-    && currentVersion.actions.some((action) => action.id === actionId),
+    && (
+      urlActionId === null
+      || (actionId !== null && currentVersion.actions.some((action) => action.id === actionId))
+    ),
   );
   const ready = !switching && hasHistoryLoaded && (!currentHasActions || currentActionResolved);
 
@@ -279,9 +291,88 @@ export const useActionsBodyModel = (): {
     if (!currentUuid) {
       return;
     }
+    if (resolvingClickRef.current) {
+      return;
+    }
 
-    pickAction(currentUuid, nextVersionId, nextActionId);
-    setActionId(nextActionId.startsWith("optimistic") ? null : nextActionId);
+    if (nextVersionId === versionId && nextActionId === actionId) {
+      return;
+    }
+
+    manualSelectRef.current = true;
+    if (!nextActionId.startsWith("optimistic")) {
+      pickAction(currentUuid, nextVersionId, nextActionId);
+      setActionId(nextActionId);
+      return;
+    }
+
+    resolvingClickRef.current = true;
+    writeUrlVersionId(currentUuid, nextVersionId);
+    setActionId(null);
+    void draft.loadById(currentUuid);
+
+    const currentVersion = historyVersions.find((item) => item.versionId === nextVersionId);
+    const optimisticAction = currentVersion?.actions.find((action) => action.id === nextActionId);
+    const optimisticType = optimisticAction?.type ?? null;
+    const optimisticAt = optimisticAction?.optimisticAt ?? null;
+
+    const tryResolve = (remaining: number): void => {
+      void loadHistory(currentUuid).then(() => {
+        const latestState = store.getState();
+        const latestVersions = latestState.historyByPage[currentUuid]?.versions ?? [];
+        const latestVersion = latestVersions.find((item) => item.versionId === nextVersionId);
+        if (!latestVersion) {
+          resolvingClickRef.current = false;
+          return;
+        }
+
+        const persistedCandidates = latestVersion.actions.filter((action) => {
+          if (action.optimistic) {
+            return false;
+          }
+          if (optimisticType && action.type !== optimisticType) {
+            return false;
+          }
+          if (typeof optimisticAt === "number" && action.createdAt) {
+            const createdAt = Date.parse(action.createdAt);
+            if (Number.isFinite(createdAt) && createdAt < optimisticAt - 15_000) {
+              return false;
+            }
+          }
+          return true;
+        });
+        const resolved = typeof optimisticAt === "number"
+          ? persistedCandidates
+            .map((action) => ({
+              action,
+              distance: action.createdAt
+                ? Math.abs(Date.parse(action.createdAt) - optimisticAt)
+                : Number.POSITIVE_INFINITY,
+            }))
+            .sort((a, b) => a.distance - b.distance)[0]?.action
+          : persistedCandidates[0];
+        if (resolved) {
+          writeUrlActionId(currentUuid, nextVersionId, resolved.id);
+          setActionId(resolved.id);
+          void draft.loadById(currentUuid);
+          resolvingClickRef.current = false;
+          return;
+        }
+
+        if (remaining <= 0) {
+          resolvingClickRef.current = false;
+          return;
+        }
+
+        window.setTimeout(() => {
+          tryResolve(remaining - 1);
+        }, 200);
+      }).catch(() => {
+        resolvingClickRef.current = false;
+      });
+    };
+
+    tryResolve(2);
   };
 
   return { versions, actionId, ready, pick };

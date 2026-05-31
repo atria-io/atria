@@ -1,4 +1,5 @@
 import * as store from "./pages.store.js";
+const historyRequestSeqByPage: Record<string, number> = {};
 
 type ActionItem = {
   id: string;
@@ -49,10 +50,27 @@ const mergeHistory = (
     }
 
     const knownIds = new Set(incoming.actions.map((action) => action.id));
-    const incomingByType = new Map<string, number>();
+    const persistedByType = new Map<string, Array<number>>();
     for (const action of incoming.actions) {
-      const total = incomingByType.get(action.type) ?? 0;
-      incomingByType.set(action.type, total + 1);
+      if (!action.createdAt) {
+        continue;
+      }
+
+      const createdAt = Date.parse(action.createdAt);
+      if (!Number.isFinite(createdAt)) {
+        continue;
+      }
+
+      const list = persistedByType.get(action.type);
+      if (list) {
+        list.push(createdAt);
+      } else {
+        persistedByType.set(action.type, [createdAt]);
+      }
+    }
+
+    for (const list of persistedByType.values()) {
+      list.sort((a, b) => b - a);
     }
 
     const pending: Array<ActionItem> = [];
@@ -61,10 +79,14 @@ const mergeHistory = (
         continue;
       }
 
-      const byType = incomingByType.get(action.type) ?? 0;
-      if (byType > 0) {
-        incomingByType.set(action.type, byType - 1);
-        continue;
+      const optimisticAt = action.optimisticAt;
+      if (typeof optimisticAt === "number") {
+        const candidates = persistedByType.get(action.type) ?? [];
+        const candidateIndex = candidates.findIndex((createdAt) => createdAt >= optimisticAt - 15_000);
+        if (candidateIndex >= 0) {
+          candidates.splice(candidateIndex, 1);
+          continue;
+        }
       }
 
       pending.push(action);
@@ -93,6 +115,15 @@ export const setHistory = (uuid: string, versions: Array<VersionItem>): void => 
   });
 };
 
+export const nextHistoryRequestSeq = (uuid: string): number => {
+  const next = (historyRequestSeqByPage[uuid] ?? 0) + 1;
+  historyRequestSeqByPage[uuid] = next;
+  return next;
+};
+
+export const isLatestHistoryRequestSeq = (uuid: string, seq: number): boolean => {
+  return (historyRequestSeqByPage[uuid] ?? 0) === seq;
+};
 export const addOptimisticAction = (
   uuid: string,
   versionId: string,

@@ -47,7 +47,7 @@
 }
 
 .pages-actions__version-block + .pages-actions__version-block {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .pages-actions__branch {
@@ -121,7 +121,7 @@
 
 .pages-actions__actions {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.5rem;
   flex-direction: column;
   padding-left: 1.7rem;
   list-style: none;

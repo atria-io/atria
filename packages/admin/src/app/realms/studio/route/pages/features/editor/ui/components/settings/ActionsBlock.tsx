@@ -5,12 +5,8 @@ import { ActionsList } from "./ActionsList.js";
 import { ActionsConnector } from "./ActionsConnector.js";
 
 function ActionsBlock() {
-  const { versions, actionId, ready, pick } = deps.useActionsBodyModel();
+  const { versions, actionId, pick } = deps.useActionsBodyModel();
   const connector = ActionsConnector(versions, actionId);
-
-  if (!ready) {
-    return null;
-  }
 
   function pickLatest(version: deps.ActionsBodyVersion): void {
     const latest = version.actions[0];

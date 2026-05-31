@@ -169,7 +169,11 @@ const getVersionFromUrl = (): { versionId?: string; actionId?: string } => {
   return { versionId, actionId };
 };
 
-const syncVersionInUrl = (uuid: string, versionId: string | null): void => {
+const syncVersionInUrl = (
+  uuid: string,
+  versionId: string | null,
+  keepAction: boolean = true,
+): void => {
   if (typeof window === "undefined") {
     return;
   }
@@ -183,7 +187,9 @@ const syncVersionInUrl = (uuid: string, versionId: string | null): void => {
   const versionToken = suffix.startsWith(":") ? suffix.slice(1).split(":")[0] ?? "" : "";
   const actionToken = suffix.startsWith(":") ? suffix.slice(1).split(":")[1] ?? "" : "";
   const actionSuffix =
-    actionToken !== "" && !actionToken.startsWith("optimistic")
+    keepAction
+    && actionToken !== ""
+    && !actionToken.startsWith("optimistic")
       ? `:${actionToken}`
       : "";
   const nextPath = versionId
@@ -324,17 +330,37 @@ const persistWorkingVersion = (): void => {
   const currentVersion = state.versionId
     ? currentVersions.find((version) => version.versionId === state.versionId)
     : null;
+  const latestDraftVersion = currentVersions.find((version) =>
+    version.versionId !== "pending" && !version.live
+  );
   const currentWasPublished = Boolean(
     currentVersion?.live
     || currentVersion?.actions.some((action) => action.type === "document:published"),
   );
-  const shouldForkFromPublished =
+  const isEditingPublishedSnapshot =
     state.canonicalStatus === "published"
     && currentWasPublished;
-  const targetVersionId = shouldForkFromPublished ? null : state.versionId;
+  const targetVersionId = isEditingPublishedSnapshot
+    ? latestDraftVersion?.versionId ?? null
+    : state.versionId;
+
+  const hasUrlAction = typeof window !== "undefined"
+    && window.location.pathname.startsWith(`/pages:${uuid}:`)
+    && window.location.pathname.split(":").length >= 4;
+  if (hasUrlAction) {
+    syncVersionInUrl(uuid, targetVersionId ?? state.versionId ?? null, false);
+  }
+
   const optimisticType = targetVersionId ? "version:updated" : "version:created";
   const optimisticVersionId = targetVersionId ?? "pending";
   history.addOptimisticAction(uuid, optimisticVersionId, optimisticType);
+  if (targetVersionId && targetVersionId !== state.versionId) {
+    store.setState({
+      versionId: targetVersionId,
+      editorMode: true,
+    });
+    syncVersionInUrl(uuid, targetVersionId, false);
+  }
 
   void sync.saveVersion(
     uuid,
@@ -502,7 +528,11 @@ export const persist = (status?: PageStatus): void => {
               editorMode: false,
               versionId: latest.versionId ?? null,
             });
-            syncVersionInUrl(updatedPayload.id, latest.versionId ?? null);
+            syncVersionInUrl(
+              updatedPayload.id,
+              latest.versionId ?? null,
+              updatedPayload.status !== "published",
+            );
           }
         });
       })
@@ -533,7 +563,11 @@ export const persist = (status?: PageStatus): void => {
         editorMode: false,
         versionId: activeVersionId ?? null,
       });
-      syncVersionInUrl(payload.id, activeVersionId ?? null);
+      syncVersionInUrl(
+        payload.id,
+        activeVersionId ?? null,
+        payload.status !== "published",
+      );
       if (payload.status !== "archived") {
         archive.setArchived(false);
       }
