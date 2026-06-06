@@ -51,6 +51,14 @@ const resolvePagesState = (pathname: string): StudioState | null => {
   return null;
 };
 
+const resolveThemesState = (pathname: string): StudioState | null => {
+  if (pathname === "/themes" || pathname.startsWith("/themes/")) {
+    return "themes";
+  }
+
+  return null;
+};
+
 const resolveSettingsState = (pathname: string): StudioState | null => {
   if (pathname === "/settings") {
     return "settings";
@@ -81,6 +89,7 @@ const resolveStudioScreenState = (basePath: string): StudioState => {
 
   const resolvedScreen =
     resolvePagesState(pathname) ??
+    resolveThemesState(pathname) ??
     resolveSettingsState(pathname) ??
     resolveDashboardState(pathname);
 

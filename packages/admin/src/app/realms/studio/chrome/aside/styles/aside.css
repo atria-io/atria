@@ -25,12 +25,16 @@
   --button-overlay-inset: calc(var(--spacing) * 1);
   --button-overlay-radius: var(--soft);
   width: calc(var(--button-size) - 1px);
-  height: var(--button-size);
+  height: 2.5rem;
 }
 
 .admin-main__sidebar-button svg {
   width: 1.125rem;
   height: 1.125rem;
+}
+
+.admin-main__sidebar-icon.themes {
+  transform: rotate(90deg);
 }
 
 .admin-main__sidebar-icon.logout {

@@ -2,6 +2,7 @@ import type { Props } from "../model/studio.types.js";
 import { Dashboard } from "../route/dashboard/index.js";
 import { Pages } from "../route/pages/index.js";
 import { Settings } from "../route/settings/index.js";
+import { Themes } from "../route/themes/index.js";
 
 function Route({ state }: Props) {
   switch (state) {
@@ -10,6 +11,9 @@ function Route({ state }: Props) {
 
     case "pages":
       return <Pages />;
+
+    case "themes":
+      return <Themes />;
 
     case "settings":
       return <Settings />;

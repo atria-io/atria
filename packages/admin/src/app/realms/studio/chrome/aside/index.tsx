@@ -5,7 +5,7 @@ import { Button } from "@atria/ui";
 import { useLogout } from "@/app/realms/auth/model/useLogout.js";
 
 interface SidebarItem {
-  name: "Pages" | "Settings" | "Logout";
+  name: "Pages" | "Themes" | "Settings" | "Logout";
   state?: Props["state"];
   onClick: () => void;
   Icon: typeof Icon.Layers2;
@@ -76,6 +76,12 @@ function TopItems({ state }: Pick<Props, "state">) {
       state: "pages",
       onClick: () => navigateTo("pages"),
       Icon: Icon.Layers
+    },
+    {
+      name: "Themes",
+      state: "themes",
+      onClick: () => navigateTo("themes"),
+      Icon: Icon.LayoutTemplate
     },
   ];
 

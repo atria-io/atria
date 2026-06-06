@@ -3,9 +3,9 @@ const REMOVE_LUCIDE_SVG_BASE_ATTRIBUTES = true;
 
 const normalizePath = (value) => value.replaceAll("\\", "/");
 
-const ICON_MODULE_PATH = "/lucide-react/dist/esm/Icon.js";
-const CREATE_ICON_MODULE_PATH = "/lucide-react/dist/esm/createLucideIcon.js";
-const DEFAULT_ATTRIBUTES_MODULE_PATH = "/lucide-react/dist/esm/defaultAttributes.js";
+const ICON_MODULE_PATH = "/lucide-react/dist/esm/Icon.mjs";
+const CREATE_ICON_MODULE_PATH = "/lucide-react/dist/esm/createLucideIcon.mjs";
+const DEFAULT_ATTRIBUTES_MODULE_PATH = "/lucide-react/dist/esm/defaultAttributes.mjs";
 
 const applyReplacements = (code, replacements) => {
   let next = code;
