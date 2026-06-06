@@ -62,7 +62,7 @@ export const action = (value) => {
     return null;
   }
   const normalized = value.trim();
-  if (!/^[a-z0-9]+$/i.test(normalized)) {
+  if (!/^[a-z0-9.]+$/i.test(normalized)) {
     return null;
   }
   return normalized;

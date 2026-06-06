@@ -16,6 +16,9 @@ export const readUrlActionId = (): string | null => {
   if (!raw || raw.startsWith("optimistic")) {
     return null;
   }
+  if (!/^[a-z0-9.]+$/i.test(raw)) {
+    return null;
+  }
   return raw;
 };
 

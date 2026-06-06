@@ -5,6 +5,7 @@
 .pages-catalog__header,
 .pages-catalog__search {
   display: flex;
+  margin-bottom: var(--layout-gap);
   align-items: center;
   position: relative;
 }

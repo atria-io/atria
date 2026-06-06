@@ -27,7 +27,7 @@ function ActionsConnector (
     }
 
     const px = activeRow.offsetTop + Math.round(activeRow.offsetHeight / 2);
-    return `${px - 25}px`;
+    return `${px - 24}px`;
   }
 
   function equal(a: Record<string, string>, b: Record<string, string>): boolean {

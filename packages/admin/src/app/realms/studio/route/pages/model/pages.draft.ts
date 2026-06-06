@@ -160,7 +160,7 @@ const getVersionFromUrl = (): { versionId?: string; actionId?: string } => {
   const actionId =
     fromAction.startsWith("optimistic")
       ? undefined
-      : /^[a-z0-9]+$/i.test(fromAction)
+      : /^[a-z0-9.]+$/i.test(fromAction)
         ? fromAction
         : undefined;
   if (!versionId) {

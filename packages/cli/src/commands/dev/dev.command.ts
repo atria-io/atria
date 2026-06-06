@@ -90,6 +90,10 @@ const resolveRuntimeFilePath = (
     return indexFile;
   }
 
+  if (urlPath.startsWith("/pages")) {
+    return indexFile;
+  }
+
   if (path.extname(urlPath) === "") {
     return indexFile;
   }
