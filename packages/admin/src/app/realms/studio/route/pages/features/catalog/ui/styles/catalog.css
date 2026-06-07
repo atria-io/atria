@@ -12,6 +12,7 @@
 
 .pages-catalog__header-subtitle {
   color: var(--text-ghost);
+  margin-left: 0.25rem;
 }
 
 .pages-catalog > div:not(:last-child) {

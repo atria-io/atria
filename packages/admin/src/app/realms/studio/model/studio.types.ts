@@ -8,7 +8,7 @@ export interface User {
 export type State =
   | "dashboard"
   | "pages"
-  | "themes"
+  | "theme"
   | "settings";
 
 export interface AppState {

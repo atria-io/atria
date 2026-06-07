@@ -17,6 +17,10 @@
   flex: 1;
 }
 
+.card-screen {
+  padding: var(--layout-inset);
+}
+
 .card-column {
   display: flex;
   flex-direction: column;
