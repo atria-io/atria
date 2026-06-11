@@ -18,8 +18,8 @@
 
 .admin-header__commun {
   height: var(--height);
-  width: var(--header);
-  border-right: var(--border-solid);
+  width: calc(var(--header) / 4);
+  /*border-right: var(--border-solid);*/
   position: relative;
   float: left;
 }

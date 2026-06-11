@@ -1,12 +1,14 @@
 import path from "node:path";
 import { spawn } from "node:child_process";
-import { existsSync, readdirSync, watch } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readdirSync, realpathSync, rmSync, symlinkSync, watch } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const packagesDir = path.join(rootDir, "packages");
 const workspaceDir = path.join(rootDir, "workspace");
 const ADMIN_DIST_DIR = path.join(packagesDir, "admin", "dist");
+const cliNodeModulesScopedRoot = path.join(rootDir, "packages", "cli", "node_modules", "@atria");
+const dbNodeModulesScopeRoot = path.join(rootDir, "packages", "db", "node_modules", "@");
 /**
  * Controls browser auto-reload after dev restarts.
  * Use `off` or `false` in `ATRIA_BROWSER_RELOAD` to disable it.
@@ -110,6 +112,64 @@ const runCommandCapture = (command, args, cwd) =>
       resolve({ code: 1, stdout: "", stderr: "" });
     });
   });
+
+const forceLocalCliResolutionLinks = () => {
+  mkdirSync(cliNodeModulesScopedRoot, { recursive: true });
+
+  const mappings = [
+    ["admin", path.join(rootDir, "packages", "admin")],
+    ["core", path.join(rootDir, "packages", "core")],
+    ["db", path.join(rootDir, "packages", "db")],
+    ["ui", path.join(rootDir, "packages", "ui")],
+    ["server", path.join(rootDir, "packages", "server")],
+    ["shared", path.join(rootDir, "packages", "shared")]
+  ];
+
+  for (const [name, target] of mappings) {
+    const linkPath = path.join(cliNodeModulesScopedRoot, name);
+    rmSync(linkPath, { recursive: true, force: true });
+    symlinkSync(target, linkPath, "dir");
+
+    const stats = lstatSync(linkPath);
+    if (!stats.isSymbolicLink()) {
+      console.error(`Expected symlink for @atria/${name} in packages/cli/node_modules.`);
+      process.exit(1);
+    }
+
+    const resolved = realpathSync(linkPath);
+    if (resolved !== target) {
+      console.error(`@atria/${name} in packages/cli/node_modules is not local.`);
+      process.exit(1);
+    }
+  }
+};
+
+const forceLocalDbAliasLinks = () => {
+  mkdirSync(dbNodeModulesScopeRoot, { recursive: true });
+
+  const mappings = [
+    ["data", path.join(rootDir, "packages", "db", "dist", "data")],
+    ["system", path.join(rootDir, "packages", "db", "dist", "system")]
+  ];
+
+  for (const [name, target] of mappings) {
+    const linkPath = path.join(dbNodeModulesScopeRoot, name);
+    rmSync(linkPath, { recursive: true, force: true });
+    symlinkSync(target, linkPath, "dir");
+
+    const stats = lstatSync(linkPath);
+    if (!stats.isSymbolicLink()) {
+      console.error(`Expected alias symlink for @/${name} in packages/db/node_modules.`);
+      process.exit(1);
+    }
+
+    const resolved = realpathSync(linkPath);
+    if (resolved !== target) {
+      console.error(`@/${name} in packages/db/node_modules is not local.`);
+      process.exit(1);
+    }
+  }
+};
 
 const listListeningPids = async (port) => {
   const result = await runCommandCapture(
@@ -379,7 +439,7 @@ const startServer = () => {
     [
       "--input-type=module",
       "-e",
-      "import { runCli } from \"../packages/cli/dist/runCli.js\"; runCli([process.execPath, \"atria\", \"dev\", \".\"]).catch((error) => { const message = error instanceof Error ? error.message : String(error); console.error(`[atria] ${message}`); process.exit(1); });"
+      "import { runCli } from \"../packages/cli/dist/runCli.js\"; runCli([process.execPath, \"atria\", \"dev\", \".\"]).catch((error) => { const message = error instanceof Error ? error.message : String(error); console.error(\"[atria] \" + message); process.exit(1); });"
     ],
     workspaceDir
   );
@@ -697,6 +757,7 @@ const main = async () => {
     void shutdown(0);
   });
 
+  forceLocalCliResolutionLinks();
   console.log("[live] Building packages once before watch...");
   const adminBuildCode = await runCommand(
     "corepack",
@@ -717,6 +778,7 @@ const main = async () => {
     await shutdown(initialBuildCode);
     return;
   }
+  forceLocalDbAliasLinks();
 
   console.log("[live] Starting TypeScript watch...");
   tscWatchProcess = spawnBackgroundProcess(

@@ -59,6 +59,14 @@ const resolveThemeState = (pathname: string): StudioState | null => {
   return null;
 };
 
+const resolveTranslationsState = (pathname: string): StudioState | null => {
+  if (pathname === "/translations" || pathname.startsWith("/translations/")) {
+    return "translations";
+  }
+
+  return null;
+};
+
 const resolveSettingsState = (pathname: string): StudioState | null => {
   if (pathname === "/settings") {
     return "settings";
@@ -90,6 +98,7 @@ const resolveStudioScreenState = (basePath: string): StudioState => {
   const resolvedScreen =
     resolvePagesState(pathname) ??
     resolveThemeState(pathname) ??
+    resolveTranslationsState(pathname) ??
     resolveSettingsState(pathname) ??
     resolveDashboardState(pathname);
 

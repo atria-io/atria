@@ -3,6 +3,7 @@ import { Dashboard } from "../route/dashboard/index.js";
 import { Pages } from "../route/pages/index.js";
 import { Settings } from "../route/settings/index.js";
 import { Theme } from "../route/theme/index.js";
+import { Translations } from "../route/translations/index.js";
 
 function Route({ state }: Props) {
   switch (state) {
@@ -14,6 +15,9 @@ function Route({ state }: Props) {
 
     case "theme":
       return <Theme />;
+
+    case "translations":
+      return <Translations />;
 
     case "settings":
       return <Settings />;

@@ -18,6 +18,7 @@ const workspaceDir = path.join(rootDir, "workspace");
 const runtimeDir = path.join(workspaceDir, ".atria", "runtime");
 const frontendDir = path.join(rootDir, "packages", "admin", "dist", "frontend");
 const cliNodeModulesScopedRoot = path.join(rootDir, "packages", "cli", "node_modules", "@atria");
+const dbNodeModulesScopeRoot = path.join(rootDir, "packages", "db", "node_modules", "@");
 
 const run = (command, args, cwd = rootDir) => {
   const result = spawnSync(command, args, {
@@ -73,8 +74,8 @@ const setWorkspacePackageJson = () => {
     workspaceDir,
     "pkg",
     "set",
-    'scripts.install=node --input-type=module -e "import { runCli } from \\\"@atria/cli\\\"; runCli([process.execPath, \\\"atria\\\", \\\"setup\\\", \\\".\\\", \\\"--database\\\", \\\"sqlite\\\", \\\"--database-only\\\"]).catch((error) => { const message = error instanceof Error ? error.message : String(error); console.error(`[atria] ${message}`); process.exit(1); });"',
-    'scripts.dev=node --input-type=module -e "import { runCli } from \\\"@atria/cli\\\"; runCli([process.execPath, \\\"atria\\\", \\\"dev\\\", \\\".\\\"]).catch((error) => { const message = error instanceof Error ? error.message : String(error); console.error(`[atria] ${message}`); process.exit(1); });"',
+    'scripts.install=node --input-type=module -e "import { runCli } from \\\"@atria/cli\\\"; runCli([process.execPath, \\\"atria\\\", \\\"setup\\\", \\\".\\\", \\\"--database\\\", \\\"sqlite\\\", \\\"--database-only\\\"]).catch((error) => { const message = error instanceof Error ? error.message : String(error); console.error(\\\"[atria] \\\" + message); process.exit(1); });"',
+    'scripts.dev=node --input-type=module -e "import { runCli } from \\\"@atria/cli\\\"; runCli([process.execPath, \\\"atria\\\", \\\"dev\\\", \\\".\\\"]).catch((error) => { const message = error instanceof Error ? error.message : String(error); console.error(\\\"[atria] \\\" + message); process.exit(1); });"',
     'devDependencies.@atria/cli=file:../packages/cli',
     'devDependencies.@atria/admin=file:../packages/admin',
     'devDependencies.@atria/ui=file:../packages/ui',
@@ -156,6 +157,33 @@ const forceLocalCliResolutionLinks = () => {
   }
 };
 
+const forceLocalDbAliasLinks = () => {
+  mkdirSync(dbNodeModulesScopeRoot, { recursive: true });
+
+  const mappings = [
+    ["data", path.join(rootDir, "packages", "db", "dist", "data")],
+    ["system", path.join(rootDir, "packages", "db", "dist", "system")]
+  ];
+
+  for (const [name, target] of mappings) {
+    const linkPath = path.join(dbNodeModulesScopeRoot, name);
+    rmSync(linkPath, { recursive: true, force: true });
+    symlinkSync(target, linkPath, "dir");
+
+    const stats = lstatSync(linkPath);
+    if (!stats.isSymbolicLink()) {
+      console.error(`Expected alias symlink for @/${name} in packages/db/node_modules.`);
+      process.exit(1);
+    }
+
+    const resolved = realpathSync(linkPath);
+    if (resolved !== target) {
+      console.error(`@/${name} in packages/db/node_modules is not local.`);
+      process.exit(1);
+    }
+  }
+};
+
 const main = () => {
   ensureWorkspace();
 
@@ -180,9 +208,12 @@ const main = () => {
 
   ensureRuntimeAssets();
   setWorkspacePackageJson();
+  forceLocalCliResolutionLinks();
+  forceLocalDbAliasLinks();
   run("npm", ["install"], workspaceDir);
   forceLocalWorkspaceLinks();
   forceLocalCliResolutionLinks();
+  forceLocalDbAliasLinks();
 
   run("pwd", [], workspaceDir);
   run("ls", ["-la"], workspaceDir);

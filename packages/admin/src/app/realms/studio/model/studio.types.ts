@@ -9,6 +9,7 @@ export type State =
   | "dashboard"
   | "pages"
   | "theme"
+  | "translations"
   | "settings";
 
 export interface AppState {
