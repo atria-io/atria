@@ -26,6 +26,7 @@ Atria is a document-first CMS in active development, based on a custom grammar f
 | `packages/db` | `@atria/db` | Persistence and auth storage |
 | `packages/server` | `@atria/server` | Routing and auth server layer |
 | `packages/shared` | `@atria/shared` | Canonical shared primitives |
+| `packages/ui` | `@atria/ui` | Shared UI primitives for `@atria/admin` |
 
 ## Project status
 
