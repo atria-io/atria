@@ -1,18 +1,16 @@
 import * as React from "react";
 
-const CLASS_NAME = "card-stage--scrolled";
-
 const syncStageClass = (node: Element): void => {
   if (!(node instanceof HTMLElement)) {
     return;
   }
 
   if (node.scrollTop > 0) {
-    node.classList.add(CLASS_NAME);
+    node.classList.add("card-stage--scrolled");
     return;
   }
 
-  node.classList.remove(CLASS_NAME);
+  node.classList.remove("card-stage--scrolled");
 };
 
 const getStages = (): Array<Element> => {

@@ -20,6 +20,10 @@
   margin-top: auto;
 }
 
+.admin-main__sidebar div:last-child > :first-child {
+  margin-bottom: 0.5rem;
+}
+
 .admin-main__sidebar-button {
   --button-size: var(--sidebar);
   --button-overlay-inset: calc(var(--spacing) * 1);
