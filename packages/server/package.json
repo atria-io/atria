@@ -1,6 +1,6 @@
 {
   "name": "@atria/server",
-  "version": "0.0.45",
+  "version": "0.0.46",
   "description": "Server package",
   "license": "MIT",
   "type": "module",

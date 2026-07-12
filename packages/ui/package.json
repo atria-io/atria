@@ -1,6 +1,6 @@
 {
   "name": "@atria/ui",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Shared UI primitives for Atria admin",
   "license": "MIT",
   "type": "module",
