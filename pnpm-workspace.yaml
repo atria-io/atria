@@ -1,3 +1,10 @@
 packages:
   - "packages/*"
   - "workspace"
+minimumReleaseAgeExclude:
+  - '@atria/admin@0.1.30'
+  - '@atria/cli@0.0.63'
+  - '@atria/db@0.0.29'
+  - '@atria/server@0.0.46'
+  - '@atria/shared@0.0.38'
+  - '@atria/ui@0.0.3'
