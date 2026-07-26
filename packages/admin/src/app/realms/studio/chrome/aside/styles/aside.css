@@ -16,12 +16,17 @@
   height: 100%;
 }
 
+.admin-main__sidebar div:first-child {
+	margin-top: 0.5rem;
+}
+
 .admin-main__sidebar div:last-child {
   margin-top: auto;
+	margin-bottom: 0.5rem;
 }
 
 .admin-main__sidebar div:last-child > :first-child {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .admin-main__sidebar-button {
