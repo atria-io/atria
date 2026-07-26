@@ -85,8 +85,7 @@
 
 .button--overlay:hover::after,
 .button--overlay[aria-selected='true']::after,
-.button--overlay[data-state='active']::after,
-.button--overlay[data-state='open']::after {
+.button--overlay[data-state='true']::after {
   background: var(--button-background-hover, var(--ghost-hover));
 }
 

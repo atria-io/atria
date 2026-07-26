@@ -8,7 +8,7 @@ interface CatalogItemProps {
   active: boolean;
 }
 
-function Item({ item, active }: CatalogItemProps) {
+function ItemList({ item, active }: CatalogItemProps) {
   const { canonicalStatus, currentUuid, historyByPage, versionId } = deps.useState();
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef<HTMLLIElement | null>(null);
@@ -87,4 +87,4 @@ function Item({ item, active }: CatalogItemProps) {
   );
 }
 
-export { Item };
+export { ItemList };

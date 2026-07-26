@@ -1,3 +1,4 @@
+/*!aside*/
 .admin-main__sidebar {
   float: left;
   top: var(--header);
@@ -22,7 +23,7 @@
 
 .admin-main__sidebar div:last-child {
   margin-top: auto;
-	margin-bottom: 0.5rem;
+	margin-bottom: 0.75rem;
 }
 
 .admin-main__sidebar div:last-child > :first-child {
@@ -30,6 +31,9 @@
 }
 
 .admin-main__sidebar-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
   --button-size: var(--sidebar);
   --button-overlay-inset: calc(var(--spacing) * 1);
   --button-overlay-radius: var(--soft);

@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as deps from "../deps.js";
-import { Item } from "./main/ItemList.js";
+import { ItemList } from "./main/ItemList.js";
 
 function Main() {
   const { drafts } = deps.useState();
@@ -22,7 +22,7 @@ function Main() {
   return (
     <ol className="pages-catalog__main">
       {items.map((item) => (
-        <Item
+        <ItemList
           key={item.uuid}
           item={item}
           active={route.mode === "document" && route.uuid === item.uuid}
