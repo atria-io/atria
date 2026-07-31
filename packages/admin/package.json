@@ -1,6 +1,6 @@
 {
   "name": "@atria/admin",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "description": "Modular admin runtime UI for atria",
   "keywords": [
     "atria",
